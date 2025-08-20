@@ -2631,7 +2631,19 @@
       "account": "Operations and Support",
       "amount": 296531964000.0,
       "funds_source": "Funds Provided by Public Law 119-021",
-      "approver": "Program Associate Director for Homeland Programs"
+      "approver": "Program Associate Director for Homeland Programs",
+      "file_id": 11453311,
+      "tas": "070-0540",
+      "tas_full": "070-0540-2025/2029",
+      "availability_period": "2025/2029",
+      "line_number": "AdjAut, 1200, IterNo",
+      "line_description": "Adjustment Authority provided | BA: Mand: Appropriation | Last Approved Apportionment: 2025-08-05",
+      "iteration": 2,
+      "created_at": "2025-08-18T14:27:25.540Z",
+      "modified_at": "2025-08-18T14:27:25.540Z",
+      "excel_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/Excel/FY2025_Agency%3DDHS_Bureau%3DICE_TAFS%3D070-2025-2029-0540_Iteration%3D2_2025-08-15-18.49.xlsx",
+      "source_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/JSON/FY2025_Agency%3DDHS_Bureau%3DICE_TAFS%3D070-2025-2029-0540_Iteration%3D2_2025-08-15-18.49.json",
+      "footnote_text": "Funds are apportioned with the understanding that (1) the Department of Homeland Security (DHS) will provide OMB with a spend plan for the amounts appropriated in\u00a0 Sections 90003 and 100052 of the One Big Beautiful Bill Act, P.L. 119-21, detailing the proposed use of funds in an agreed upon format; and (2) DHS will continue to work closely with OMB on any material changes to the spend plan during the period of availability of such funds."
     },
     {
       "approval_date": "2025-08-15T18:49:44+00:00",
@@ -2639,7 +2651,19 @@
       "account": "Procurement, Construction, and Improvements",
       "amount": 95770600000.0,
       "funds_source": "Funds Provided by Public Law 119-4",
-      "approver": "Program Associate Director for Homeland Programs"
+      "approver": "Program Associate Director for Homeland Programs",
+      "file_id": 11453313,
+      "tas": "070-0613",
+      "tas_full": "070-0613-2025/2029",
+      "availability_period": "2025/2029",
+      "line_number": "AdjAut, 1100, 1200",
+      "line_description": "Adjustment Authority provided | BA: Disc: Appropriation | BA: Mand: Appropriation",
+      "iteration": 3,
+      "created_at": "2025-08-18T14:27:25.716Z",
+      "modified_at": "2025-08-18T14:27:25.716Z",
+      "excel_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/Excel/FY2025_Agency%3DDHS_Bureau%3DUSCG_TAFS%3D070-2025-2029-0613_Iteration%3D3_2025-08-15-18.49.xlsx",
+      "source_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/JSON/FY2025_Agency%3DDHS_Bureau%3DUSCG_TAFS%3D070-2025-2029-0613_Iteration%3D3_2025-08-15-18.49.json",
+      "footnote_text": "Pursurant to P.L.119-21, 139 STAT 127-128,Title IV, Subchapter V, 1181. Special Appropriations,  $22,318,500,000 is provided to the U.S. Coast Guard's Procurement, Construction, and Improvements appropriation. | Funds are apportioned with the understanding that the Department of Homeland Security will continue to work closely with OMB to finalize a spend plan for amounts appropriated in Sec. 40001 of the One Big Beautiful Bill Act, P.L. 119-21. "
     },
     {
       "approval_date": "2025-08-14T17:04:55+00:00",
@@ -2647,7 +2671,19 @@
       "account": "Procurement, Construction, and Improvements",
       "amount": 1314671236.0,
       "funds_source": "Funds Provided by Public Law 117-169",
-      "approver": "Program Associate Director for Homeland Programs"
+      "approver": "Program Associate Director for Homeland Programs",
+      "file_id": 11452494,
+      "tas": "070-0406",
+      "tas_full": "070-0406-2022/2028",
+      "availability_period": "2022/2028",
+      "line_number": "AdjAut, 1000, IterNo",
+      "line_description": "Adjustment Authority provided | Unob Bal: Brought forward, Oct 1 | Last Approved Apportionment: 2024-09-30",
+      "iteration": 2,
+      "created_at": "2025-08-18T14:27:25.369Z",
+      "modified_at": "2025-08-18T14:27:25.369Z",
+      "excel_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/Excel/FY2025_Agency%3DDHS_Bureau%3DMD_TAFS%3D070-2022-2028-0406_Iteration%3D2_2025-08-14-17.04.xlsx",
+      "source_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/JSON/FY2025_Agency%3DDHS_Bureau%3DMD_TAFS%3D070-2022-2028-0406_Iteration%3D2_2025-08-14-17.04.json",
+      "footnote_text": null
     },
     {
       "approval_date": "2025-08-12T13:24:07+00:00",
@@ -2655,7 +2691,19 @@
       "account": "Operations and Support",
       "amount": 2140459208.0,
       "funds_source": "Funds Provided by Public Law 119-4",
-      "approver": "Program Associate Director for Homeland Programs"
+      "approver": "Program Associate Director for Homeland Programs",
+      "file_id": 11450035,
+      "tas": "070-0100",
+      "tas_full": "070-0100-2025/2025",
+      "availability_period": "2025/2025",
+      "line_number": "RptCat, AdjAut, IterNo",
+      "line_description": "Reporting Categories | Adjustment Authority provided | Last Approved Apportionment: 2025-06-16",
+      "iteration": 8,
+      "created_at": "2025-08-18T14:27:25.015Z",
+      "modified_at": "2025-08-18T14:27:25.015Z",
+      "excel_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/Excel/FY2025_Agency%3DDHS_Bureau%3DOSEM_TAFS%3D070-2025-2025-0100_Iteration%3D8_2025-08-12-13.24.xlsx",
+      "source_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/JSON/FY2025_Agency%3DDHS_Bureau%3DOSEM_TAFS%3D070-2025-2025-0100_Iteration%3D8_2025-08-12-13.24.json",
+      "footnote_text": "Pursuant to PL 119-4, Div. A, Title I, Secs. 1101(a)(6) and 1106, and PL 118-47, Div. C, Title V, Sec. 503(c), the Office of the Secreatary and Executive Management is transferring $2,000,000 from 070 25 0100  to 070 25 0610 to support the United States Coast Guard's mission | Request to increase the Reimbursable Authority by $31,687,843 for OPA - source funds are Mandatory funds from USCIS. | Request to increase the Reimbursable Authority by $58,628,701 for OPA - source funds are from CBP."
     },
     {
       "approval_date": "2025-08-12T13:23:01+00:00",
@@ -2663,7 +2711,19 @@
       "account": "Operations and Support",
       "amount": 307136732.0,
       "funds_source": "Funds Provided by Public Law 119-4",
-      "approver": "Program Associate Director for Homeland Programs"
+      "approver": "Program Associate Director for Homeland Programs",
+      "file_id": 11450031,
+      "tas": "070-0540",
+      "tas_full": "070-0540-2025/2026",
+      "availability_period": "2025/2026",
+      "line_number": "IterNo, 1121, 1151",
+      "line_description": "Last Approved Apportionment: 2025-05-29 | BA: Disc: Approps transferred from other accounts | BA: Disc: Appropriations:Antic nonexpend trans net",
+      "iteration": 3,
+      "created_at": "2025-08-18T14:27:25.196Z",
+      "modified_at": "2025-08-18T14:27:25.196Z",
+      "excel_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/Excel/FY2025_Agency%3DDHS_Bureau%3DICE_TAFS%3D070-2025-2026-0540_Iteration%3D3_2025-08-12-13.23.xlsx",
+      "source_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/JSON/FY2025_Agency%3DDHS_Bureau%3DICE_TAFS%3D070-2025-2026-0540_Iteration%3D3_2025-08-12-13.23.json",
+      "footnote_text": null
     },
     {
       "approval_date": "2025-08-12T13:22:39+00:00",
@@ -2671,7 +2731,19 @@
       "account": "Operations and Support",
       "amount": 176851916.0,
       "funds_source": "Funds Provided by Public Law 118-47",
-      "approver": "Program Associate Director for Homeland Programs"
+      "approver": "Program Associate Director for Homeland Programs",
+      "file_id": 11450028,
+      "tas": "070-0800",
+      "tas_full": "070-0800-2024/2025",
+      "availability_period": "2024/2025",
+      "line_number": "AdjAut, 1000, IterNo",
+      "line_description": "Adjustment Authority provided | Unob Bal: Brought forward, Oct 1 | Last Approved Apportionment: 2024-09-21",
+      "iteration": 2,
+      "created_at": "2025-08-18T14:27:24.837Z",
+      "modified_at": "2025-08-18T14:27:24.837Z",
+      "excel_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/Excel/FY2025_Agency%3DDHS_Bureau%3DSCI%26TECH_TAFS%3D070-2024-2025-0800_Iteration%3D2_2025-08-12-13.22.xlsx",
+      "source_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/JSON/FY2025_Agency%3DDHS_Bureau%3DSCI%26TECH_TAFS%3D070-2024-2025-0800_Iteration%3D2_2025-08-12-13.22.json",
+      "footnote_text": "P.L. 119-4, Div. A, Title I, Secs. 1101(a)(6) and 1106, and PL 118-47, Div. C, Title V, Sec. 503(c), the Science and Technology Directorate is transferring $614,000 from ''Science and Technology Directorate--Operations and Support'' in unobligated balances made available for Congressionally approved transfer from TAFS 70 24/25 0800 to \u201cUnited States Coast Guard \u2013 Operations and Support 70 25 0610\u201d in support of the United States Coast Guard (USCG) Operations Shortfalls. | Pursuant to the Further Consolidated Appropriations Act, 2024, P.L. 118-47, 138 STAT 616, Sec. 505(a) Science and Technology is transferring $614,000  from TAFS 070 24 0800 to 070 24/25 0800."
     },
     {
       "approval_date": "2025-08-12T13:22:11+00:00",
@@ -2679,7 +2751,19 @@
       "account": "Procurement, Construction, and Improvements, Science and Tech",
       "amount": 224614760.0,
       "funds_source": "Funds Provided by Public Law 118-47",
-      "approver": "Program Associate Director for Homeland Programs"
+      "approver": "Program Associate Director for Homeland Programs",
+      "file_id": 11450023,
+      "tas": "070-0415",
+      "tas_full": "070-0415-2024/2028",
+      "availability_period": "2024/2028",
+      "line_number": "AdjAut, 1000, IterNo",
+      "line_description": "Adjustment Authority provided | Unob Bal: Brought forward, Oct 1 | Last Approved Apportionment: 2024-09-17",
+      "iteration": 2,
+      "created_at": "2025-08-18T14:27:24.661Z",
+      "modified_at": "2025-08-18T14:27:24.661Z",
+      "excel_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/Excel/FY2025_Agency%3DDHS_Bureau%3DSCI%26TECH_TAFS%3D070-2024-2028-0415_Iteration%3D2_2025-08-12-13.22.xlsx",
+      "source_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/JSON/FY2025_Agency%3DDHS_Bureau%3DSCI%26TECH_TAFS%3D070-2024-2028-0415_Iteration%3D2_2025-08-12-13.22.json",
+      "footnote_text": "P.L. 119-4, Div. A Title I, Section 1101(a)(6) and Sec. 1106 and P.L. 118-47, Div C, Title V, Sec. 503 (c), $3,000,000 from \"Science Technology Directorate-- Procurement, Construction, and Improvements (PCI) (70 24/28 0415)\" to \" United States Coast Guard \u2013 Operations and Support 70 25 0610\u201d in support of the United States Coast Guard (USCG) Operations Shortfalls."
     },
     {
       "approval_date": "2025-08-12T13:21:43+00:00",
@@ -2687,7 +2771,19 @@
       "account": "Procurement, Construction, and Improvements, FEMA",
       "amount": 58904512.0,
       "funds_source": "Funds Provided by Public Law 117-328",
-      "approver": "Program Associate Director for Homeland Programs"
+      "approver": "Program Associate Director for Homeland Programs",
+      "file_id": 11450021,
+      "tas": "070-0414",
+      "tas_full": "070-0414-2023/2027",
+      "availability_period": "2023/2027",
+      "line_number": "1000, 1061, IterNo",
+      "line_description": "Unob Bal: Brought forward, Oct 1 | Unob Bal: Antic recov of prior year unpd/pd obl | Last Approved Apportionment: 2025-01-13",
+      "iteration": 3,
+      "created_at": "2025-08-18T14:27:24.483Z",
+      "modified_at": "2025-08-18T14:27:24.483Z",
+      "excel_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/Excel/FY2025_Agency%3DDHS_Bureau%3DFEMA_TAFS%3D070-2023-2027-0414_Iteration%3D3_2025-08-12-13.21.xlsx",
+      "source_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/JSON/FY2025_Agency%3DDHS_Bureau%3DFEMA_TAFS%3D070-2023-2027-0414_Iteration%3D3_2025-08-12-13.21.json",
+      "footnote_text": "In accordance with the FY 2025 Further Continuing Appropriations and Extensions Act (Pub. L. 119-4), which extends the terms and conditions of Section 503 of the FY 2024 Department of Homeland Security (DHS) Appropriations Act, 2024 (Pub. L. 118-47), this request realigns construction funding no longer required for closed projects to support the Administration's priorities to improve operational efficiency and to mitigate urgent security requirements.This reprogramming moves $3,738,000 from Construction & Facility Improvements - Regional Facilities to Mission Support Assets and Infrastructure - IT Modernization and Security Upgrades"
     },
     {
       "approval_date": "2025-08-12T13:20:50+00:00",
@@ -2695,7 +2791,19 @@
       "account": "Hermit's Peak/Calf Canyon Fire Assistance Account",
       "amount": 15025878096.0,
       "funds_source": "Funds Provided by Public Law N/A",
-      "approver": "Program Associate Director for Homeland Programs"
+      "approver": "Program Associate Director for Homeland Programs",
+      "file_id": 11450016,
+      "tas": "070-1912",
+      "tas_full": "070-1912-X",
+      "availability_period": "X",
+      "line_number": "IterNo, RptCat, 1000",
+      "line_description": "Last Approved Apportionment: 2025-01-13 | Reporting Categories | Actual - Unob Bal: Brought forward, Oct 1",
+      "iteration": 3,
+      "created_at": "2025-08-18T14:27:24.304Z",
+      "modified_at": "2025-08-18T14:27:24.304Z",
+      "excel_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/Excel/FY2025_Agency%3DDHS_Bureau%3DFEMA_TAFS%3D070-X-1912_Iteration%3D3_2025-08-12-13.20.xlsx",
+      "source_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/JSON/FY2025_Agency%3DDHS_Bureau%3DFEMA_TAFS%3D070-X-1912_Iteration%3D3_2025-08-12-13.20.json",
+      "footnote_text": "Per  PL 118-158, Div. B, Title VI, FEMA,  HERMIT\u2019S PEAK/CALF CANYON FIRE ASSISTANCE ACCOUNT\n(INCLUDING TRANSFER OF FUNDS): $1,000,000 shall be transferred to 'Office of Inspector General-Operations and Support\" for oversight of activities authorized by the Hermit\u2019s Peak/Calf Canyon Fire Assistance Act. | Per PL 118-158, Div. B, Title VI, FEMA, HERMIT\u2019S PEAK/CALF CANYON FIRE ASSISTANCE ACCOUNT\n(INCLUDING TRANSFER OF FUNDS): For an additional amount for \"Hermit\u2019s Peak Calf Canyon Fire Assistance Account \", $1,500,000,000, to remain available until expended."
     },
     {
       "approval_date": "2025-08-12T13:20:05+00:00",
@@ -2703,7 +2811,19 @@
       "account": "Procurement, Construction, and Improvements, FEMA",
       "amount": 40251040.0,
       "funds_source": "Funds Provided by Public Law N/A",
-      "approver": "Program Associate Director for Homeland Programs"
+      "approver": "Program Associate Director for Homeland Programs",
+      "file_id": 11450012,
+      "tas": "070-0414",
+      "tas_full": "070-0414-2023/2025",
+      "availability_period": "2023/2025",
+      "line_number": "IterNo, 1061, RptCat",
+      "line_description": "Last Approved Apportionment: 2024-12-12 | Unob Bal: Antic recov of prior year unpd/pd obl | Reporting Categories",
+      "iteration": 3,
+      "created_at": "2025-08-18T14:27:24.134Z",
+      "modified_at": "2025-08-18T14:27:24.134Z",
+      "excel_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/Excel/FY2025_Agency%3DDHS_Bureau%3DFEMA_TAFS%3D070-2023-2025-0414_Iteration%3D3_2025-08-12-13.20.xlsx",
+      "source_url": "https://apportionment-public.max.gov/Fiscal%20Year%202025/Department%20of%20Homeland%20Security/JSON/FY2025_Agency%3DDHS_Bureau%3DFEMA_TAFS%3D070-2023-2025-0414_Iteration%3D3_2025-08-12-13.20.json",
+      "footnote_text": null
     }
   ]
 }

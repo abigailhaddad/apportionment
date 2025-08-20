@@ -9,8 +9,7 @@ class DashboardManager {
             vendors: null,
             metadata: null
         };
-        this.currentFY = '2025';
-        this.compareFY = null;
+        this.currentFY = 2025;
         this.currentTrendView = 'component';
         this.currentMoneyView = 'vendors';
         
@@ -43,15 +42,7 @@ class DashboardManager {
     }
     
     setupEventListeners() {
-        document.getElementById('fiscalYear').addEventListener('change', (e) => {
-            this.currentFY = e.target.value;
-            this.renderDashboard();
-        });
-        
-        document.getElementById('compareYear').addEventListener('change', (e) => {
-            this.compareFY = e.target.value || null;
-            this.renderDashboard();
-        });
+        // No event listeners needed currently
     }
     
     async loadAllData() {
@@ -123,7 +114,7 @@ class DashboardManager {
             <div class="apportionment-list">
         `;
         
-        recentActions.forEach(action => {
+        recentActions.forEach((action, index) => {
             const date = new Date(action.approval_date);
             const formattedDate = date.toLocaleDateString('en-US', {
                 month: 'short',
@@ -132,16 +123,20 @@ class DashboardManager {
             });
             
             html += `
-                <div class="apportionment-card">
+                <div class="apportionment-card" id="apportionment-${index}" onclick="dashboard.toggleApportionment(${index})">
                     <div class="apportionment-header">
                         <span class="apportionment-date">${formattedDate}</span>
                         <span class="apportionment-amount">${formatCurrency(action.amount)}</span>
+                        <span class="expand-arrow">▼</span>
                     </div>
                     <div class="apportionment-details">
                         <div class="component-name">${action.component}</div>
                         <div class="account-name">${action.account}</div>
                         <div class="funds-source">Source: ${action.funds_source}</div>
                         <div class="approver">Approved by: ${action.approver}</div>
+                    </div>
+                    <div class="apportionment-full-details">
+                        ${this.renderApportionmentFullDetails(action)}
                     </div>
                 </div>
             `;
@@ -157,6 +152,71 @@ class DashboardManager {
         container.innerHTML = html;
     }
     
+    renderApportionmentFullDetails(action) {
+        // Get additional fields from the detail data if available
+        const details = [
+            { label: 'File ID', value: action.file_id },
+            { label: 'TAS', value: action.tas },
+            { label: 'Availability Period', value: action.availability_period },
+            { label: 'Line Number', value: action.line_number },
+            { label: 'Line Description', value: action.line_description },
+            { label: 'Iteration', value: action.iteration },
+            { label: 'Created At', value: action.created_at ? new Date(action.created_at).toLocaleDateString() : null },
+            { label: 'Modified At', value: action.modified_at ? new Date(action.modified_at).toLocaleDateString() : null },
+            { label: 'Excel URL', value: action.excel_url ? `<a href="${action.excel_url}" target="_blank">Download Excel</a>` : null },
+            { label: 'Source URL', value: action.source_url ? `<a href="${action.source_url}" target="_blank">View Source</a>` : null }
+        ];
+        
+        let html = '';
+        details.forEach(detail => {
+            if (detail.value && detail.value !== 'null' && detail.value !== 'undefined') {
+                html += `
+                    <div class="detail-row">
+                        <span class="detail-label">${detail.label}:</span>
+                        <span class="detail-value">${detail.value}</span>
+                    </div>
+                `;
+            }
+        });
+        
+        return html || '<div class="detail-row">No additional details available</div>';
+    }
+    
+    toggleApportionment(index) {
+        const card = document.getElementById(`apportionment-${index}`);
+        if (card) {
+            card.classList.toggle('expanded');
+        }
+    }
+    
+    toggleDropdown(dropdownId) {
+        const dropdown = document.getElementById(dropdownId);
+        const content = dropdown.querySelector('.filter-dropdown-content');
+        
+        // Close all other dropdowns
+        document.querySelectorAll('.filter-dropdown-content.show').forEach(d => {
+            if (d !== content) d.classList.remove('show');
+        });
+        
+        content.classList.toggle('show');
+        
+        // Add click outside handler
+        if (content.classList.contains('show')) {
+            setTimeout(() => {
+                document.addEventListener('click', this.closeDropdownsHandler);
+            }, 0);
+        }
+    }
+    
+    closeDropdownsHandler = (e) => {
+        if (!e.target.closest('.filter-dropdown')) {
+            document.querySelectorAll('.filter-dropdown-content.show').forEach(d => {
+                d.classList.remove('show');
+            });
+            document.removeEventListener('click', this.closeDropdownsHandler);
+        }
+    }
+    
     // Spending Lifecycle Section
     renderSpendingLifecycle() {
         const container = document.getElementById('spendingLifecycle');
@@ -166,11 +226,10 @@ class DashboardManager {
             return;
         }
         
-        // Filter by current FY and sort by appropriations
+        // Show all fiscal years combined, sorted by appropriations
         const lifecycleData = this.data.spendingLifecycle
-            .filter(d => d.fiscal_year == this.currentFY)
             .sort((a, b) => b.appropriations - a.appropriations)
-            .slice(0, 10); // Top 10 components
+            .slice(0, 15); // Top 15 components
         
         // Clear and set up
         container.innerHTML = '<h2>Spending Lifecycle: Appropriations → Obligations → Outlays</h2>';
@@ -218,7 +277,7 @@ class DashboardManager {
     }
     
     createLifecycleChart(container, data) {
-        const margin = { top: 20, right: 20, bottom: 120, left: 200 };
+        const margin = { top: 20, right: 120, bottom: 120, left: 200 };
         const width = container.clientWidth - margin.left - margin.right;
         const height = 500 - margin.top - margin.bottom;
         
@@ -248,9 +307,11 @@ class DashboardManager {
             .domain([0, 100])
             .range([0, width]);
         
+        // Set minimum bar height to 20px for readability
+        const minBarHeight = 20;
         const heightScale = d3.scaleLinear()
             .domain([0, d3.max(data, d => d.appropriations)])
-            .range([5, y.bandwidth()]); // Min 5px height for visibility
+            .range([minBarHeight, y.bandwidth()])
         
         // Create bars
         const bars = g.selectAll('.component-bar')
@@ -289,28 +350,35 @@ class DashboardManager {
         // Add percentage labels
         bars.each(function(d) {
             const bar = d3.select(this);
+            const barHeight = heightScale(d.appropriations);
             
-            // Only show labels if segment is wide enough
-            if (d.outlayPercent > 5) {
-                bar.append('text')
-                    .attr('x', x(d.outlayPercent / 2))
-                    .attr('y', heightScale(d.appropriations) / 2)
-                    .attr('dy', '.35em')
-                    .attr('text-anchor', 'middle')
-                    .text(`${d.outlayPercent.toFixed(0)}%`)
-                    .style('fill', 'white')
-                    .style('font-size', '12px');
-            }
-            
-            if (d.obligatedPercent > 5) {
-                bar.append('text')
-                    .attr('x', x(d.outlayPercent + d.obligatedPercent / 2))
-                    .attr('y', heightScale(d.appropriations) / 2)
-                    .attr('dy', '.35em')
-                    .attr('text-anchor', 'middle')
-                    .text(`${d.obligatedPercent.toFixed(0)}%`)
-                    .style('fill', 'black')
-                    .style('font-size', '12px');
+            // Only show labels if bar is tall enough
+            if (barHeight >= 15) {
+                // Only show outlay percentage if segment is wide enough
+                if (d.outlayPercent > 10) {
+                    bar.append('text')
+                        .attr('x', x(d.outlayPercent / 2))
+                        .attr('y', barHeight / 2)
+                        .attr('dy', '.35em')
+                        .attr('text-anchor', 'middle')
+                        .text(`${d.outlayPercent.toFixed(0)}%`)
+                        .style('fill', 'white')
+                        .style('font-size', '11px')
+                        .style('font-weight', '500');
+                }
+                
+                // Only show obligated percentage if segment is wide enough
+                if (d.obligatedPercent > 10) {
+                    bar.append('text')
+                        .attr('x', x(d.outlayPercent + d.obligatedPercent / 2))
+                        .attr('y', barHeight / 2)
+                        .attr('dy', '.35em')
+                        .attr('text-anchor', 'middle')
+                        .text(`${d.obligatedPercent.toFixed(0)}%`)
+                        .style('fill', 'black')
+                        .style('font-size', '11px')
+                        .style('font-weight', '500');
+                }
             }
         });
         
@@ -510,24 +578,31 @@ class DashboardManager {
         const container = document.getElementById('yearOverYear');
         container.innerHTML = `
             <h2>Year-over-Year Spending Trends</h2>
-            <div id="yearOverYearControls" style="margin-bottom: 20px;">
-                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 300px;">
-                        <label style="display: block; font-weight: bold; margin-bottom: 5px;">Components:</label>
-                        <div id="componentFilters" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+            <div id="yearOverYearControls" style="margin-bottom: 20px; display: flex; gap: 20px; align-items: center;">
+                <div class="filter-dropdown" id="componentFilterDropdown">
+                    <div class="filter-dropdown-button" onclick="dashboard.toggleDropdown('componentFilterDropdown')">
+                        <span id="componentFilterLabel">All Components</span>
+                    </div>
+                    <div class="filter-dropdown-content" id="componentFilterContent">
+                        <div id="componentFilters">
                             <!-- Component checkboxes will be added here -->
                         </div>
-                        <div style="margin-top: 5px;">
+                        <div class="filter-dropdown-actions">
                             <button onclick="dashboard.selectAllComponents()">Select All</button>
                             <button onclick="dashboard.clearAllComponents()">Clear All</button>
                         </div>
                     </div>
-                    <div style="flex: 1; min-width: 300px;">
-                        <label style="display: block; font-weight: bold; margin-bottom: 5px;">Spending Types:</label>
-                        <div id="spendingTypeFilters" style="border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                </div>
+                
+                <div class="filter-dropdown" id="spendingTypeFilterDropdown">
+                    <div class="filter-dropdown-button" onclick="dashboard.toggleDropdown('spendingTypeFilterDropdown')">
+                        <span id="spendingTypeFilterLabel">Spending Types</span>
+                    </div>
+                    <div class="filter-dropdown-content" id="spendingTypeFilterContent">
+                        <div id="spendingTypeFilters">
                             <!-- Spending type checkboxes will be added here -->
                         </div>
-                        <div style="margin-top: 5px;">
+                        <div class="filter-dropdown-actions">
                             <button onclick="dashboard.selectAllSpendingTypes()">Select All</button>
                             <button onclick="dashboard.clearAllSpendingTypes()">Clear All</button>
                         </div>
@@ -594,6 +669,7 @@ class DashboardManager {
             this.selectedComponents.add(cb.value);
         });
         this.updateYearOverYear();
+        this.updateComponentFilterLabel();
     }
     
     clearAllComponents() {
@@ -602,6 +678,7 @@ class DashboardManager {
         });
         this.selectedComponents.clear();
         this.updateYearOverYear();
+        this.updateComponentFilterLabel();
     }
     
     selectAllSpendingTypes() {
@@ -618,6 +695,21 @@ class DashboardManager {
         });
         this.selectedSpendingTypes.clear();
         this.updateYearOverYear();
+        this.updateComponentFilterLabel();
+    }
+    
+    updateComponentFilterLabel() {
+        const label = document.getElementById('componentFilterLabel');
+        const selected = this.selectedComponents.size;
+        const total = this.data.monthlyTrends.components.length;
+        
+        if (selected === 0) {
+            label.textContent = 'No Components Selected';
+        } else if (selected === total) {
+            label.textContent = 'All Components';
+        } else {
+            label.textContent = `${selected} of ${total} Components`;
+        }
     }
     
     updateYearOverYear() {
@@ -634,6 +726,7 @@ class DashboardManager {
         });
         
         this.renderYearOverYearChart();
+        this.updateComponentFilterLabel();
     }
     
     renderYearOverYearChart() {

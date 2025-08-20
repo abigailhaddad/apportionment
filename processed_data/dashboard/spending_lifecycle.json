@@ -6,7 +6,7 @@
     "budget_authority": 295693530.0,
     "obligations": 353476286.04,
     "outlays": 376523384.90999997,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -15,7 +15,7 @@
     "budget_authority": 364689659.0,
     "obligations": 364243108.59000003,
     "outlays": 332993021.74,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -24,7 +24,7 @@
     "budget_authority": 446221547.0,
     "obligations": 594080250.4,
     "outlays": 791575461.01,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -33,7 +33,7 @@
     "budget_authority": 2591485753.52,
     "obligations": 3148154166.08,
     "outlays": 3379500048.82,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -42,7 +42,7 @@
     "budget_authority": 4998741671.0,
     "obligations": 38145665322.96,
     "outlays": 41984567303.72,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -51,7 +51,7 @@
     "budget_authority": 352766532.0,
     "obligations": 625426723.4399999,
     "outlays": 678359962.6999999,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -60,7 +60,7 @@
     "budget_authority": 33153032.0,
     "obligations": 64700537.19,
     "outlays": 109988282.7,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -69,7 +69,7 @@
     "budget_authority": 2686542250.0,
     "obligations": 3067075263.96,
     "outlays": 2167342184.91,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -78,7 +78,7 @@
     "budget_authority": 208085617.0,
     "obligations": 209840487.07,
     "outlays": 205177869.01,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -87,7 +87,7 @@
     "budget_authority": 328258300.0,
     "obligations": 337357266.90000004,
     "outlays": 306656960.59999996,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -96,7 +96,7 @@
     "budget_authority": 1040422110.0,
     "obligations": 1362488324.1699998,
     "outlays": 1756286034.3500001,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -105,7 +105,7 @@
     "budget_authority": 6209119634.56,
     "obligations": 8668900034.96,
     "outlays": 10085539124.28,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -114,7 +114,7 @@
     "budget_authority": 16419704175.0,
     "obligations": 21871264089.260002,
     "outlays": 20036105000.98,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -123,7 +123,7 @@
     "budget_authority": 8541893761.0,
     "obligations": 9085597204.34,
     "outlays": 8909675679.63,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -132,7 +132,7 @@
     "budget_authority": 11630606507.0,
     "obligations": 14767444578.46,
     "outlays": 15015495603.23,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2022,
@@ -141,7 +141,7 @@
     "budget_authority": 2601985001.0,
     "obligations": 2771397977.0699997,
     "outlays": 2696236412.9900002,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -150,7 +150,7 @@
     "budget_authority": 315882250.0,
     "obligations": 348200861.52,
     "outlays": 327266909.72,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -159,7 +159,7 @@
     "budget_authority": 267981000.0,
     "obligations": 264848744.91,
     "outlays": 245526261.44,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -168,7 +168,7 @@
     "budget_authority": 399990560.0,
     "obligations": 410040691.18,
     "outlays": 317974976.57,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -177,7 +177,7 @@
     "budget_authority": 2876568271.0,
     "obligations": 2845691068.0,
     "outlays": 2716520847.55,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -186,7 +186,7 @@
     "budget_authority": 5997663101.0,
     "obligations": 6132025663.43,
     "outlays": 3336203424.65,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -195,7 +195,7 @@
     "budget_authority": 401079608.0,
     "obligations": 551628220.41,
     "outlays": 500173253.44,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -204,7 +204,7 @@
     "budget_authority": 118427410.0,
     "obligations": 221025607.28,
     "outlays": 177584109.86,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -213,7 +213,7 @@
     "budget_authority": 2056717067.0,
     "obligations": 2155038929.7,
     "outlays": 1993726428.48,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -222,7 +222,7 @@
     "budget_authority": 214929000.0,
     "obligations": 229648565.15,
     "outlays": 224673558.1,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -231,7 +231,7 @@
     "budget_authority": 338700635.0,
     "obligations": 365413799.15000004,
     "outlays": 337448179.23,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -240,7 +240,7 @@
     "budget_authority": 897838883.0,
     "obligations": 964357203.15,
     "outlays": 753344297.84,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -249,7 +249,7 @@
     "budget_authority": 6355294536.83,
     "obligations": 8973306449.54,
     "outlays": 8726816207.92,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -258,7 +258,7 @@
     "budget_authority": 17371889697.0,
     "obligations": 20080315506.08,
     "outlays": 19167062415.140003,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -267,7 +267,7 @@
     "budget_authority": 8979714961.0,
     "obligations": 9466497495.730001,
     "outlays": 9181423742.810001,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -276,7 +276,7 @@
     "budget_authority": 11698225963.0,
     "obligations": 11532409051.71,
     "outlays": 10370823222.81,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2023,
@@ -285,7 +285,7 @@
     "budget_authority": 2776210618.0,
     "obligations": 2968093422.02,
     "outlays": 2693445591.08,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -294,7 +294,7 @@
     "budget_authority": 344768000.0,
     "obligations": 363649073.08000004,
     "outlays": 336533991.51,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -303,7 +303,7 @@
     "budget_authority": 277993070.0,
     "obligations": 280281107.4,
     "outlays": 244542358.0,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -312,7 +312,7 @@
     "budget_authority": 403690000.0,
     "obligations": 360832781.57,
     "outlays": 209299659.07,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -321,7 +321,7 @@
     "budget_authority": 2888637000.0,
     "obligations": 2855632040.6299996,
     "outlays": 2437735134.06,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -330,7 +330,7 @@
     "budget_authority": 5879607449.0,
     "obligations": 5047040846.38,
     "outlays": 1718228290.32,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -339,7 +339,7 @@
     "budget_authority": 290435000.0,
     "obligations": 333949310.53,
     "outlays": 319308863.37,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -348,7 +348,7 @@
     "budget_authority": 376515000.0,
     "obligations": 400156642.97999996,
     "outlays": 378076685.96,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -357,7 +357,7 @@
     "budget_authority": 1982988650.0,
     "obligations": 2060696866.03,
     "outlays": 1795483165.51,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -366,7 +366,7 @@
     "budget_authority": 220074969.0,
     "obligations": 221838875.51,
     "outlays": 213418623.29999998,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -375,7 +375,7 @@
     "budget_authority": 364994000.0,
     "obligations": 391756513.09000003,
     "outlays": 324271607.60999995,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -384,7 +384,7 @@
     "budget_authority": 741634000.0,
     "obligations": 705529675.37,
     "outlays": 450857683.99,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -393,7 +393,7 @@
     "budget_authority": 6722557594.19,
     "obligations": 10252597660.650002,
     "outlays": 9701384052.82,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -402,7 +402,7 @@
     "budget_authority": 18623766000.0,
     "obligations": 21101573543.93,
     "outlays": 19879672266.05,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -411,7 +411,7 @@
     "budget_authority": 9557303062.0,
     "obligations": 9786386763.16,
     "outlays": 9326901890.18,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -420,7 +420,7 @@
     "budget_authority": 11741517552.0,
     "obligations": 11228774917.66,
     "outlays": 10066429903.55,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2024,
@@ -429,7 +429,7 @@
     "budget_authority": 2767797000.0,
     "obligations": 3195177067.13,
     "outlays": 2937208996.79,
-    "note": NaN
+    "note": null
   },
   {
     "fiscal_year": 2025,

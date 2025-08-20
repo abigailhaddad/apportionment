@@ -56,6 +56,74 @@
             flex-wrap: wrap;
         }
         
+        /* Dropdown filter styles */
+        .filter-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .filter-dropdown-button {
+            padding: 8px 12px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            min-width: 150px;
+        }
+        
+        .filter-dropdown-button:hover {
+            background: #f8f9fa;
+        }
+        
+        .filter-dropdown-button::after {
+            content: '\25bc';
+            font-size: 10px;
+            margin-left: auto;
+        }
+        
+        .filter-dropdown-content {
+            display: none;
+            position: absolute;
+            background: white;
+            min-width: 250px;
+            max-height: 300px;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            z-index: 1000;
+            margin-top: 2px;
+        }
+        
+        .filter-dropdown-content.show {
+            display: block;
+        }
+        
+        .filter-dropdown-content label {
+            display: block;
+            padding: 8px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .filter-dropdown-content label:hover {
+            background: #f8f9fa;
+        }
+        
+        .filter-dropdown-content input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        
+        .filter-dropdown-actions {
+            padding: 8px 12px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+        
         .control-group {
             display: flex;
             flex-direction: column;
@@ -377,6 +445,53 @@
             border-left: 4px solid #007bff;
             padding: 15px;
             border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .apportionment-card:hover {
+            background: #e9ecef;
+        }
+        
+        .apportionment-card.expanded {
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .expand-arrow {
+            float: right;
+            transition: transform 0.3s;
+        }
+        
+        .apportionment-card.expanded .expand-arrow {
+            transform: rotate(180deg);
+        }
+        
+        .apportionment-full-details {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .apportionment-card.expanded .apportionment-full-details {
+            display: block;
+        }
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            font-size: 0.9em;
+        }
+        
+        .detail-label {
+            color: #666;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            color: #333;
         }
         
         .apportionment-header {
@@ -501,22 +616,6 @@
         </header>
         
         <div class="controls">
-            <div class="control-group">
-                <label>Fiscal Year</label>
-                <select id="fiscalYear">
-                    <option value="2025" selected>FY 2025</option>
-                    <option value="2024">FY 2024</option>
-                    <option value="2023">FY 2023</option>
-                </select>
-            </div>
-            <div class="control-group">
-                <label>Compare To</label>
-                <select id="compareYear">
-                    <option value="">No Comparison</option>
-                    <option value="2024">FY 2024</option>
-                    <option value="2023">FY 2023</option>
-                </select>
-            </div>
             <button class="download-btn" onclick="downloadData()">Download Data</button>
         </div>
         

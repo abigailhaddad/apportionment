@@ -28,10 +28,26 @@ def get_recent_apportionments(detail_file='processed_data/appropriations/dhs_tas
         # Convert approval_date to datetime
         df['approval_date'] = pd.to_datetime(df['approval_date'])
         
-        # Get unique apportionments by file_id and approval_date
-        unique_apportionments = df.groupby(['file_id', 'approval_date', 'bureau', 'account', 
-                                           'funds_provided_by', 'approver_title']).agg({
-            'amount': 'sum'
+        # Get unique apportionments by file_id and approval_date, keeping all fields
+        # Group by file_id to get one record per apportionment
+        unique_apportionments = df.groupby('file_id').agg({
+            'approval_date': 'first',
+            'bureau': 'first',
+            'account': 'first',
+            'amount': 'sum',
+            'funds_provided_by': 'first',
+            'approver_title': 'first',
+            'tas': 'first',
+            'tas_full': 'first',
+            'availability_period': 'first',
+            'line_number': lambda x: ', '.join(str(v) for v in x.unique()[:3]),  # First 3 line numbers
+            'line_description': lambda x: ' | '.join(str(v) for v in x.unique()[:3]),  # First 3 descriptions
+            'iteration': 'first',
+            'created_at': 'first',
+            'modified_at': 'first',
+            'excel_url': 'first',
+            'source_url': 'first',
+            'footnote_text': lambda x: ' | '.join(str(v) for v in x.dropna().unique()[:3]) if x.notna().any() else None
         }).reset_index()
         
         # Sort by approval date and get most recent
@@ -46,12 +62,26 @@ def get_recent_apportionments(detail_file='processed_data/appropriations/dhs_tas
                 'account': row['account'],
                 'amount': float(row['amount']),
                 'funds_source': row['funds_provided_by'],
-                'approver': row['approver_title']
+                'approver': row['approver_title'],
+                'file_id': row['file_id'],
+                'tas': row['tas'],
+                'tas_full': row['tas_full'],
+                'availability_period': row['availability_period'],
+                'line_number': row['line_number'],
+                'line_description': row['line_description'],
+                'iteration': int(row['iteration']) if pd.notna(row['iteration']) else None,
+                'created_at': row['created_at'],
+                'modified_at': row['modified_at'],
+                'excel_url': row['excel_url'] if pd.notna(row['excel_url']) else None,
+                'source_url': row['source_url'] if pd.notna(row['source_url']) else None,
+                'footnote_text': row['footnote_text'] if pd.notna(row['footnote_text']) else None
             })
         
         return recent_list
     except Exception as e:
         print(f"Error getting recent apportionments: {e}")
+        import traceback
+        traceback.print_exc()
         return []
 
 def generate_appropriations_summary(data):
@@ -140,6 +170,9 @@ def generate_spending_lifecycle():
                 # For FY2025, scale down obligations/outlays since we only have Q3 data
                 # This is approximate but gives a better picture
                 summary.at[idx, 'note'] = 'FY2025 obligations/outlays through Q3 only'
+        
+        # Replace NaN values with None for valid JSON
+        summary = summary.where(pd.notna(summary), None)
         
         return summary.to_dict('records')
     except Exception as e:
