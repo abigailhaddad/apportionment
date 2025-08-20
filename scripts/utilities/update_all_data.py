@@ -155,6 +155,12 @@ def update_data(skip_fast_book=False, skip_usaspending=False):
         os.chdir(original_dir)
         return False
     
+    # Validate detailed data was created
+    if not validate_csv_not_empty("processed_data/appropriations/dhs_tas_aggregated_detail.csv", min_rows=1000):
+        print("\n❌ Budget detail extraction failed - detail file is empty or too small")
+        os.chdir(original_dir)
+        return False
+    
     # Step 4: Merge fund types from FAST Book
     success = run_command(
         "python scripts/processing/merge_fund_types.py",
@@ -272,6 +278,7 @@ def update_data(skip_fast_book=False, skip_usaspending=False):
     print("\n=== FINAL VALIDATION ===")
     critical_files = [
         ("processed_data/appropriations/dhs_tas_aggregated_with_fund_types.csv", "Main budget data"),
+        ("processed_data/appropriations/dhs_tas_aggregated_detail.csv", "Detailed line-level budget data"),
         ("processed_data/appropriations/dhs_budget_flat.json", "Treemap visualization data"),
         ("processed_data/appropriations/update_metadata.json", "Update metadata"),
     ]
