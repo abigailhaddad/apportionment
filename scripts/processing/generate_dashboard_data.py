@@ -88,61 +88,37 @@ def generate_appropriations_summary(data):
 def generate_spending_lifecycle():
     """Generate spending lifecycle data showing appropriations -> obligations -> outlays"""
     try:
-        # Load the aggregated USAspending data which has outlays
-        usa_data = load_json('processed_data/usaspending/usaspending_aggregated_by_appropriation_year.json')
+        # Use the proper combined spending lifecycle data that matches TAS codes
+        lifecycle_data = load_json('processed_data/spending_lifecycle/spending_lifecycle_data.json')
         
-        # Load appropriations data
-        approp_data = load_json('processed_data/appropriations/dhs_budget_flat.json')
-        
-        # Handle nested data structure
-        if isinstance(approp_data, dict):
-            # Flatten the nested structure
-            all_approp = []
-            for category, items in approp_data.items():
-                if isinstance(items, list):
-                    all_approp.extend(items)
-            approp_df = pd.DataFrame(all_approp)
+        if 'records' in lifecycle_data:
+            records = lifecycle_data['records']
         else:
-            approp_df = pd.DataFrame(approp_data)
+            records = lifecycle_data
+            
+        # Convert to DataFrame for easier processing
+        df = pd.DataFrame(records)
         
-        # Check for component field
-        if 'component' not in approp_df.columns and 'bureau' in approp_df.columns:
-            approp_df['component'] = approp_df['bureau']
+        # Rename bureau to component for consistency
+        if 'bureau' in df.columns:
+            df['component'] = df['bureau']
         
-        # Aggregate appropriations by fiscal year and component
-        approp_by_component = approp_df.groupby(['fiscal_year', 'component']).agg({
-            'amount': 'sum'
+        # Use apportionment_fy as fiscal_year for consistency
+        if 'apportionment_fy' in df.columns:
+            df['fiscal_year'] = df['apportionment_fy']
+        
+        # Group by fiscal year and component
+        summary = df.groupby(['fiscal_year', 'component']).agg({
+            'apportionment_amount': 'sum',
+            'budget_authority': 'sum', 
+            'obligations': 'sum',
+            'outlays': 'sum'
         }).reset_index()
-        approp_by_component.rename(columns={'amount': 'appropriations'}, inplace=True)
         
-        # Process USAspending data
-        lifecycle_data = []
-        for fy, fy_data in usa_data.items():
-            fy_df = pd.DataFrame(fy_data)
-            
-            # Group by component
-            by_component = fy_df.groupby('component').agg({
-                'budget_authority': 'sum',
-                'obligations': 'sum',
-                'outlays': 'sum'
-            }).reset_index()
-            
-            by_component['fiscal_year'] = int(fy)
-            
-            # Merge with appropriations
-            merged = pd.merge(
-                by_component, 
-                approp_by_component[approp_by_component['fiscal_year'] == int(fy)],
-                on=['fiscal_year', 'component'],
-                how='outer'
-            )
-            
-            # Fill missing values
-            merged = merged.fillna(0)
-            
-            lifecycle_data.extend(merged.to_dict('records'))
+        # Rename for output consistency
+        summary.rename(columns={'apportionment_amount': 'appropriations'}, inplace=True)
         
-        return lifecycle_data
+        return summary.to_dict('records')
     except Exception as e:
         print(f"Error generating spending lifecycle: {e}")
         return []

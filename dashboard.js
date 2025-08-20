@@ -152,100 +152,6 @@ class DashboardManager {
         `;
         
         container.innerHTML = html;
-        
-        // Get latest approval date from metadata
-        const latestDate = this.data.metadata?.max_approval_date ? 
-            new Date(this.data.metadata.max_approval_date).toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric'
-            }) : 'Unknown';
-        
-        let html = `
-            <div class="alert">
-                Latest apportionment data as of ${latestDate}
-            </div>
-            
-            <div class="metrics-grid">
-                <div class="metric-card">
-                    <div class="metric-value">${formatCurrency(totalAmount)}</div>
-                    <div class="metric-label">Total FY ${this.currentFY} Appropriations</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${sortedComponents.length}</div>
-                    <div class="metric-label">Components Funded</div>
-                </div>
-                <div class="metric-card">
-                    <div class="metric-value">${formatCurrency(sortedComponents[0]?.amount || 0)}</div>
-                    <div class="metric-label">Largest Component (${getComponentName(sortedComponents[0]?.component, 'label')})</div>
-                </div>
-            </div>
-            
-            <div class="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Component</th>
-                            <th class="amount">FY ${this.currentFY} Amount</th>
-                            <th class="percent">% of Total</th>
-        `;
-        
-        // Add comparison column if selected
-        if (this.compareFY) {
-            html += `
-                            <th class="amount">FY ${this.compareFY} Amount</th>
-                            <th class="percent">Change</th>
-            `;
-        }
-        
-        html += `
-                        </tr>
-                    </thead>
-                    <tbody>
-        `;
-        
-        // Add rows for each component
-        sortedComponents.slice(0, 15).forEach(({ component, amount }) => {
-            const percent = (amount / totalAmount * 100).toFixed(1);
-            
-            html += `
-                        <tr>
-                            <td class="component-name">${component}</td>
-                            <td class="amount">${formatCurrency(amount)}</td>
-                            <td class="percent">${percent}%</td>
-            `;
-            
-            if (this.compareFY) {
-                const compareData = this.data.appropriationsSummary.by_component.filter(
-                    d => d.fiscal_year == this.compareFY && d.component === component
-                );
-                const compareAmount = compareData.length > 0 ? compareData[0].amount : 0;
-                const change = compareAmount > 0 ? ((amount - compareAmount) / compareAmount * 100) : 0;
-                const changeClass = change > 0 ? 'positive' : change < 0 ? 'negative' : '';
-                
-                html += `
-                            <td class="amount">${formatCurrency(compareAmount)}</td>
-                            <td class="percent ${changeClass}">${change > 0 ? '+' : ''}${change.toFixed(1)}%</td>
-                `;
-            }
-            
-            html += `
-                        </tr>
-            `;
-        });
-        
-        html += `
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="data-note">
-                Showing top 15 components by appropriation amount. 
-                <a href="appropriations_detail.html">View full detail →</a>
-            </div>
-        `;
-        
-        container.innerHTML = `<h2>Recent Apportionments</h2>` + html;
     }
     
     // Spending Lifecycle Section
@@ -273,6 +179,14 @@ class DashboardManager {
         
         this.createLifecycleChart(chartContainer, lifecycleData);
         
+        // Get data currency info
+        const apportionmentDate = this.data.metadata?.max_approval_date ? 
+            new Date(this.data.metadata.max_approval_date).toLocaleDateString('en-US', {
+                month: 'long',
+                day: 'numeric',
+                year: 'numeric'
+            }) : 'current';
+            
         // Add legend and notes
         container.innerHTML += `
             <div class="legend">
@@ -288,6 +202,11 @@ class DashboardManager {
                     <div class="legend-color" style="background: #6c757d;"></div>
                     <span>Unobligated (Available)</span>
                 </div>
+            </div>
+            <div class="alert" style="margin-top: 15px;">
+                <strong>Data Currency:</strong><br>
+                • Appropriations data: Current through ${apportionmentDate}<br>
+                • Obligations & Outlays: FY2025 through June (Q3), FY2022-2024 complete
             </div>
             <div class="data-note">
                 Bar height shows total appropriation amount. Segments show spending status.
