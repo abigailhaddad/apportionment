@@ -20,6 +20,40 @@ def load_json(filepath):
         return data['data']
     return data
 
+def get_recent_apportionments(detail_file='processed_data/appropriations/dhs_tas_aggregated_detail.csv', limit=10):
+    """Get the most recent apportionment actions with full details"""
+    try:
+        df = pd.read_csv(detail_file)
+        
+        # Convert approval_date to datetime
+        df['approval_date'] = pd.to_datetime(df['approval_date'])
+        
+        # Get unique apportionments by file_id and approval_date
+        unique_apportionments = df.groupby(['file_id', 'approval_date', 'bureau', 'account', 
+                                           'funds_provided_by', 'approver_title']).agg({
+            'amount': 'sum'
+        }).reset_index()
+        
+        # Sort by approval date and get most recent
+        recent = unique_apportionments.nlargest(limit, 'approval_date')
+        
+        # Format for display
+        recent_list = []
+        for _, row in recent.iterrows():
+            recent_list.append({
+                'approval_date': row['approval_date'].isoformat(),
+                'component': row['bureau'],
+                'account': row['account'],
+                'amount': float(row['amount']),
+                'funds_source': row['funds_provided_by'],
+                'approver': row['approver_title']
+            })
+        
+        return recent_list
+    except Exception as e:
+        print(f"Error getting recent apportionments: {e}")
+        return []
+
 def generate_appropriations_summary(data):
     """Generate appropriations summary by component and fiscal year"""
     df = pd.DataFrame(data)
@@ -51,14 +85,81 @@ def generate_appropriations_summary(data):
         'total_by_year': df.groupby('fiscal_year')['amount'].sum().to_dict()
     }
 
+def generate_spending_lifecycle():
+    """Generate spending lifecycle data showing appropriations -> obligations -> outlays"""
+    try:
+        # Load the aggregated USAspending data which has outlays
+        usa_data = load_json('processed_data/usaspending/usaspending_aggregated_by_appropriation_year.json')
+        
+        # Load appropriations data
+        approp_data = load_json('processed_data/appropriations/dhs_budget_flat.json')
+        
+        # Handle nested data structure
+        if isinstance(approp_data, dict):
+            # Flatten the nested structure
+            all_approp = []
+            for category, items in approp_data.items():
+                if isinstance(items, list):
+                    all_approp.extend(items)
+            approp_df = pd.DataFrame(all_approp)
+        else:
+            approp_df = pd.DataFrame(approp_data)
+        
+        # Check for component field
+        if 'component' not in approp_df.columns and 'bureau' in approp_df.columns:
+            approp_df['component'] = approp_df['bureau']
+        
+        # Aggregate appropriations by fiscal year and component
+        approp_by_component = approp_df.groupby(['fiscal_year', 'component']).agg({
+            'amount': 'sum'
+        }).reset_index()
+        approp_by_component.rename(columns={'amount': 'appropriations'}, inplace=True)
+        
+        # Process USAspending data
+        lifecycle_data = []
+        for fy, fy_data in usa_data.items():
+            fy_df = pd.DataFrame(fy_data)
+            
+            # Group by component
+            by_component = fy_df.groupby('component').agg({
+                'budget_authority': 'sum',
+                'obligations': 'sum',
+                'outlays': 'sum'
+            }).reset_index()
+            
+            by_component['fiscal_year'] = int(fy)
+            
+            # Merge with appropriations
+            merged = pd.merge(
+                by_component, 
+                approp_by_component[approp_by_component['fiscal_year'] == int(fy)],
+                on=['fiscal_year', 'component'],
+                how='outer'
+            )
+            
+            # Fill missing values
+            merged = merged.fillna(0)
+            
+            lifecycle_data.extend(merged.to_dict('records'))
+        
+        return lifecycle_data
+    except Exception as e:
+        print(f"Error generating spending lifecycle: {e}")
+        return []
+
 def generate_spending_summary(data):
     """Generate spending summary by component and category"""
     df = pd.DataFrame(data)
     
-    # Ensure we have the fields we need
-    if 'obligations' not in df.columns:
+    # Map field names to standard names
+    if 'total_obligations' in df.columns:
+        df['obligations'] = df['total_obligations']
+    elif 'obligations' not in df.columns:
         df['obligations'] = 0
-    if 'outlays' not in df.columns:
+        
+    if 'total_outlays' in df.columns:
+        df['outlays'] = df['total_outlays']
+    elif 'outlays' not in df.columns:
         df['outlays'] = 0
     
     # By component
@@ -108,6 +209,13 @@ def generate_vendor_summary(data, top_n=100):
     # Rename to vendor_name for consistency
     if vendor_field != 'vendor_name':
         df['vendor_name'] = df[vendor_field]
+    
+    # Map obligations field
+    if 'total_obligations' in df.columns:
+        df['obligations'] = df['total_obligations']
+    elif 'obligations' not in df.columns:
+        print(f"Warning: no obligations field found in vendor data")
+        df['obligations'] = 0
     
     # Get top vendors by total obligations across all years
     vendor_totals = df.groupby('vendor_name')['obligations'].sum().sort_values(ascending=False)
@@ -165,6 +273,9 @@ def main():
         appropriations_data = load_json('processed_data/appropriations/dhs_budget_flat.json')
         appropriations_summary = generate_appropriations_summary(appropriations_data)
         
+        # Add recent apportionments
+        appropriations_summary['recent_apportionments'] = get_recent_apportionments()
+        
         with open(f'{output_dir}/appropriations_summary.json', 'w') as f:
             json.dump(appropriations_summary, f, indent=2)
         print(f"✓ Created appropriations_summary.json")
@@ -193,14 +304,25 @@ def main():
     except Exception as e:
         print(f"✗ Error with vendors: {e}")
     
-    # 4. Create a combined metadata file
+    # 4. Spending lifecycle summary  
+    try:
+        lifecycle_data = generate_spending_lifecycle()
+        
+        with open(f'{output_dir}/spending_lifecycle.json', 'w') as f:
+            json.dump(lifecycle_data, f, indent=2)
+        print(f"✓ Created spending_lifecycle.json")
+    except Exception as e:
+        print(f"✗ Error with spending lifecycle: {e}")
+    
+    # 5. Create a combined metadata file
     metadata = {
         'generated_at': datetime.now().isoformat(),
         'description': 'Pre-aggregated data for dashboard performance',
         'files': {
-            'appropriations_summary.json': 'Appropriations by component and account',
+            'appropriations_summary.json': 'Appropriations by component and account with recent apportionments',
             'spending_summary.json': 'Spending by component and category', 
-            'vendor_summary.json': 'Top 100 vendors and changes'
+            'vendor_summary.json': 'Top 100 vendors and changes',
+            'spending_lifecycle.json': 'Spending lifecycle from appropriations to outlays'
         }
     }
     
@@ -211,7 +333,7 @@ def main():
     
     # Show file sizes
     print("\nGenerated file sizes:")
-    for filename in ['appropriations_summary.json', 'spending_summary.json', 'vendor_summary.json']:
+    for filename in ['appropriations_summary.json', 'spending_summary.json', 'vendor_summary.json', 'spending_lifecycle.json']:
         filepath = f'{output_dir}/{filename}'
         if os.path.exists(filepath):
             size = os.path.getsize(filepath)

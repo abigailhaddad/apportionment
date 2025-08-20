@@ -348,6 +348,133 @@
             height: 12px;
             border-radius: 2px;
         }
+        
+        /* Recent Apportionments Styles */
+        .apportionment-list {
+            display: grid;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .apportionment-card {
+            background: #f8f9fa;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .apportionment-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .apportionment-date {
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        .apportionment-amount {
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .apportionment-details {
+            font-size: 0.9em;
+        }
+        
+        .apportionment-details .component-name {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .apportionment-details .account-name {
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .apportionment-details .funds-source,
+        .apportionment-details .approver {
+            color: #888;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+        
+        /* Vendor Analysis Styles */
+        .vendor-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .vendor-card {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+        
+        .vendor-card:hover {
+            border-color: #007bff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .vendor-rank {
+            font-size: 2em;
+            color: #007bff;
+            font-weight: bold;
+        }
+        
+        .vendor-name {
+            font-weight: 600;
+            margin: 10px 0;
+            min-height: 40px;
+        }
+        
+        .vendor-amount {
+            font-size: 1.2em;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+        
+        .vendor-action {
+            color: #007bff;
+            font-size: 0.9em;
+        }
+        
+        #vendorDetails {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .vendor-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .vendor-links {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .vendor-links a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .vendor-links a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -379,33 +506,22 @@
         
         <!-- Recent Apportionments Section -->
         <div class="section" id="recentApportionments">
-            <h2>Recent Apportionments</h2>
             <div class="loading">Loading recent apportionments...</div>
         </div>
         
-        <!-- Spending Trends Section -->
-        <div class="section" id="spendingTrends">
-            <h2>Spending Trends</h2>
-            <div class="tabs">
-                <button class="tab active" onclick="switchTrendView('component')">By Component</button>
-                <button class="tab" onclick="switchTrendView('category')">By Category</button>
-            </div>
-            <div class="chart-container" id="trendsChart">
-                <div class="loading">Loading spending trends...</div>
-            </div>
+        <!-- Spending Lifecycle Section -->
+        <div class="section" id="spendingLifecycle">
+            <div class="loading">Loading spending lifecycle...</div>
         </div>
         
-        <!-- Where Money Goes Section -->
-        <div class="section" id="whereMoneyGoes">
-            <h2>Where the Money Goes</h2>
-            <div class="tabs">
-                <button class="tab active" onclick="switchMoneyView('vendors')">Top Vendors</button>
-                <button class="tab" onclick="switchMoneyView('categories')">Spending Categories</button>
-                <button class="tab" onclick="switchMoneyView('changes')">Notable Changes</button>
-            </div>
-            <div id="moneyContent">
-                <div class="loading">Loading spending details...</div>
-            </div>
+        <!-- Year-over-Year Trends Section -->
+        <div class="section" id="yearOverYear">
+            <div class="loading">Loading year-over-year trends...</div>
+        </div>
+        
+        <!-- Interactive Vendor Analysis Section -->
+        <div class="section" id="vendorAnalysis">
+            <div class="loading">Loading vendor analysis...</div>
         </div>
     </div>
     

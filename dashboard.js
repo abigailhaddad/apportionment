@@ -58,27 +58,27 @@ class DashboardManager {
         console.log('Loading dashboard data...');
         
         // Load optimized summary data for better performance
-        const [appropriations, appropriationsSummary, spendingSummary, vendorSummary, metadata] = await Promise.all([
-            this.loadJSON('processed_data/appropriations/dhs_budget_flat.json'),
+        const [appropriationsSummary, spendingSummary, vendorSummary, spendingLifecycle, metadata] = await Promise.all([
             this.loadJSON('processed_data/dashboard/appropriations_summary.json'),
             this.loadJSON('processed_data/dashboard/spending_summary.json'), 
             this.loadJSON('processed_data/dashboard/vendor_summary.json'),
+            this.loadJSON('processed_data/dashboard/spending_lifecycle.json'),
             this.loadJSON('processed_data/appropriations/update_metadata.json')
         ]);
         
         this.data = {
-            appropriations: appropriations.data || appropriations,
             appropriationsSummary,
             spendingSummary,
             vendorSummary,
+            spendingLifecycle,
             metadata
         };
         
         console.log('Data loaded:', {
-            appropriations: this.data.appropriations.length,
             appropriationsSummary: this.data.appropriationsSummary ? 'loaded' : 'missing',
             spendingSummary: this.data.spendingSummary ? 'loaded' : 'missing',
-            vendorSummary: this.data.vendorSummary ? 'loaded' : 'missing'
+            vendorSummary: this.data.vendorSummary ? 'loaded' : 'missing',
+            spendingLifecycle: this.data.spendingLifecycle ? 'loaded' : 'missing'
         });
     }
     
@@ -95,36 +95,63 @@ class DashboardManager {
     
     renderDashboard() {
         this.renderRecentApportionments();
-        this.renderSpendingTrends();
-        this.renderWhereMoneyGoes();
+        this.renderSpendingLifecycle();
+        this.renderYearOverYear();
+        this.renderInteractiveVendors();
     }
     
     // Recent Apportionments Section
     renderRecentApportionments() {
         const container = document.getElementById('recentApportionments');
-        const content = container.querySelector('.loading') || container;
         
-        if (!this.data.appropriations) {
-            content.innerHTML = '<div class="error">Failed to load appropriations data</div>';
+        if (!this.data.appropriationsSummary || !this.data.appropriationsSummary.recent_apportionments) {
+            container.innerHTML = '<h2>Recent Apportionments</h2><div class="error">Failed to load recent apportionments</div>';
             return;
         }
         
-        // Filter to current FY
-        const currentData = this.data.appropriations.filter(d => d.fiscal_year == this.currentFY);
+        const recentActions = this.data.appropriationsSummary.recent_apportionments;
         
-        // Group by component and sum
-        const byComponent = d3.rollup(
-            currentData,
-            v => d3.sum(v, d => d.amount),
-            d => d.component
-        );
+        let html = `
+            <h2>Recent Apportionment Actions</h2>
+            <div class="alert">
+                Latest ${recentActions.length} apportionment actions from OMB
+            </div>
+            
+            <div class="apportionment-list">
+        `;
         
-        // Sort by amount
-        const sortedComponents = Array.from(byComponent, ([component, amount]) => ({ component, amount }))
-            .sort((a, b) => b.amount - a.amount);
+        recentActions.forEach(action => {
+            const date = new Date(action.approval_date);
+            const formattedDate = date.toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            
+            html += `
+                <div class="apportionment-card">
+                    <div class="apportionment-header">
+                        <span class="apportionment-date">${formattedDate}</span>
+                        <span class="apportionment-amount">${formatCurrency(action.amount)}</span>
+                    </div>
+                    <div class="apportionment-details">
+                        <div class="component-name">${action.component}</div>
+                        <div class="account-name">${action.account}</div>
+                        <div class="funds-source">Source: ${action.funds_source}</div>
+                        <div class="approver">Approved by: ${action.approver}</div>
+                    </div>
+                </div>
+            `;
+        });
         
-        // Calculate totals
-        const totalAmount = d3.sum(sortedComponents, d => d.amount);
+        html += `
+            </div>
+            <div class="data-note">
+                <a href="appropriations_detail.html">View all apportionment details →</a>
+            </div>
+        `;
+        
+        container.innerHTML = html;
         
         // Get latest approval date from metadata
         const latestDate = this.data.metadata?.max_approval_date ? 
@@ -189,10 +216,10 @@ class DashboardManager {
             `;
             
             if (this.compareFY) {
-                const compareData = this.data.appropriations.filter(
+                const compareData = this.data.appropriationsSummary.by_component.filter(
                     d => d.fiscal_year == this.compareFY && d.component === component
                 );
-                const compareAmount = d3.sum(compareData, d => d.amount);
+                const compareAmount = compareData.length > 0 ? compareData[0].amount : 0;
                 const change = compareAmount > 0 ? ((amount - compareAmount) / compareAmount * 100) : 0;
                 const changeClass = change > 0 ? 'positive' : change < 0 ? 'negative' : '';
                 
@@ -221,7 +248,194 @@ class DashboardManager {
         container.innerHTML = `<h2>Recent Apportionments</h2>` + html;
     }
     
-    // Spending Trends Section
+    // Spending Lifecycle Section
+    renderSpendingLifecycle() {
+        const container = document.getElementById('spendingLifecycle');
+        
+        if (!this.data.spendingLifecycle) {
+            container.innerHTML = '<h2>Spending Lifecycle</h2><div class="error">Failed to load spending lifecycle data</div>';
+            return;
+        }
+        
+        // Filter by current FY and sort by appropriations
+        const lifecycleData = this.data.spendingLifecycle
+            .filter(d => d.fiscal_year == this.currentFY)
+            .sort((a, b) => b.appropriations - a.appropriations)
+            .slice(0, 10); // Top 10 components
+        
+        // Clear and set up
+        container.innerHTML = '<h2>Spending Lifecycle: Appropriations → Obligations → Outlays</h2>';
+        
+        const chartContainer = document.createElement('div');
+        chartContainer.className = 'chart-container';
+        chartContainer.id = 'lifecycleChart';
+        container.appendChild(chartContainer);
+        
+        this.createLifecycleChart(chartContainer, lifecycleData);
+        
+        // Add legend and notes
+        container.innerHTML += `
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #28a745;"></div>
+                    <span>Outlays (Paid)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #ffc107;"></div>
+                    <span>Obligated (Committed)</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: #6c757d;"></div>
+                    <span>Unobligated (Available)</span>
+                </div>
+            </div>
+            <div class="data-note">
+                Bar height shows total appropriation amount. Segments show spending status.
+            </div>
+        `;
+    }
+    
+    createLifecycleChart(container, data) {
+        const margin = { top: 20, right: 20, bottom: 120, left: 200 };
+        const width = container.clientWidth - margin.left - margin.right;
+        const height = 500 - margin.top - margin.bottom;
+        
+        const svg = d3.select(container)
+            .append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom);
+        
+        const g = svg.append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+        
+        // Calculate percentages and prepare data
+        data.forEach(d => {
+            d.outlayPercent = d.appropriations > 0 ? (d.outlays / d.appropriations) * 100 : 0;
+            d.obligatedPercent = d.appropriations > 0 ? ((d.obligations - d.outlays) / d.appropriations) * 100 : 0;
+            d.unobligatedPercent = d.appropriations > 0 ? 
+                ((d.appropriations - d.obligations) / d.appropriations) * 100 : 0;
+        });
+        
+        // Scales
+        const y = d3.scaleBand()
+            .domain(data.map(d => d.component))
+            .range([0, height])
+            .padding(0.2);
+        
+        const x = d3.scaleLinear()
+            .domain([0, 100])
+            .range([0, width]);
+        
+        const heightScale = d3.scaleLinear()
+            .domain([0, d3.max(data, d => d.appropriations)])
+            .range([5, y.bandwidth()]); // Min 5px height for visibility
+        
+        // Create bars
+        const bars = g.selectAll('.component-bar')
+            .data(data)
+            .enter().append('g')
+            .attr('class', 'component-bar')
+            .attr('transform', d => `translate(0, ${y(d.component) + (y.bandwidth() - heightScale(d.appropriations)) / 2})`);
+        
+        // Outlays (green)
+        bars.append('rect')
+            .attr('class', 'outlay-bar')
+            .attr('x', 0)
+            .attr('y', 0)
+            .attr('width', d => x(d.outlayPercent))
+            .attr('height', d => heightScale(d.appropriations))
+            .attr('fill', '#28a745');
+        
+        // Obligated but not outlayed (yellow)
+        bars.append('rect')
+            .attr('class', 'obligated-bar')
+            .attr('x', d => x(d.outlayPercent))
+            .attr('y', 0)
+            .attr('width', d => x(d.obligatedPercent))
+            .attr('height', d => heightScale(d.appropriations))
+            .attr('fill', '#ffc107');
+        
+        // Unobligated (gray)
+        bars.append('rect')
+            .attr('class', 'unobligated-bar')
+            .attr('x', d => x(d.outlayPercent + d.obligatedPercent))
+            .attr('y', 0)
+            .attr('width', d => x(d.unobligatedPercent))
+            .attr('height', d => heightScale(d.appropriations))
+            .attr('fill', '#6c757d');
+        
+        // Add percentage labels
+        bars.each(function(d) {
+            const bar = d3.select(this);
+            
+            // Only show labels if segment is wide enough
+            if (d.outlayPercent > 5) {
+                bar.append('text')
+                    .attr('x', x(d.outlayPercent / 2))
+                    .attr('y', heightScale(d.appropriations) / 2)
+                    .attr('dy', '.35em')
+                    .attr('text-anchor', 'middle')
+                    .text(`${d.outlayPercent.toFixed(0)}%`)
+                    .style('fill', 'white')
+                    .style('font-size', '12px');
+            }
+            
+            if (d.obligatedPercent > 5) {
+                bar.append('text')
+                    .attr('x', x(d.outlayPercent + d.obligatedPercent / 2))
+                    .attr('y', heightScale(d.appropriations) / 2)
+                    .attr('dy', '.35em')
+                    .attr('text-anchor', 'middle')
+                    .text(`${d.obligatedPercent.toFixed(0)}%`)
+                    .style('fill', 'black')
+                    .style('font-size', '12px');
+            }
+        });
+        
+        // Add axes
+        g.append('g')
+            .attr('class', 'axis')
+            .call(d3.axisLeft(y).tickFormat(d => getComponentName(d, 'label')));
+        
+        g.append('g')
+            .attr('class', 'axis')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(x).tickFormat(d => d + '%'));
+        
+        // Add amount labels on the right
+        g.selectAll('.amount-label')
+            .data(data)
+            .enter().append('text')
+            .attr('x', width + 5)
+            .attr('y', d => y(d.component) + y.bandwidth() / 2)
+            .attr('dy', '.35em')
+            .text(d => formatCurrency(d.appropriations, true))
+            .style('font-size', '12px')
+            .style('fill', '#666');
+        
+        // Add tooltips
+        const tooltip = d3.select('body').append('div')
+            .attr('class', 'tooltip')
+            .style('opacity', 0);
+        
+        bars.on('mouseover', function(event, d) {
+            tooltip.transition().duration(200).style('opacity', .9);
+            tooltip.html(`
+                <strong>${d.component}</strong><br>
+                Appropriations: ${formatCurrency(d.appropriations)}<br>
+                Obligations: ${formatCurrency(d.obligations)} (${d.outlayPercent.toFixed(1) + d.obligatedPercent.toFixed(1)}%)<br>
+                Outlays: ${formatCurrency(d.outlays)} (${d.outlayPercent.toFixed(1)}%)<br>
+                Unobligated: ${formatCurrency(d.appropriations - d.obligations)} (${d.unobligatedPercent.toFixed(1)}%)
+            `)
+            .style('left', (event.pageX + 10) + 'px')
+            .style('top', (event.pageY - 28) + 'px');
+        })
+        .on('mouseout', function(d) {
+            tooltip.transition().duration(500).style('opacity', 0);
+        });
+    }
+    
+    // Old Spending Trends Section (to be replaced)
     renderSpendingTrends() {
         const container = document.getElementById('trendsChart');
         container.innerHTML = ''; // Clear existing
@@ -369,6 +583,172 @@ class DashboardManager {
             .style('font-size', '14px');
     }
     
+    // Year-over-Year Comparison
+    renderYearOverYear() {
+        const container = document.getElementById('yearOverYear');
+        
+        if (!this.data.spendingLifecycle) {
+            container.innerHTML = '<h2>Year-over-Year Trends</h2><div class="error">Failed to load data</div>';
+            return;
+        }
+        
+        // Get all fiscal years
+        const fiscalYears = [...new Set(this.data.spendingLifecycle.map(d => d.fiscal_year))].sort();
+        
+        // Aggregate by fiscal year
+        const yearTotals = d3.rollup(
+            this.data.spendingLifecycle,
+            v => ({
+                appropriations: d3.sum(v, d => d.appropriations),
+                obligations: d3.sum(v, d => d.obligations),
+                outlays: d3.sum(v, d => d.outlays)
+            }),
+            d => d.fiscal_year
+        );
+        
+        const yearData = Array.from(yearTotals, ([year, totals]) => ({
+            year,
+            ...totals
+        })).sort((a, b) => a.year - b.year);
+        
+        container.innerHTML = `
+            <h2>Year-over-Year Spending Trends</h2>
+            <div class="chart-container" id="yearChart"></div>
+        `;
+        
+        this.createYearOverYearChart(document.getElementById('yearChart'), yearData);
+    }
+    
+    createYearOverYearChart(container, data) {
+        const margin = { top: 20, right: 80, bottom: 50, left: 100 };
+        const width = container.clientWidth - margin.left - margin.right;
+        const height = 400 - margin.top - margin.bottom;
+        
+        const svg = d3.select(container)
+            .append('svg')
+            .attr('width', width + margin.left + margin.right)
+            .attr('height', height + margin.top + margin.bottom);
+        
+        const g = svg.append('g')
+            .attr('transform', `translate(${margin.left},${margin.top})`);
+        
+        // Scales
+        const x = d3.scaleBand()
+            .domain(data.map(d => d.year))
+            .range([0, width])
+            .padding(0.1);
+        
+        const y = d3.scaleLinear()
+            .domain([0, d3.max(data, d => Math.max(d.appropriations, d.obligations, d.outlays))])
+            .range([height, 0]);
+        
+        // Create line data
+        const lines = [
+            { name: 'Appropriations', color: '#007bff', values: data.map(d => ({ year: d.year, value: d.appropriations })) },
+            { name: 'Obligations', color: '#ffc107', values: data.map(d => ({ year: d.year, value: d.obligations })) },
+            { name: 'Outlays', color: '#28a745', values: data.map(d => ({ year: d.year, value: d.outlays })) }
+        ];
+        
+        // Line generator
+        const line = d3.line()
+            .x(d => x(d.year) + x.bandwidth() / 2)
+            .y(d => y(d.value));
+        
+        // Draw lines
+        lines.forEach(series => {
+            g.append('path')
+                .datum(series.values)
+                .attr('fill', 'none')
+                .attr('stroke', series.color)
+                .attr('stroke-width', 3)
+                .attr('d', line);
+            
+            // Add dots
+            g.selectAll(`.dot-${series.name}`)
+                .data(series.values)
+                .enter().append('circle')
+                .attr('class', `dot-${series.name}`)
+                .attr('cx', d => x(d.year) + x.bandwidth() / 2)
+                .attr('cy', d => y(d.value))
+                .attr('r', 5)
+                .attr('fill', series.color);
+        });
+        
+        // Add axes
+        g.append('g')
+            .attr('class', 'axis')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(x).tickFormat(d => `FY ${d}`));
+        
+        g.append('g')
+            .attr('class', 'axis')
+            .call(d3.axisLeft(y).tickFormat(d => formatCurrency(d, true)));
+        
+        // Add legend
+        const legend = svg.append('g')
+            .attr('transform', `translate(${width + margin.left + 10}, 20)`);
+        
+        lines.forEach((series, i) => {
+            const legendRow = legend.append('g')
+                .attr('transform', `translate(0, ${i * 20})`);
+            
+            legendRow.append('rect')
+                .attr('width', 15)
+                .attr('height', 3)
+                .attr('fill', series.color);
+            
+            legendRow.append('text')
+                .attr('x', 20)
+                .attr('y', 3)
+                .attr('dy', '.15em')
+                .text(series.name)
+                .style('font-size', '12px');
+        });
+        
+        // Add table below
+        container.innerHTML += this.createYearOverYearTable(data);
+    }
+    
+    createYearOverYearTable(data) {
+        let html = `
+            <table style="margin-top: 20px;">
+                <thead>
+                    <tr>
+                        <th>Fiscal Year</th>
+                        <th class="amount">Appropriations</th>
+                        <th class="amount">Obligations</th>
+                        <th class="amount">Outlays</th>
+                        <th class="percent">Obligation Rate</th>
+                        <th class="percent">Outlay Rate</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+        
+        data.forEach(d => {
+            const obligationRate = d.appropriations > 0 ? (d.obligations / d.appropriations * 100) : 0;
+            const outlayRate = d.appropriations > 0 ? (d.outlays / d.appropriations * 100) : 0;
+            
+            html += `
+                <tr>
+                    <td>FY ${d.year}</td>
+                    <td class="amount">${formatCurrency(d.appropriations)}</td>
+                    <td class="amount">${formatCurrency(d.obligations)}</td>
+                    <td class="amount">${formatCurrency(d.outlays)}</td>
+                    <td class="percent">${obligationRate.toFixed(1)}%</td>
+                    <td class="percent">${outlayRate.toFixed(1)}%</td>
+                </tr>
+            `;
+        });
+        
+        html += `
+                </tbody>
+            </table>
+        `;
+        
+        return html;
+    }
+    
     // Where Money Goes Section
     renderWhereMoneyGoes() {
         const content = document.getElementById('moneyContent');
@@ -384,6 +764,154 @@ class DashboardManager {
                 this.renderNotableChanges(content);
                 break;
         }
+    }
+    
+    // Interactive Vendor Analysis
+    renderInteractiveVendors() {
+        const container = document.getElementById('vendorAnalysis');
+        
+        if (!this.data.vendorSummary || !this.data.vendorSummary.top_vendors) {
+            container.innerHTML = '<h2>Vendor Analysis</h2><div class="error">Failed to load vendor data</div>';
+            return;
+        }
+        
+        // Get vendor data for current year
+        const currentYearVendors = this.data.vendorSummary.top_vendors
+            .filter(d => d.fiscal_year == this.currentFY);
+        
+        // Aggregate by vendor
+        const vendorTotals = d3.rollup(
+            currentYearVendors,
+            v => d3.sum(v, d => d.obligations),
+            d => d.vendor_name
+        );
+        
+        const topVendors = Array.from(vendorTotals, ([vendor, amount]) => ({ vendor, amount }))
+            .sort((a, b) => b.amount - a.amount)
+            .slice(0, 20);
+        
+        container.innerHTML = `
+            <h2>Top Vendors for FY ${this.currentFY}</h2>
+            <div class="vendor-grid">
+                ${topVendors.map((v, i) => `
+                    <div class="vendor-card" data-vendor="${v.vendor}">
+                        <div class="vendor-rank">#${i + 1}</div>
+                        <div class="vendor-name">${v.vendor}</div>
+                        <div class="vendor-amount">${formatCurrency(v.amount)}</div>
+                        <div class="vendor-action">Click for details →</div>
+                    </div>
+                `).join('')}
+            </div>
+            <div id="vendorDetails" style="display: none;">
+                <h3 id="vendorDetailsTitle"></h3>
+                <div id="vendorDetailsContent"></div>
+            </div>
+        `;
+        
+        // Add click handlers
+        container.querySelectorAll('.vendor-card').forEach(card => {
+            card.addEventListener('click', () => this.showVendorDetails(card.dataset.vendor));
+        });
+    }
+    
+    showVendorDetails(vendorName) {
+        const detailsDiv = document.getElementById('vendorDetails');
+        const titleDiv = document.getElementById('vendorDetailsTitle');
+        const contentDiv = document.getElementById('vendorDetailsContent');
+        
+        // Get all data for this vendor
+        const vendorData = this.data.vendorSummary.top_vendors
+            .filter(d => d.vendor_name === vendorName);
+        
+        // Group by year
+        const byYear = d3.rollup(
+            vendorData,
+            v => d3.sum(v, d => d.obligations),
+            d => d.fiscal_year
+        );
+        
+        // Get component breakdown if available
+        const vendorComponents = this.data.vendorSummary.vendor_components
+            ?.filter(d => d.vendor_name === vendorName && d.fiscal_year == this.currentFY);
+        
+        titleDiv.textContent = vendorName;
+        
+        let html = `
+            <div class="vendor-detail-grid">
+                <div class="vendor-trend">
+                    <h4>Trend Over Years</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fiscal Year</th>
+                                <th class="amount">Obligations</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+        `;
+        
+        Array.from(byYear, ([year, amount]) => ({ year, amount }))
+            .sort((a, b) => b.year - a.year)
+            .forEach(d => {
+                html += `
+                    <tr>
+                        <td>FY ${d.year}</td>
+                        <td class="amount">${formatCurrency(d.amount)}</td>
+                    </tr>
+                `;
+            });
+        
+        html += `
+                        </tbody>
+                    </table>
+                </div>
+        `;
+        
+        if (vendorComponents && vendorComponents.length > 0) {
+            html += `
+                <div class="vendor-components">
+                    <h4>FY ${this.currentFY} by Component</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Component</th>
+                                <th class="amount">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            vendorComponents
+                .sort((a, b) => b.obligations - a.obligations)
+                .forEach(d => {
+                    html += `
+                        <tr>
+                            <td>${d.component}</td>
+                            <td class="amount">${formatCurrency(d.obligations)}</td>
+                        </tr>
+                    `;
+                });
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+        
+        html += `
+            </div>
+            <div class="vendor-links">
+                <a href="https://www.usaspending.gov/search?hash=advanced-search&filters=%7B%22recipientName%22%3A%5B%22${encodeURIComponent(vendorName)}%22%5D%7D" 
+                   target="_blank" rel="noopener noreferrer">
+                   View on USAspending.gov →
+                </a>
+            </div>
+        `;
+        
+        contentDiv.innerHTML = html;
+        detailsDiv.style.display = 'block';
+        detailsDiv.scrollIntoView({ behavior: 'smooth' });
     }
     
     renderTopVendors(container) {
@@ -701,42 +1229,23 @@ class DashboardManager {
     }
 }
 
-// Global functions for button clicks
-function switchTrendView(view) {
-    document.querySelectorAll('#spendingTrends .tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    event.target.classList.add('active');
-    
-    dashboard.currentTrendView = view;
-    dashboard.renderSpendingTrends();
-}
-
-function switchMoneyView(view) {
-    document.querySelectorAll('#whereMoneyGoes .tab').forEach(tab => {
-        tab.classList.remove('active');
-    });
-    event.target.classList.add('active');
-    
-    dashboard.currentMoneyView = view;
-    dashboard.renderWhereMoneyGoes();
-}
+// Global functions for dashboard
 
 function downloadData() {
     // Create a combined dataset for download
     const data = [];
     
-    // Add appropriations data
-    if (dashboard.data.appropriations) {
-        dashboard.data.appropriations
+    // Add appropriations data from summary
+    if (dashboard.data.appropriationsSummary && dashboard.data.appropriationsSummary.by_component) {
+        dashboard.data.appropriationsSummary.by_component
             .filter(d => d.fiscal_year == dashboard.currentFY)
             .forEach(row => {
                 data.push({
                     type: 'Appropriation',
                     fiscal_year: row.fiscal_year,
                     component: row.component,
-                    account: row.account || '',
-                    category: row.availability_type || '',
+                    account: '',
+                    category: '',
                     amount: row.amount,
                     vendor: '',
                     notes: ''

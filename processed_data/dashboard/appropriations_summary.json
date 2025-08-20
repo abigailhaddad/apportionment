@@ -2623,5 +2623,87 @@
     "2023": 179799157806.0,
     "2024": 185082934301.0,
     "2025": 302268776060.0
-  }
+  },
+  "recent_apportionments": [
+    {
+      "approval_date": "2025-08-15T18:49:44+00:00",
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Operations and Support",
+      "amount": 296531964000.0,
+      "funds_source": "Funds Provided by Public Law 119-021",
+      "approver": "Program Associate Director for Homeland Programs"
+    },
+    {
+      "approval_date": "2025-08-15T18:49:44+00:00",
+      "component": "United States Coast Guard",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 95770600000.0,
+      "funds_source": "Funds Provided by Public Law 119-4",
+      "approver": "Program Associate Director for Homeland Programs"
+    },
+    {
+      "approval_date": "2025-08-14T17:04:55+00:00",
+      "component": "Management Directorate",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 1314671236.0,
+      "funds_source": "Funds Provided by Public Law 117-169",
+      "approver": "Program Associate Director for Homeland Programs"
+    },
+    {
+      "approval_date": "2025-08-12T13:24:07+00:00",
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Operations and Support",
+      "amount": 2140459208.0,
+      "funds_source": "Funds Provided by Public Law 119-4",
+      "approver": "Program Associate Director for Homeland Programs"
+    },
+    {
+      "approval_date": "2025-08-12T13:23:01+00:00",
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Operations and Support",
+      "amount": 307136732.0,
+      "funds_source": "Funds Provided by Public Law 119-4",
+      "approver": "Program Associate Director for Homeland Programs"
+    },
+    {
+      "approval_date": "2025-08-12T13:22:39+00:00",
+      "component": "Science and Technology",
+      "account": "Operations and Support",
+      "amount": 176851916.0,
+      "funds_source": "Funds Provided by Public Law 118-47",
+      "approver": "Program Associate Director for Homeland Programs"
+    },
+    {
+      "approval_date": "2025-08-12T13:22:11+00:00",
+      "component": "Science and Technology",
+      "account": "Procurement, Construction, and Improvements, Science and Tech",
+      "amount": 224614760.0,
+      "funds_source": "Funds Provided by Public Law 118-47",
+      "approver": "Program Associate Director for Homeland Programs"
+    },
+    {
+      "approval_date": "2025-08-12T13:21:43+00:00",
+      "component": "Federal Emergency Management Agency",
+      "account": "Procurement, Construction, and Improvements, FEMA",
+      "amount": 58904512.0,
+      "funds_source": "Funds Provided by Public Law 117-328",
+      "approver": "Program Associate Director for Homeland Programs"
+    },
+    {
+      "approval_date": "2025-08-12T13:20:50+00:00",
+      "component": "Federal Emergency Management Agency",
+      "account": "Hermit's Peak/Calf Canyon Fire Assistance Account",
+      "amount": 15025878096.0,
+      "funds_source": "Funds Provided by Public Law N/A",
+      "approver": "Program Associate Director for Homeland Programs"
+    },
+    {
+      "approval_date": "2025-08-12T13:20:05+00:00",
+      "component": "Federal Emergency Management Agency",
+      "account": "Procurement, Construction, and Improvements, FEMA",
+      "amount": 40251040.0,
+      "funds_source": "Funds Provided by Public Law N/A",
+      "approver": "Program Associate Director for Homeland Programs"
+    }
+  ]
 }
