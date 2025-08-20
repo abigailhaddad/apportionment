@@ -1,0 +1,9 @@
+{
+  "generated_at": "2025-08-20T13:08:37.762693",
+  "description": "Pre-aggregated data for dashboard performance",
+  "files": {
+    "appropriations_summary.json": "Appropriations by component and account",
+    "spending_summary.json": "Spending by component and category",
+    "vendor_summary.json": "Top 100 vendors and changes"
+  }
+}

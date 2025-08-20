@@ -233,6 +233,14 @@ def update_data(skip_fast_book=False, skip_usaspending=False):
         )
         if not success:
             print("\n⚠️  Failed to generate awards data. Continuing...")
+        
+        # Step 6f: Generate dashboard summary data
+        success = run_command(
+            "python scripts/processing/generate_dashboard_data.py",
+            "Step 6f: Generating optimized dashboard summary data"
+        )
+        if not success:
+            print("\n⚠️  Failed to generate dashboard data. Continuing...")
     else:
         print("\n⏭️  Skipping Step 6: USAspending processing")
     

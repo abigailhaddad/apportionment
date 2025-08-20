@@ -1,0 +1,2627 @@
+{
+  "by_component": [
+    {
+      "fiscal_year": 2022,
+      "component": "Analysis and Operations",
+      "amount": 379337344.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Citizenship and Immigration Services",
+      "amount": 7270071864.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "amount": 612454753.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "amount": 3154059862.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "amount": 95311894663.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Law Enforcement Training Center",
+      "amount": 680338547.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Management Directorate",
+      "amount": 6539939035.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Office of the Inspector General",
+      "amount": 237695183.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Office of the Secretary and Executive Management",
+      "amount": 362227350.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Science and Technology",
+      "amount": 1458461346.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Transportation Security Administration",
+      "amount": 9772894955.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "amount": 25406513343.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "amount": 9909915963.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Coast Guard",
+      "amount": 19155107357.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Secret Service",
+      "amount": 2782051879.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Analysis and Operations",
+      "amount": 395657318.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Citizenship and Immigration Services",
+      "amount": 7969323889.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "amount": 618686696.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "amount": 3229921806.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "amount": 86957822805.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Law Enforcement Training Center",
+      "amount": 761367451.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Management Directorate",
+      "amount": 7026046680.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Office of the Inspector General",
+      "amount": 290134697.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Office of the Secretary and Executive Management",
+      "amount": 415709715.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Science and Technology",
+      "amount": 1629248409.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Transportation Security Administration",
+      "amount": 10494731604.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "amount": 28025618967.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "amount": 10273114250.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Coast Guard",
+      "amount": 18701460751.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Secret Service",
+      "amount": 3010312768.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Analysis and Operations",
+      "amount": 417055000.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Citizenship and Immigration Services",
+      "amount": 8665006437.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "amount": 588325845.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "amount": 3099965071.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Emergency Management Agency",
+      "amount": 84800491451.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Law Enforcement Training Center",
+      "amount": 302984735.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Law Enforcement Training Centers",
+      "amount": 694698016.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Management Directorate",
+      "amount": 6906788022.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Office of the Inspector General",
+      "amount": 281705335.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Office of the Secretary and Executive Management",
+      "amount": 441176767.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Science and Technology",
+      "amount": 1480710091.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Transportation Security Administration",
+      "amount": 15237947051.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "amount": 28827111385.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "amount": 10974450624.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Coast Guard",
+      "amount": 19042684359.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Secret Service",
+      "amount": 3321834112.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Analysis and Operations",
+      "amount": 391808821.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Citizenship and Immigration Services",
+      "amount": 10345935856.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "amount": 574053097.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "amount": 2946506151.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Emergency Management Agency",
+      "amount": 104059021329.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Law Enforcement Training Centers",
+      "amount": 702055425.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Management Directorate",
+      "amount": 6967058020.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Office of the Inspector General",
+      "amount": 271919357.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Office of the Secretary and Executive Management",
+      "amount": 866522713.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Science and Technology",
+      "amount": 1319592382.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Transportation Security Administration",
+      "amount": 12220370433.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "amount": 28720974095.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "amount": 86248124188.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Coast Guard",
+      "amount": 42870479128.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Secret Service",
+      "amount": 3764355065.0
+    }
+  ],
+  "by_account": [
+    {
+      "fiscal_year": 2022,
+      "component": "Analysis and Operations",
+      "account": "Operations and Support",
+      "amount": 379337344.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Citizenship and Immigration Services",
+      "account": "Federal Assistance, Citizenship and Immigration Services",
+      "amount": 20000000.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Citizenship and Immigration Services",
+      "account": "H-1B Nonimmigrant Petitioner Account",
+      "amount": 43920491.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Citizenship and Immigration Services",
+      "account": "H-1B and L Fraud Prevention and Detection Account",
+      "amount": 82269430.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Citizenship and Immigration Services",
+      "account": "Immigration Examinations Fee",
+      "amount": 6730246334.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Citizenship and Immigration Services",
+      "account": "Operations and Support",
+      "amount": 393635609.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Federal Assistance, DNDO",
+      "amount": 167969855.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Operations and Support",
+      "amount": 183382799.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Procurement, Construction and Improvements",
+      "amount": 150649068.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Research and Development",
+      "amount": 110453031.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Cybersecurity Response and Recovery Fund",
+      "amount": 19950000.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Operations and Support",
+      "amount": 2318137874.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Procurement, Construction, and Improvements, NPPD",
+      "amount": 801689094.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Research and Development, National Protection and Programs Direc",
+      "amount": 14282894.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "account": "Administrative and Regional Operations",
+      "amount": 1672.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "account": "Disaster Assistance Direct Loan Financing Account",
+      "amount": 314766752.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "account": "Disaster Assistance Direct Loan Program Account",
+      "amount": 548247217.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "account": "Disaster Relief Fund",
+      "amount": 64856889247.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "account": "Federal Assistance, FEMA",
+      "amount": 6121274089.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "account": "Flood Map Modernization Fund",
+      "amount": 11208698.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "account": "National Flood Insurance Fund",
+      "amount": 18279387731.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "account": "National Flood Insurance Reserve Fund",
+      "amount": 3412186236.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "account": "National Pre-disaster Mitigation Fund",
+      "amount": 32185924.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "account": "Operations and Support",
+      "amount": 1424728323.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "account": "Procurement, Construction, and Improvements, FEMA",
+      "amount": 260179671.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "account": "Radiological Emergency Preparedness Program",
+      "amount": 50639411.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Emergency Management Agency",
+      "account": "State and Local Programs",
+      "amount": 199692.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Law Enforcement Training Center",
+      "account": "Operations and Support",
+      "amount": 561029542.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Federal Law Enforcement Training Center",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 119309005.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Management Directorate",
+      "account": "Department-Wide Technology Investments",
+      "amount": 228139728.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Management Directorate",
+      "account": "Federal Protective Service",
+      "amount": 2671235105.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Management Directorate",
+      "account": "Office of Biometric Identity Management",
+      "amount": 19479399.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Management Directorate",
+      "account": "Office of the Chief Information Officer",
+      "amount": 2540744.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Management Directorate",
+      "account": "Office of the Undersecretary for Management",
+      "amount": 6190399.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Management Directorate",
+      "account": "Operations and Support",
+      "amount": 1917255552.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Management Directorate",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 1597208898.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Management Directorate",
+      "account": "Working Capital Fund",
+      "amount": 97889210.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Office of the Inspector General",
+      "account": "Operations and Support",
+      "amount": 237695183.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Federal Assistance",
+      "amount": 0.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Gifts and Donations",
+      "amount": 4103338.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Office of the Secretary and Executive Management",
+      "amount": 142836.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Operations and Support",
+      "amount": 357981176.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Science and Technology",
+      "account": "Operations and Support",
+      "amount": 461563694.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Science and Technology",
+      "account": "Procurement, Construction, and Improvements, Science and Tech",
+      "amount": 23265669.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Science and Technology",
+      "account": "Research and Development, Science and Technology",
+      "amount": 973631983.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Transportation Security Administration",
+      "account": "Airport Checkpoint Screening Fund",
+      "amount": 539840.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Transportation Security Administration",
+      "account": "Aviation Security Capital Fund",
+      "amount": 316813255.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Transportation Security Administration",
+      "account": "Federal Air Marshals",
+      "amount": 11412.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Transportation Security Administration",
+      "account": "Intelligence and Vetting",
+      "amount": 8880785.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Transportation Security Administration",
+      "account": "Operations and Support",
+      "amount": 9220980524.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Transportation Security Administration",
+      "account": "Procurement, Construction, and Improvements, TSA",
+      "amount": 174812879.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Transportation Security Administration",
+      "account": "Research and Development, TSA",
+      "amount": 48734000.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Transportation Security Administration",
+      "account": "Research and Development, TSA, Homeland Security",
+      "amount": 0.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Transportation Security Administration",
+      "account": "Salaries and Expenses",
+      "amount": 7007.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Transportation Security Administration",
+      "account": "Surface Transportation Security",
+      "amount": 311.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Transportation Security Administration",
+      "account": "Transportation Security Support, TSA, Homeland Security",
+      "amount": 334313.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "Transportation Security Administration",
+      "account": "Unclaimed Checkpoint Money",
+      "amount": 1780629.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "9-11 Response and Biometric Exit Account",
+      "amount": 86624771.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "APEC Business Travel Card",
+      "amount": 1511243.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Advanced Training Center Revolving Fund",
+      "amount": 150000.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Air and Marine Interdiction, Operations, Maintenance, and Procur",
+      "amount": 4545500.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Automation Modernization, Customs and Border Protection",
+      "amount": 174152.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Border Security Fencing, Infrastructure, and Technology",
+      "amount": 42047184.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Customs User Fees",
+      "amount": 788091623.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Customs and Border Protection",
+      "amount": 103239.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Electronic System for Travel Authorization (ESTA)",
+      "amount": 40106683.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Enhanced Inspectional Services",
+      "amount": 37651244.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Harbor Maintenance Fee Collection",
+      "amount": 3274000.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Immigration Support",
+      "amount": 369563.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Immigration User Fee",
+      "amount": 601935714.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "International Registered Traveler",
+      "amount": 413372852.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Land Border Inspection Fee",
+      "amount": 65944922.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Operations and Support",
+      "amount": 19020922953.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Other Border Protection",
+      "amount": 48801551.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 3873242532.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Refunds, Transfers, and Expenses of Operation, Puerto Rico",
+      "amount": 377643617.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Automation Modernization, Immigration and Customs Enforcement",
+      "amount": 13586.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Breached Bond Detention Fund",
+      "amount": 74064651.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Detention and Removal Operations",
+      "amount": 1307162.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Immigration User Fee Account, BICE",
+      "amount": 227830035.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Operations and Support",
+      "amount": 9062506903.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 168134467.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Student and Exchange Visitor Program",
+      "amount": 376059159.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Coast Guard",
+      "account": "Boat Safety",
+      "amount": 146007925.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Coast Guard",
+      "account": "Coast Guard Housing Fund",
+      "amount": 68683187.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Coast Guard",
+      "account": "Environmental Compliance and Restoration",
+      "amount": 3357207.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Coast Guard",
+      "account": "Medicare-eligible Retiree Health Fund Contribution, Homeland Sec",
+      "amount": 238264807.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Coast Guard",
+      "account": "Oil Spill Recovery",
+      "amount": 215988550.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Coast Guard",
+      "account": "Operations and Support",
+      "amount": 9811461889.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Coast Guard",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 6126631947.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Coast Guard",
+      "account": "Research and Development",
+      "amount": 23815107.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Coast Guard",
+      "account": "Retired Pay",
+      "amount": 2102939674.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Coast Guard",
+      "account": "Supply Fund",
+      "amount": 115000000.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Coast Guard",
+      "account": "Trust Fund Share of Expenses",
+      "amount": 45000000.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Coast Guard",
+      "account": "Yard Fund",
+      "amount": 257957064.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Secret Service",
+      "account": "Operations and Support",
+      "amount": 2658512551.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Secret Service",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 113173861.0
+    },
+    {
+      "fiscal_year": 2022,
+      "component": "United States Secret Service",
+      "account": "Research and Development, United States Secret Service",
+      "amount": 10365467.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Analysis and Operations",
+      "account": "Operations and Support",
+      "amount": 395657318.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Citizenship and Immigration Services",
+      "account": "EB-5 Integrity Fund, Citizenship and Immigration Service",
+      "amount": 8760000.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Citizenship and Immigration Services",
+      "account": "Federal Assistance, Citizenship and Immigration Services",
+      "amount": 25000000.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Citizenship and Immigration Services",
+      "account": "H-1B Nonimmigrant Petitioner Account",
+      "amount": 53273501.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Citizenship and Immigration Services",
+      "account": "H-1B and L Fraud Prevention and Detection Account",
+      "amount": 112079573.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Citizenship and Immigration Services",
+      "account": "Immigration Examinations Fee",
+      "amount": 7476225176.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Citizenship and Immigration Services",
+      "account": "Operations and Support",
+      "amount": 293985639.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Federal Assistance, DNDO",
+      "amount": 160548066.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Operations and Support",
+      "amount": 179103550.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Procurement, Construction and Improvements",
+      "amount": 152444146.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Research and Development",
+      "amount": 126590934.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Cybersecurity Response and Recovery Fund",
+      "amount": 59850000.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Operations and Support",
+      "amount": 2462125565.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Procurement, Construction, and Improvements, NPPD",
+      "amount": 692948505.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Research and Development, National Protection and Programs Direc",
+      "amount": 14997736.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "Deposit Account",
+      "amount": 152300000.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "Disaster Assistance Direct Loan Financing Account",
+      "amount": 333304656.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "Disaster Assistance Direct Loan Program Account",
+      "amount": 458293236.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "Disaster Relief Fund",
+      "amount": 48478133768.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "Federal Assistance, FEMA",
+      "amount": 7402313614.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "Flood Map Modernization Fund",
+      "amount": 9472694.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "Hermit's Peak/Calf Canyon Fire Assistance Account",
+      "amount": 3949000000.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "National Flood Insurance Fund",
+      "amount": 20297532536.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "National Flood Insurance Reserve Fund",
+      "amount": 3880450035.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "National Pre-disaster Mitigation Fund",
+      "amount": 29594634.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "Operations and Support",
+      "amount": 1564414345.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "Procurement, Construction, and Improvements, FEMA",
+      "amount": 360703374.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "Radiological Emergency Preparedness Program",
+      "amount": 42309913.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Emergency Management Agency",
+      "account": "State and Local Programs",
+      "amount": 0.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Law Enforcement Training Center",
+      "account": "Operations and Support",
+      "amount": 594598942.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Federal Law Enforcement Training Center",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 166768509.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Management Directorate",
+      "account": "Department of Homeland Security Nonrecurring Expenses Fund",
+      "amount": 17800000.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Management Directorate",
+      "account": "Department-Wide Technology Investments",
+      "amount": 215199910.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Management Directorate",
+      "account": "Federal Protective Service",
+      "amount": 2843069634.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Management Directorate",
+      "account": "Office of Biometric Identity Management",
+      "amount": 1725600.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Management Directorate",
+      "account": "Office of the Chief Information Officer",
+      "amount": 12639210.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Management Directorate",
+      "account": "Office of the Undersecretary for Management",
+      "amount": 7548383.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Management Directorate",
+      "account": "Operations and Support",
+      "amount": 2189375837.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Management Directorate",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 1638193629.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Management Directorate",
+      "account": "Working Capital Fund",
+      "amount": 100494477.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Office of the Inspector General",
+      "account": "Operations and Support",
+      "amount": 290134697.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Federal Assistance",
+      "amount": 0.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Gifts and Donations",
+      "amount": 13794567.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Office of the Secretary and Executive Management",
+      "amount": 212246.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Operations and Support",
+      "amount": 393654902.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Procurement, Construction, and Improvements, OSEM",
+      "amount": 8048000.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Science and Technology",
+      "account": "Operations and Support",
+      "amount": 611492266.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Science and Technology",
+      "account": "Procurement, Construction, and Improvements, Science and Tech",
+      "amount": 73436487.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Science and Technology",
+      "account": "Research and Development, Science and Technology",
+      "amount": 944319656.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Transportation Security Administration",
+      "account": "Airport Checkpoint Screening Fund",
+      "amount": 194991.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Transportation Security Administration",
+      "account": "Aviation Security Capital Fund",
+      "amount": 326183820.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Transportation Security Administration",
+      "account": "Intelligence and Vetting",
+      "amount": 4258952.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Transportation Security Administration",
+      "account": "Operations and Support",
+      "amount": 9958038879.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Transportation Security Administration",
+      "account": "Procurement, Construction, and Improvements, TSA",
+      "amount": 165207500.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Transportation Security Administration",
+      "account": "Research and Development, TSA",
+      "amount": 39430671.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Transportation Security Administration",
+      "account": "Transportation Security Support, TSA, Homeland Security",
+      "amount": 0.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "Transportation Security Administration",
+      "account": "Unclaimed Checkpoint Money",
+      "amount": 1416791.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "9-11 Response and Biometric Exit Account",
+      "amount": 68945639.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "APEC Business Travel Card",
+      "amount": 2587483.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Advanced Training Center Revolving Fund",
+      "amount": 150000.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Air and Marine Interdiction, Operations, Maintenance, and Procur",
+      "amount": 463305.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Automation Modernization, Customs and Border Protection",
+      "amount": 2616995.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Border Security Fencing, Infrastructure, and Technology",
+      "amount": 13770000.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Customs User Fees",
+      "amount": 911231823.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Electronic System for Travel Authorization (ESTA)",
+      "amount": 61164892.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Enhanced Inspectional Services",
+      "amount": 40314680.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Harbor Maintenance Fee Collection",
+      "amount": 3274000.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Immigration Support",
+      "amount": 1096786.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Immigration User Fee",
+      "amount": 855605162.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "International Registered Traveler",
+      "amount": 642664965.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Land Border Inspection Fee",
+      "amount": 77319009.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Operations and Support",
+      "amount": 20839073344.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Other Border Protection",
+      "amount": 64484598.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 3876393039.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Refunds, Transfers, and Expenses of Operation, Puerto Rico",
+      "amount": 564463247.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Automation Modernization, Immigration and Customs Enforcement",
+      "amount": 10440.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Breached Bond Detention Fund",
+      "amount": 37953957.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Detention and Removal Operations",
+      "amount": 1310107.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Immigration User Fee Account, BICE",
+      "amount": 196527448.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Operations and Support",
+      "amount": 9534754638.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 104499966.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Student and Exchange Visitor Program",
+      "amount": 398057694.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Coast Guard",
+      "account": "Boat Safety",
+      "amount": 161585232.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Coast Guard",
+      "account": "Coast Guard Housing Fund",
+      "amount": 42620571.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Coast Guard",
+      "account": "Environmental Compliance and Restoration",
+      "amount": 710880.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Coast Guard",
+      "account": "Medicare-eligible Retiree Health Fund Contribution, Homeland Sec",
+      "amount": 251894092.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Coast Guard",
+      "account": "Oil Spill Recovery",
+      "amount": 191002922.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Coast Guard",
+      "account": "Operations and Support",
+      "amount": 10295893207.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Coast Guard",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 5058839418.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Coast Guard",
+      "account": "Research and Development",
+      "amount": 26175997.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Coast Guard",
+      "account": "Retired Pay",
+      "amount": 2166553949.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Coast Guard",
+      "account": "Supply Fund",
+      "amount": 166943323.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Coast Guard",
+      "account": "Trust Fund Share of Expenses",
+      "amount": 45000000.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Coast Guard",
+      "account": "Yard Fund",
+      "amount": 294241160.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Secret Service",
+      "account": "Operations and Support",
+      "amount": 2843679663.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Secret Service",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 161151114.0
+    },
+    {
+      "fiscal_year": 2023,
+      "component": "United States Secret Service",
+      "account": "Research and Development, United States Secret Service",
+      "amount": 5481991.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Analysis and Operations",
+      "account": "Operations and Support",
+      "amount": 417055000.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Citizenship and Immigration Services",
+      "account": "EB-5 Integrity Fund, Citizenship and Immigration Service",
+      "amount": 21087921.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Citizenship and Immigration Services",
+      "account": "Federal Assistance, Citizenship and Immigration Services",
+      "amount": 12894207.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Citizenship and Immigration Services",
+      "account": "H-1B Nonimmigrant Petitioner Account",
+      "amount": 47152575.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Citizenship and Immigration Services",
+      "account": "H-1B and L Fraud Prevention and Detection Account",
+      "amount": 87327126.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Citizenship and Immigration Services",
+      "account": "Immigration Examinations Fee",
+      "amount": 8225345822.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Citizenship and Immigration Services",
+      "account": "Operations and Support",
+      "amount": 271198786.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Federal Assistance, DNDO",
+      "amount": 193280537.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Operations and Support",
+      "amount": 176371000.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Procurement, Construction and Improvements",
+      "amount": 109744442.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Research and Development",
+      "amount": 108929866.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Cybersecurity Response and Recovery Fund",
+      "amount": 59850000.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Operations and Support",
+      "amount": 2433064966.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Procurement, Construction, and Improvements, NPPD",
+      "amount": 600951336.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Research and Development, National Protection and Programs Direc",
+      "amount": 6098769.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Emergency Management Agency",
+      "account": "Disaster Assistance Direct Loan Financing Account",
+      "amount": 272988298.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Emergency Management Agency",
+      "account": "Disaster Assistance Direct Loan Program Account",
+      "amount": 309395463.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Emergency Management Agency",
+      "account": "Disaster Relief Fund",
+      "amount": 49198640784.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Emergency Management Agency",
+      "account": "Federal Assistance, FEMA",
+      "amount": 6900029932.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Emergency Management Agency",
+      "account": "Flood Map Modernization Fund",
+      "amount": 8905472.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Emergency Management Agency",
+      "account": "Hermit's Peak/Calf Canyon Fire Assistance Account",
+      "amount": 3890517615.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Emergency Management Agency",
+      "account": "National Flood Insurance Fund",
+      "amount": 17668922061.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Emergency Management Agency",
+      "account": "National Flood Insurance Reserve Fund",
+      "amount": 4507512388.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Emergency Management Agency",
+      "account": "National Pre-disaster Mitigation Fund",
+      "amount": 26877830.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Emergency Management Agency",
+      "account": "Operations and Support",
+      "amount": 1684237886.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Emergency Management Agency",
+      "account": "Procurement, Construction, and Improvements, FEMA",
+      "amount": 290810241.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Emergency Management Agency",
+      "account": "Radiological Emergency Preparedness Program",
+      "amount": 41653481.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Law Enforcement Training Center",
+      "account": "Operations and Support",
+      "amount": 226263932.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Law Enforcement Training Center",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 76720803.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Law Enforcement Training Centers",
+      "account": "Operations and Support",
+      "amount": 594927789.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Federal Law Enforcement Training Centers",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 99770227.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Management Directorate",
+      "account": "Department of Homeland Security Nonrecurring Expenses Fund",
+      "amount": 183240910.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Management Directorate",
+      "account": "Department-Wide Technology Investments",
+      "amount": 204151811.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Management Directorate",
+      "account": "Federal Protective Service",
+      "amount": 3007035545.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Management Directorate",
+      "account": "Office of Biometric Identity Management",
+      "amount": 1844693.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Management Directorate",
+      "account": "Office of the Chief Information Officer",
+      "amount": 6445904.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Management Directorate",
+      "account": "Office of the Undersecretary for Management",
+      "amount": 6267413.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Management Directorate",
+      "account": "Operations and Support",
+      "amount": 2158233600.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Management Directorate",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 1268332172.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Management Directorate",
+      "account": "Working Capital Fund",
+      "amount": 71235974.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Office of the Inspector General",
+      "account": "Operations and Support",
+      "amount": 281705335.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Federal Assistance",
+      "amount": 0.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Gifts and Donations",
+      "amount": 14428567.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Office of the Secretary and Executive Management",
+      "amount": 208495.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Operations and Support",
+      "amount": 414728510.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Procurement, Construction, and Improvements, OSEM",
+      "amount": 11811195.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Science and Technology",
+      "account": "Operations and Support",
+      "amount": 604038706.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Science and Technology",
+      "account": "Procurement, Construction, and Improvements, Science and Tech",
+      "amount": 137109718.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Science and Technology",
+      "account": "Research and Development, Science and Technology",
+      "amount": 739561667.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Transportation Security Administration",
+      "account": "Airport Checkpoint Screening Fund",
+      "amount": 822818.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Transportation Security Administration",
+      "account": "Aviation Security Capital Fund",
+      "amount": 307277588.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Transportation Security Administration",
+      "account": "Intelligence and Vetting",
+      "amount": 4295805.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Transportation Security Administration",
+      "account": "Operations and Support",
+      "amount": 14851052043.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Transportation Security Administration",
+      "account": "Procurement, Construction, and Improvements, TSA",
+      "amount": 54839646.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Transportation Security Administration",
+      "account": "Research and Development, TSA",
+      "amount": 17916476.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Transportation Security Administration",
+      "account": "Transportation Security Support, TSA, Homeland Security",
+      "amount": 12208.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "Transportation Security Administration",
+      "account": "Unclaimed Checkpoint Money",
+      "amount": 1730467.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "9-11 Response and Biometric Exit Account",
+      "amount": 36660997.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "APEC Business Travel Card",
+      "amount": 2689919.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Advanced Training Center Revolving Fund",
+      "amount": 150000.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Air and Marine Interdiction, Operations, Maintenance, and Procur",
+      "amount": 925860.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Automation Modernization, Customs and Border Protection",
+      "amount": 150000.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Border Security Fencing, Infrastructure, and Technology",
+      "amount": 21851955.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Customs User Fees",
+      "amount": 1042908201.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Electronic System for Travel Authorization (ESTA)",
+      "amount": 70015899.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Enhanced Inspectional Services",
+      "amount": 63470775.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Harbor Maintenance Fee Collection",
+      "amount": 3274000.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Immigration Support",
+      "amount": 1803587.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Immigration User Fee",
+      "amount": 1028130343.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "International Registered Traveler",
+      "amount": 798828168.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Land Border Inspection Fee",
+      "amount": 87353931.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Operations and Support",
+      "amount": 22209640113.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Other Border Protection",
+      "amount": 68781992.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 2851224222.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Refunds, Transfers, and Expenses of Operation, Puerto Rico",
+      "amount": 539251423.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Automation Modernization, Immigration and Customs Enforcement",
+      "amount": 2000.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Breached Bond Detention Fund",
+      "amount": 45975178.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Detention and Removal Operations",
+      "amount": 1071878.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Immigration User Fee Account, BICE",
+      "amount": 238978114.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Immigration and Customs Enforcement",
+      "amount": 1607512.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Operations and Support",
+      "amount": 9935281742.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 169329298.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Student and Exchange Visitor Program",
+      "amount": 582204902.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Coast Guard",
+      "account": "Boat Safety",
+      "amount": 170816957.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Coast Guard",
+      "account": "Coast Guard Housing Fund",
+      "amount": 50148517.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Coast Guard",
+      "account": "Environmental Compliance and Restoration",
+      "amount": 630880.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Coast Guard",
+      "account": "Medicare-eligible Retiree Health Fund Contribution, Homeland Sec",
+      "amount": 265320552.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Coast Guard",
+      "account": "Oil Spill Recovery",
+      "amount": 175985352.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Coast Guard",
+      "account": "Operations and Support",
+      "amount": 10648956938.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Coast Guard",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 4935654048.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Coast Guard",
+      "account": "Research and Development",
+      "amount": 18558235.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Coast Guard",
+      "account": "Retired Pay",
+      "amount": 2172140096.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Coast Guard",
+      "account": "Supply Fund",
+      "amount": 208187110.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Coast Guard",
+      "account": "Trust Fund Share of Expenses",
+      "amount": 45000000.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Coast Guard",
+      "account": "Yard Fund",
+      "amount": 351285674.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Secret Service",
+      "account": "Operations and Support",
+      "amount": 3140290449.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Secret Service",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 174629901.0
+    },
+    {
+      "fiscal_year": 2024,
+      "component": "United States Secret Service",
+      "account": "Research and Development, United States Secret Service",
+      "amount": 6913762.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Analysis and Operations",
+      "account": "Operations and Support",
+      "amount": 391808821.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Citizenship and Immigration Services",
+      "account": "Citizenship Gift and Bequest",
+      "amount": 1000000.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Citizenship and Immigration Services",
+      "account": "EB-5 Integrity Fund, Citizenship and Immigration Service",
+      "amount": 34256047.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Citizenship and Immigration Services",
+      "account": "Federal Assistance, Citizenship and Immigration Services",
+      "amount": 20000000.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Citizenship and Immigration Services",
+      "account": "H-1B Nonimmigrant Petitioner Account",
+      "amount": 50675931.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Citizenship and Immigration Services",
+      "account": "H-1B and L Fraud Prevention and Detection Account",
+      "amount": 85200985.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Citizenship and Immigration Services",
+      "account": "Immigration Examinations Fee",
+      "amount": 9887469107.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Citizenship and Immigration Services",
+      "account": "Operations and Support",
+      "amount": 267333786.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Federal Assistance, DNDO",
+      "amount": 195859375.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Operations and Support",
+      "amount": 185390265.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Procurement, Construction and Improvements",
+      "amount": 89363433.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Countering Weapons of Mass Destruction Office",
+      "account": "Research and Development",
+      "amount": 103440024.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Cybersecurity Response and Recovery Fund",
+      "amount": 79800000.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Operations and Support",
+      "amount": 2305447755.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Procurement, Construction, and Improvements, NPPD",
+      "amount": 559672396.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Cybersecurity and Infrastructure Security Agency",
+      "account": "Research and Development, National Protection and Programs Direc",
+      "amount": 1586000.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Emergency Management Agency",
+      "account": "Disaster Assistance Direct Loan Financing Account",
+      "amount": 134359903.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Emergency Management Agency",
+      "account": "Disaster Assistance Direct Loan Program Account",
+      "amount": 206996356.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Emergency Management Agency",
+      "account": "Disaster Relief Fund",
+      "amount": 68668183505.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Emergency Management Agency",
+      "account": "Federal Assistance, FEMA",
+      "amount": 5526516526.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Emergency Management Agency",
+      "account": "Hermit's Peak/Calf Canyon Fire Assistance Account",
+      "amount": 3756469524.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Emergency Management Agency",
+      "account": "National Flood Insurance Fund",
+      "amount": 18536403534.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Emergency Management Agency",
+      "account": "National Flood Insurance Reserve Fund",
+      "amount": 5287732738.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Emergency Management Agency",
+      "account": "Operations and Support",
+      "amount": 1628705789.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Emergency Management Agency",
+      "account": "Procurement, Construction, and Improvements, FEMA",
+      "amount": 266145875.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Emergency Management Agency",
+      "account": "Radiological Emergency Preparedness Program",
+      "amount": 47507579.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Law Enforcement Training Centers",
+      "account": "Operations and Support",
+      "amount": 599154315.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Federal Law Enforcement Training Centers",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 102901110.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Management Directorate",
+      "account": "Department of Homeland Security Nonrecurring Expenses Fund",
+      "amount": 138393000.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Management Directorate",
+      "account": "Department-Wide Technology Investments",
+      "amount": 212840265.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Management Directorate",
+      "account": "Federal Protective Service",
+      "amount": 3265177081.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Management Directorate",
+      "account": "Office of Biometric Identity Management",
+      "amount": 1148282.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Management Directorate",
+      "account": "Office of the Chief Information Officer",
+      "amount": 1312012.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Management Directorate",
+      "account": "Office of the Undersecretary for Management",
+      "amount": 3747271.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Management Directorate",
+      "account": "Operations and Support",
+      "amount": 2120842260.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Management Directorate",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 1223597849.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Office of the Inspector General",
+      "account": "Operations and Support",
+      "amount": 271919357.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Federal Assistance",
+      "amount": 0.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Gifts and Donations",
+      "amount": 3181552.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Office of the Secretary and Executive Management",
+      "amount": 208495.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Operations and Support",
+      "amount": 852480758.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Office of the Secretary and Executive Management",
+      "account": "Procurement, Construction, and Improvements, OSEM",
+      "amount": 10651908.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Science and Technology",
+      "account": "Operations and Support",
+      "amount": 567820780.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Science and Technology",
+      "account": "Procurement, Construction, and Improvements, Science and Tech",
+      "amount": 177245036.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Science and Technology",
+      "account": "Research and Development, Science and Technology",
+      "amount": 574526566.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Transportation Security Administration",
+      "account": "Airport Checkpoint Screening Fund",
+      "amount": 79501.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Transportation Security Administration",
+      "account": "Aviation Security Capital Fund",
+      "amount": 286326423.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Transportation Security Administration",
+      "account": "Intelligence and Vetting",
+      "amount": 2920464.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Transportation Security Administration",
+      "account": "Operations and Support",
+      "amount": 11850672776.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Transportation Security Administration",
+      "account": "Procurement, Construction, and Improvements, TSA",
+      "amount": 61990119.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Transportation Security Administration",
+      "account": "Research and Development, TSA",
+      "amount": 17132054.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Transportation Security Administration",
+      "account": "Transportation Security Support, TSA, Homeland Security",
+      "amount": 12208.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "Transportation Security Administration",
+      "account": "Unclaimed Checkpoint Money",
+      "amount": 1236888.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "9-11 Response and Biometric Exit Account",
+      "amount": 26993123.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "APEC Business Travel Card",
+      "amount": 2775574.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Advanced Training Center Revolving Fund",
+      "amount": 150000.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Air and Marine Interdiction, Operations, Maintenance, and Procur",
+      "amount": 1542483.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Automation Modernization, Customs and Border Protection",
+      "amount": 1705920.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Border Security Fencing, Infrastructure, and Technology",
+      "amount": 8500000.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Customs User Fees",
+      "amount": 1187530248.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Electronic System for Travel Authorization (ESTA)",
+      "amount": 82648062.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Enhanced Inspectional Services",
+      "amount": 75246623.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Harbor Maintenance Fee Collection",
+      "amount": 3274000.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Immigration Support",
+      "amount": 2437200.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Immigration User Fee",
+      "amount": 1092645806.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "International Registered Traveler",
+      "amount": 898624651.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Land Border Inspection Fee",
+      "amount": 94151769.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Operations and Support",
+      "amount": 22347436772.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Other Border Protection",
+      "amount": 85828346.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 2389581851.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Customs and Border Protection",
+      "account": "Refunds, Transfers, and Expenses of Operation, Puerto Rico",
+      "amount": 419901667.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Breached Bond Detention Fund",
+      "amount": 71705872.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Detention and Removal Operations",
+      "amount": 845422.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Immigration User Fee Account, BICE",
+      "amount": 272317636.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Operations and Support",
+      "amount": 85065931626.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 184285029.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "U.S. Immigration and Customs Enforcement",
+      "account": "Student and Exchange Visitor Program",
+      "amount": 653038603.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Coast Guard",
+      "account": "Boat Safety",
+      "amount": 170325993.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Coast Guard",
+      "account": "Coast Guard Housing Fund",
+      "amount": 46188879.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Coast Guard",
+      "account": "Environmental Compliance and Restoration",
+      "amount": 203171.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Coast Guard",
+      "account": "Medicare-eligible Retiree Health Fund Contribution, Homeland Sec",
+      "amount": 290093265.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Coast Guard",
+      "account": "Oil Spill Recovery",
+      "amount": 165500460.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Coast Guard",
+      "account": "Operations and Support",
+      "amount": 11300796368.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Coast Guard",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 27990615921.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Coast Guard",
+      "account": "Research and Development",
+      "amount": 13066114.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Coast Guard",
+      "account": "Retired Pay",
+      "amount": 2332391189.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Coast Guard",
+      "account": "Supply Fund",
+      "amount": 217107144.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Coast Guard",
+      "account": "Trust Fund Share of Expenses",
+      "amount": 45000000.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Coast Guard",
+      "account": "Yard Fund",
+      "amount": 299190624.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Secret Service",
+      "account": "Operations and Support",
+      "amount": 3600972241.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Secret Service",
+      "account": "Procurement, Construction, and Improvements",
+      "amount": 153234286.0
+    },
+    {
+      "fiscal_year": 2025,
+      "component": "United States Secret Service",
+      "account": "Research and Development, United States Secret Service",
+      "amount": 10148538.0
+    }
+  ],
+  "total_by_year": {
+    "2022": 183032963444.0,
+    "2023": 179799157806.0,
+    "2024": 185082934301.0,
+    "2025": 302268776060.0
+  }
+}
