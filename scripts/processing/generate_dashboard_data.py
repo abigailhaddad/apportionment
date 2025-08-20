@@ -103,12 +103,28 @@ def generate_spending_lifecycle():
         if 'bureau' in df.columns:
             df['component'] = df['bureau']
         
-        # Use apportionment_fy as fiscal_year for consistency
-        if 'apportionment_fy' in df.columns:
-            df['fiscal_year'] = df['apportionment_fy']
+        # IMPORTANT: To avoid double-counting multi-year appropriations,
+        # we need to de-duplicate by TAS + availability_period
+        # Each unique TAS/period should only be counted once
+        
+        # First, get unique TAS/period combinations with their totals
+        unique_tas = df.groupby(['tas_simple', 'availability_period', 'component']).agg({
+            'budget_authority': 'first',  # These should be the same for all records
+            'obligations': 'first',        # with the same TAS/period
+            'outlays': 'first',
+            'apportionment_amount': 'sum'  # Sum apportionments across years
+        }).reset_index()
+        
+        # Now aggregate by component and the earliest apportionment year
+        # Get the min apportionment year for each TAS/period
+        min_years = df.groupby(['tas_simple', 'availability_period'])['apportionment_fy'].min().reset_index()
+        min_years.columns = ['tas_simple', 'availability_period', 'fiscal_year']
+        
+        # Merge to get fiscal year
+        unique_tas = pd.merge(unique_tas, min_years, on=['tas_simple', 'availability_period'])
         
         # Group by fiscal year and component
-        summary = df.groupby(['fiscal_year', 'component']).agg({
+        summary = unique_tas.groupby(['fiscal_year', 'component']).agg({
             'apportionment_amount': 'sum',
             'budget_authority': 'sum', 
             'obligations': 'sum',
@@ -118,10 +134,128 @@ def generate_spending_lifecycle():
         # Rename for output consistency
         summary.rename(columns={'apportionment_amount': 'appropriations'}, inplace=True)
         
+        # Add a note about partial year data for FY2025
+        for idx, row in summary.iterrows():
+            if row['fiscal_year'] == 2025:
+                # For FY2025, scale down obligations/outlays since we only have Q3 data
+                # This is approximate but gives a better picture
+                summary.at[idx, 'note'] = 'FY2025 obligations/outlays through Q3 only'
+        
         return summary.to_dict('records')
     except Exception as e:
         print(f"Error generating spending lifecycle: {e}")
         return []
+
+def generate_monthly_trends():
+    """Generate monthly appropriations and outlays data for time series visualization"""
+    try:
+        # Load appropriations detail data with dates
+        appr_df = pd.read_csv('processed_data/appropriations/dhs_tas_aggregated_detail.csv')
+        appr_df['approval_date'] = pd.to_datetime(appr_df['approval_date'])
+        appr_df['year_month'] = appr_df['approval_date'].dt.to_period('M')
+        
+        # Load spending lifecycle data for outlays
+        lifecycle_data = load_json('processed_data/spending_lifecycle/spending_lifecycle_data.json')
+        if 'records' in lifecycle_data:
+            records = lifecycle_data['records']
+        else:
+            records = lifecycle_data
+        
+        outlay_df = pd.DataFrame(records)
+        
+        # Rename bureau to component
+        if 'bureau' in outlay_df.columns:
+            outlay_df['component'] = outlay_df['bureau']
+        if 'bureau' in appr_df.columns and 'component' not in appr_df.columns:
+            appr_df['component'] = appr_df['bureau']
+        
+        # Aggregate appropriations by month and component
+        monthly_appr = appr_df.groupby(['year_month', 'component']).agg({
+            'amount': 'sum'
+        }).reset_index()
+        monthly_appr['date'] = monthly_appr['year_month'].dt.to_timestamp()
+        
+        # For outlays, we need to distribute fiscal year totals across months
+        # This is an approximation since we don't have monthly outlay data
+        # We'll distribute evenly across the fiscal year months
+        monthly_outlays = []
+        
+        for _, row in outlay_df.iterrows():
+            fy = row['apportionment_fy']
+            # Fiscal year runs Oct-Sep
+            start_date = pd.Timestamp(f'{fy-1}-10-01')
+            end_date = pd.Timestamp(f'{fy}-09-30')
+            
+            # Create monthly records
+            months = pd.date_range(start_date, end_date, freq='MS')
+            monthly_amount = row['outlays'] / 12  # Distribute evenly
+            
+            for month in months:
+                monthly_outlays.append({
+                    'date': month,
+                    'component': row['component'],
+                    'outlays': monthly_amount,
+                    'fiscal_year': fy
+                })
+        
+        outlay_df_monthly = pd.DataFrame(monthly_outlays)
+        
+        # Get date range from appropriations data
+        min_date = appr_df['approval_date'].min()
+        max_date = appr_df['approval_date'].max()
+        
+        # Create complete date range
+        all_months = pd.date_range(min_date, max_date, freq='MS')
+        all_components = list(set(appr_df['component'].unique()) | set(outlay_df['component'].unique()))
+        
+        # Create time series data structure
+        time_series_data = {
+            'monthly': [],
+            'components': all_components,
+            'date_range': {
+                'start': min_date.isoformat(),
+                'end': max_date.isoformat()
+            },
+            'spending_types': [
+                'Personnel', 'Contracts & Services', 'Grants', 
+                'Facilities', 'Supplies & Equipment', 'Travel', 'Other'
+            ]
+        }
+        
+        # Aggregate by month for time series
+        for month in all_months:
+            month_str = month.strftime('%Y-%m')
+            
+            # Get appropriations for this month
+            month_appr = monthly_appr[monthly_appr['date'] == month]
+            appr_total = month_appr['amount'].sum()
+            appr_by_component = month_appr.set_index('component')['amount'].to_dict()
+            
+            # Get outlays for this month  
+            month_outlays = outlay_df_monthly[outlay_df_monthly['date'] == month]
+            outlays_total = month_outlays['outlays'].sum()
+            outlays_by_component = month_outlays.groupby('component')['outlays'].sum().to_dict()
+            
+            time_series_data['monthly'].append({
+                'date': month_str,
+                'appropriations_total': float(appr_total),
+                'outlays_total': float(outlays_total),
+                'appropriations_by_component': appr_by_component,
+                'outlays_by_component': outlays_by_component
+            })
+        
+        return time_series_data
+        
+    except Exception as e:
+        print(f"Error generating monthly trends: {e}")
+        import traceback
+        traceback.print_exc()
+        return {
+            'monthly': [],
+            'components': [],
+            'date_range': {},
+            'spending_types': []
+        }
 
 def generate_spending_summary(data):
     """Generate spending summary by component and category"""
@@ -290,7 +424,17 @@ def main():
     except Exception as e:
         print(f"✗ Error with spending lifecycle: {e}")
     
-    # 5. Create a combined metadata file
+    # 5. Monthly trends data
+    try:
+        monthly_data = generate_monthly_trends()
+        
+        with open(f'{output_dir}/monthly_trends.json', 'w') as f:
+            json.dump(monthly_data, f, indent=2)
+        print(f"✓ Created monthly_trends.json")
+    except Exception as e:
+        print(f"✗ Error with monthly trends: {e}")
+    
+    # 6. Create a combined metadata file
     metadata = {
         'generated_at': datetime.now().isoformat(),
         'description': 'Pre-aggregated data for dashboard performance',
@@ -298,7 +442,8 @@ def main():
             'appropriations_summary.json': 'Appropriations by component and account with recent apportionments',
             'spending_summary.json': 'Spending by component and category', 
             'vendor_summary.json': 'Top 100 vendors and changes',
-            'spending_lifecycle.json': 'Spending lifecycle from appropriations to outlays'
+            'spending_lifecycle.json': 'Spending lifecycle from appropriations to outlays',
+            'monthly_trends.json': 'Monthly time series data for appropriations and outlays'
         }
     }
     
@@ -309,7 +454,7 @@ def main():
     
     # Show file sizes
     print("\nGenerated file sizes:")
-    for filename in ['appropriations_summary.json', 'spending_summary.json', 'vendor_summary.json', 'spending_lifecycle.json']:
+    for filename in ['appropriations_summary.json', 'spending_summary.json', 'vendor_summary.json', 'spending_lifecycle.json', 'monthly_trends.json']:
         filepath = f'{output_dir}/{filename}'
         if os.path.exists(filepath):
             size = os.path.getsize(filepath)

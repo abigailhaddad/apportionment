@@ -2,489 +2,568 @@
   {
     "fiscal_year": 2022,
     "component": "Analysis and Operations",
-    "appropriations": 379337344.0,
+    "appropriations": 396662662.0,
     "budget_authority": 295693530.0,
     "obligations": 353476286.04,
-    "outlays": 376523384.91
+    "outlays": 376523384.90999997,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "Citizenship and Immigration Services",
-    "appropriations": 409504000.0,
+    "appropriations": 460508639.0,
     "budget_authority": 364689659.0,
     "obligations": 364243108.59000003,
-    "outlays": 332993021.74
+    "outlays": 332993021.74,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "Countering Weapons of Mass Destruction Office",
-    "appropriations": 612104096.0,
+    "appropriations": 830734543.0,
     "budget_authority": 446221547.0,
     "obligations": 594080250.4,
-    "outlays": 791575461.01
+    "outlays": 791575461.01,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "Cybersecurity and Infrastructure Security Agency",
-    "appropriations": 3150374862.0,
+    "appropriations": 3554353902.0,
     "budget_authority": 2591485753.52,
     "obligations": 3148154166.08,
-    "outlays": 3379500048.8199997
+    "outlays": 3379500048.82,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "Federal Emergency Management Agency",
-    "appropriations": 38003911306.0,
+    "appropriations": 53641426083.0,
     "budget_authority": 4998741671.0,
     "obligations": 38145665322.96,
-    "outlays": 41984567303.72
+    "outlays": 41984567303.72,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "Federal Law Enforcement Training Center",
-    "appropriations": 640148017.0,
+    "appropriations": 927885589.0,
     "budget_authority": 352766532.0,
-    "obligations": 625426723.44,
-    "outlays": 678359962.6999999
+    "obligations": 625426723.4399999,
+    "outlays": 678359962.6999999,
+    "note": NaN
+  },
+  {
+    "fiscal_year": 2022,
+    "component": "Federal Law Enforcement Training Centers",
+    "appropriations": 1201163.0,
+    "budget_authority": 33153032.0,
+    "obligations": 64700537.19,
+    "outlays": 109988282.7,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "Management Directorate",
-    "appropriations": 3510463418.0,
+    "appropriations": 6011223078.0,
     "budget_authority": 2686542250.0,
-    "obligations": 3067075263.9599996,
-    "outlays": 2167342184.91
+    "obligations": 3067075263.96,
+    "outlays": 2167342184.91,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "Office of the Inspector General",
-    "appropriations": 208717750.0,
+    "appropriations": 214952793.0,
     "budget_authority": 208085617.0,
-    "obligations": 209840487.06999996,
-    "outlays": 205177869.00999996
+    "obligations": 209840487.07,
+    "outlays": 205177869.01,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "Office of the Secretary and Executive Management",
-    "appropriations": 357599525.0,
+    "appropriations": 365241458.0,
     "budget_authority": 328258300.0,
     "obligations": 337357266.90000004,
-    "outlays": 306656960.6
+    "outlays": 306656960.59999996,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "Science and Technology",
-    "appropriations": 1408452501.0,
+    "appropriations": 2221149340.0,
     "budget_authority": 1040422110.0,
     "obligations": 1362488324.1699998,
-    "outlays": 1756286034.35
+    "outlays": 1756286034.3500001,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "Transportation Security Administration",
-    "appropriations": 8804984862.0,
+    "appropriations": 9120167218.0,
     "budget_authority": 6209119634.56,
     "obligations": 8668900034.96,
-    "outlays": 10085539124.28
+    "outlays": 10085539124.28,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "U.S. Customs and Border Protection",
-    "appropriations": 22390063136.0,
+    "appropriations": 28950216523.0,
     "budget_authority": 16419704175.0,
     "obligations": 21871264089.260002,
-    "outlays": 20036105000.98
+    "outlays": 20036105000.98,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "U.S. Immigration and Customs Enforcement",
-    "appropriations": 9168854914.0,
+    "appropriations": 9382645629.0,
     "budget_authority": 8541893761.0,
-    "obligations": 9085597204.339998,
-    "outlays": 8909675679.63
+    "obligations": 9085597204.34,
+    "outlays": 8909675679.63,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "United States Coast Guard",
-    "appropriations": 16038988226.0,
+    "appropriations": 22749129183.0,
     "budget_authority": 11630606507.0,
     "obligations": 14767444578.46,
-    "outlays": 15015495603.23
+    "outlays": 15015495603.23,
+    "note": NaN
   },
   {
     "fiscal_year": 2022,
     "component": "United States Secret Service",
-    "appropriations": 2762289723.0,
+    "appropriations": 2866744347.0,
     "budget_authority": 2601985001.0,
     "obligations": 2771397977.0699997,
-    "outlays": 2696236412.99
+    "outlays": 2696236412.9900002,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "Analysis and Operations",
-    "appropriations": 395657318.0,
-    "budget_authority": 404118080.0,
-    "obligations": 442790980.08,
-    "outlays": 411786857.37
+    "appropriations": 390532000.0,
+    "budget_authority": 315882250.0,
+    "obligations": 348200861.52,
+    "outlays": 327266909.72,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "Citizenship and Immigration Services",
-    "appropriations": 318985639.0,
-    "budget_authority": 319641810.0,
-    "obligations": 319695754.63,
-    "outlays": 295025848.58
+    "appropriations": 270875207.0,
+    "budget_authority": 267981000.0,
+    "obligations": 264848744.91,
+    "outlays": 245526261.44,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "Countering Weapons of Mass Destruction Office",
-    "appropriations": 618663921.0,
-    "budget_authority": 719645110.0,
-    "obligations": 824022201.83,
-    "outlays": 790244376.53
+    "appropriations": 610277670.0,
+    "budget_authority": 399990560.0,
+    "obligations": 410040691.18,
+    "outlays": 317974976.57,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "Cybersecurity and Infrastructure Security Agency",
-    "appropriations": 3220742733.0,
-    "budget_authority": 3526263655.52,
-    "obligations": 3995346130.58,
-    "outlays": 4118531354.8
+    "appropriations": 3114687757.0,
+    "budget_authority": 2876568271.0,
+    "obligations": 2845691068.0,
+    "outlays": 2716520847.55,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "Federal Emergency Management Agency",
-    "appropriations": 15604080592.0,
-    "budget_authority": 7032480601.0,
-    "obligations": 39481290265.439995,
-    "outlays": 41695886719.75
+    "appropriations": 7016102882.0,
+    "budget_authority": 5997663101.0,
+    "obligations": 6132025663.43,
+    "outlays": 3336203424.65,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "Federal Law Enforcement Training Center",
-    "appropriations": 713170513.0,
-    "budget_authority": 495390850.0,
-    "obligations": 785446325.73,
-    "outlays": 785095720.0
+    "appropriations": 674563744.0,
+    "budget_authority": 401079608.0,
+    "obligations": 551628220.41,
+    "outlays": 500173253.44,
+    "note": NaN
+  },
+  {
+    "fiscal_year": 2023,
+    "component": "Federal Law Enforcement Training Centers",
+    "appropriations": 255830791.0,
+    "budget_authority": 118427410.0,
+    "obligations": 221025607.28,
+    "outlays": 177584109.86,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "Management Directorate",
-    "appropriations": 3775598517.0,
-    "budget_authority": 3148428487.0,
-    "obligations": 3367352711.48,
-    "outlays": 2369846878.7200003
+    "appropriations": 3014614456.0,
+    "budget_authority": 2056717067.0,
+    "obligations": 2155038929.7,
+    "outlays": 1993726428.48,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "Office of the Inspector General",
-    "appropriations": 233061750.0,
-    "budget_authority": 217787750.0,
-    "obligations": 232494369.77,
-    "outlays": 227519362.72
+    "appropriations": 248935897.0,
+    "budget_authority": 214929000.0,
+    "obligations": 229648565.15,
+    "outlays": 224673558.1,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "Office of the Secretary and Executive Management",
-    "appropriations": 401342902.0,
-    "budget_authority": 319842505.0,
-    "obligations": 373456425.32,
-    "outlays": 343427213.36
+    "appropriations": 421873937.0,
+    "budget_authority": 338700635.0,
+    "obligations": 365413799.15000004,
+    "outlays": 337448179.23,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "Science and Technology",
-    "appropriations": 1573585505.0,
-    "budget_authority": 1804000703.0,
-    "obligations": 2114754742.52,
-    "outlays": 1990337673.82
+    "appropriations": 1505013266.0,
+    "budget_authority": 897838883.0,
+    "obligations": 964357203.15,
+    "outlays": 753344297.84,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "Transportation Security Administration",
-    "appropriations": 9370427132.0,
-    "budget_authority": 12558850171.39,
-    "obligations": 17249847227.81,
-    "outlays": 16974623331.61
+    "appropriations": 9343625493.0,
+    "budget_authority": 6355294536.83,
+    "obligations": 8973306449.54,
+    "outlays": 8726816207.92,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "U.S. Customs and Border Protection",
-    "appropriations": 24061974068.0,
-    "budget_authority": 19091008313.0,
-    "obligations": 24927244592.11,
-    "outlays": 22006852320.72
+    "appropriations": 21368089342.0,
+    "budget_authority": 17371889697.0,
+    "obligations": 20080315506.08,
+    "outlays": 19167062415.140003,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "U.S. Immigration and Customs Enforcement",
-    "appropriations": 9580144100.0,
-    "budget_authority": 9070852975.0,
-    "obligations": 9739562473.73,
-    "outlays": 9435394466.77
+    "appropriations": 9634943333.0,
+    "budget_authority": 8979714961.0,
+    "obligations": 9466497495.730001,
+    "outlays": 9181423742.810001,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "United States Coast Guard",
-    "appropriations": 15519911327.0,
-    "budget_authority": 14024197663.0,
-    "obligations": 15741397975.41,
-    "outlays": 14746401048.66
+    "appropriations": 15187194967.0,
+    "budget_authority": 11698225963.0,
+    "obligations": 11532409051.71,
+    "outlays": 10370823222.81,
+    "note": NaN
   },
   {
     "fiscal_year": 2023,
     "component": "United States Secret Service",
-    "appropriations": 2977080345.0,
-    "budget_authority": 2875607948.0,
-    "obligations": 3118168387.4100003,
-    "outlays": 2842096352.4300003
+    "appropriations": 3021627625.0,
+    "budget_authority": 2776210618.0,
+    "obligations": 2968093422.02,
+    "outlays": 2693445591.08,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "Analysis and Operations",
-    "appropriations": 417055000.0,
-    "budget_authority": 439283250.0,
-    "obligations": 463175273.66,
-    "outlays": 423564462.66999996
+    "appropriations": 416589282.0,
+    "budget_authority": 344768000.0,
+    "obligations": 363649073.08000004,
+    "outlays": 336533991.51,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "Citizenship and Immigration Services",
-    "appropriations": 284034207.0,
-    "budget_authority": 302993070.0,
-    "obligations": 305224457.4,
-    "outlays": 256454589.44
+    "appropriations": 291140000.0,
+    "budget_authority": 277993070.0,
+    "obligations": 280281107.4,
+    "outlays": 244542358.0,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "Countering Weapons of Mass Destruction Office",
-    "appropriations": 588308719.0,
-    "budget_authority": 972005560.0,
-    "obligations": 940670721.06,
-    "outlays": 664031017.13
+    "appropriations": 538115976.0,
+    "budget_authority": 403690000.0,
+    "obligations": 360832781.57,
+    "outlays": 209299659.07,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "Cybersecurity and Infrastructure Security Agency",
-    "appropriations": 3088341376.0,
-    "budget_authority": 4139801700.0,
-    "obligations": 4080263113.47,
-    "outlays": 3544555115.13
+    "appropriations": 2974914096.0,
+    "budget_authority": 2888637000.0,
+    "obligations": 2855632040.6299996,
+    "outlays": 2437735134.06,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "Federal Emergency Management Agency",
-    "appropriations": 8718105786.0,
-    "budget_authority": 7260154949.0,
-    "obligations": 38760148769.52,
-    "outlays": 40084638478.99
+    "appropriations": 6960321814.0,
+    "budget_authority": 5879607449.0,
+    "obligations": 5047040846.38,
+    "outlays": 1718228290.32,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "Federal Law Enforcement Training Center",
-    "appropriations": 299130803.0,
-    "budget_authority": 442015442.0,
-    "obligations": 619675455.0,
-    "outlays": 606881255.9300001
+    "appropriations": 50000000.0,
+    "budget_authority": 290435000.0,
+    "obligations": 333949310.53,
+    "outlays": 319308863.37,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "Federal Law Enforcement Training Centers",
-    "appropriations": 694698016.0,
-    "budget_authority": 494895442.0,
-    "obligations": 622882273.65,
-    "outlays": 607249299.21
+    "appropriations": 537089257.0,
+    "budget_authority": 376515000.0,
+    "obligations": 400156642.97999996,
+    "outlays": 378076685.96,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "Management Directorate",
-    "appropriations": 3377513760.0,
-    "budget_authority": 3187049650.0,
-    "obligations": 3121596002.21,
-    "outlays": 2050771645.03
+    "appropriations": 2598889688.0,
+    "budget_authority": 1982988650.0,
+    "obligations": 2060696866.03,
+    "outlays": 1795483165.51,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "Office of the Inspector General",
-    "appropriations": 237955471.0,
-    "budget_authority": 222983719.0,
-    "obligations": 238038161.47,
-    "outlays": 229201886.67
+    "appropriations": 221714000.0,
+    "budget_authority": 220074969.0,
+    "obligations": 221838875.51,
+    "outlays": 213418623.29999998,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "Office of the Secretary and Executive Management",
-    "appropriations": 426179705.0,
-    "budget_authority": 390078760.0,
-    "obligations": 424822444.91,
-    "outlays": 346440459.99
+    "appropriations": 439221113.0,
+    "budget_authority": 364994000.0,
+    "obligations": 391756513.09000003,
+    "outlays": 324271607.60999995,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "Science and Technology",
-    "appropriations": 1422663490.0,
-    "budget_authority": 2184942333.0,
-    "obligations": 2186582187.4,
-    "outlays": 1604273381.62
+    "appropriations": 1117956585.0,
+    "budget_authority": 741634000.0,
+    "obligations": 705529675.37,
+    "outlays": 450857683.99,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "Transportation Security Administration",
-    "appropriations": 14032481703.0,
-    "budget_authority": 13238588131.02,
-    "obligations": 19391261552.0,
-    "outlays": 18583246717.030003
+    "appropriations": 13937874621.0,
+    "budget_authority": 6722557594.19,
+    "obligations": 10252597660.650002,
+    "outlays": 9701384052.82,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "U.S. Customs and Border Protection",
-    "appropriations": 24322401008.0,
-    "budget_authority": 20667747124.0,
-    "obligations": 25968097526.95,
-    "outlays": 22161310186.34
+    "appropriations": 22528659532.0,
+    "budget_authority": 18623766000.0,
+    "obligations": 21101573543.93,
+    "outlays": 19879672266.05,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "U.S. Immigration and Customs Enforcement",
-    "appropriations": 10038377750.0,
-    "budget_authority": 9669747232.0,
-    "obligations": 10120250831.86,
-    "outlays": 9607097294.06
+    "appropriations": 9966563257.0,
+    "budget_authority": 9557303062.0,
+    "obligations": 9786386763.16,
+    "outlays": 9326901890.18,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "United States Coast Guard",
-    "appropriations": 15711348415.0,
-    "budget_authority": 15866202123.0,
-    "obligations": 15785949362.78,
-    "outlays": 13563489921.679998
+    "appropriations": 13426852683.0,
+    "budget_authority": 11741517552.0,
+    "obligations": 11228774917.66,
+    "outlays": 10066429903.55,
+    "note": NaN
   },
   {
     "fiscal_year": 2024,
     "component": "United States Secret Service",
-    "appropriations": 3289679394.0,
-    "budget_authority": 2958490450.0,
-    "obligations": 3412241857.9700003,
-    "outlays": 3085425823.2500005
+    "appropriations": 3515424815.0,
+    "budget_authority": 2767797000.0,
+    "obligations": 3195177067.13,
+    "outlays": 2937208996.79,
+    "note": NaN
   },
   {
     "fiscal_year": 2025,
     "component": "Analysis and Operations",
-    "appropriations": 391808821.0,
-    "budget_authority": 449802000.0,
-    "obligations": 302016055.32,
-    "outlays": 245804342.21
+    "appropriations": 380074539.0,
+    "budget_authority": 345410000.0,
+    "obligations": 201161969.32,
+    "outlays": 157028038.55,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "Citizenship and Immigration Services",
-    "appropriations": 287315000.0,
-    "budget_authority": 288626000.0,
-    "obligations": 121665917.49,
-    "outlays": 93835229.99
+    "appropriations": 277315000.0,
+    "budget_authority": 278626000.0,
+    "obligations": 111665919.49,
+    "outlays": 92907482.61,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "Countering Weapons of Mass Destruction Office",
-    "appropriations": 574040061.0,
-    "budget_authority": 972009000.0,
-    "obligations": 624530568.7,
-    "outlays": 354393842.56
+    "appropriations": 413988608.0,
+    "budget_authority": 409441000.0,
+    "obligations": 102954616.14999999,
+    "outlays": 46139872.980000004,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "Cybersecurity and Infrastructure Security Agency",
-    "appropriations": 2938744784.0,
-    "budget_authority": 3900055500.0,
-    "obligations": 2293412278.76,
-    "outlays": 1659924174.03
+    "appropriations": 2754248000.0,
+    "budget_authority": 2749348000.0,
+    "obligations": 1244792724.25,
+    "outlays": 795439920.84,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "Federal Emergency Management Agency",
-    "appropriations": 10505486779.0,
-    "budget_authority": 6819382500.0,
-    "obligations": 34026000109.23,
-    "outlays": 38710592718.83
+    "appropriations": 5213733684.0,
+    "budget_authority": 5154082000.0,
+    "obligations": 1002772432.24,
+    "outlays": 752613781.59,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "Federal Law Enforcement Training Centers",
-    "appropriations": 700643195.0,
-    "budget_authority": 562495000.0,
-    "obligations": 535281022.42,
-    "outlays": 409867859.13
+    "appropriations": 601220000.0,
+    "budget_authority": 391220000.0,
+    "obligations": 346254117.45000005,
+    "outlays": 271121748.93,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "Management Directorate",
-    "appropriations": 3334714840.0,
-    "budget_authority": 3313518000.0,
-    "obligations": 2006123903.79,
-    "outlays": 957091242.1800001
+    "appropriations": 2373563313.0,
+    "budget_authority": 1981140000.0,
+    "obligations": 1136124316.95,
+    "outlays": 793146035.82,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "Office of the Inspector General",
-    "appropriations": 227454719.0,
-    "budget_authority": 223033750.0,
-    "obligations": 179588058.04000002,
-    "outlays": 151533666.39000002
+    "appropriations": 221587000.0,
+    "budget_authority": 220075000.0,
+    "obligations": 163388772.08,
+    "outlays": 135750403.02,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "Office of the Secretary and Executive Management",
-    "appropriations": 612772665.0,
-    "budget_authority": 437356000.0,
-    "obligations": 344671709.98,
-    "outlays": 279928238.8
+    "appropriations": 571558289.0,
+    "budget_authority": 399695000.0,
+    "obligations": 301453677.73,
+    "outlays": 249892923.8,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "Science and Technology",
-    "appropriations": 1278258187.0,
-    "budget_authority": 2005030450.0,
-    "obligations": 1390271361.91,
-    "outlays": 799716142.49
+    "appropriations": 838840492.0,
+    "budget_authority": 741634000.0,
+    "obligations": 269810842.99,
+    "outlays": 116490839.08,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "Transportation Security Administration",
-    "appropriations": 10954715284.0,
-    "budget_authority": 8181428000.0,
-    "obligations": 7815438329.09,
-    "outlays": 6635457803.03
+    "appropriations": 10760941649.0,
+    "budget_authority": 7400287000.0,
+    "obligations": 7024641853.660001,
+    "outlays": 6158189551.440001,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "U.S. Customs and Border Protection",
-    "appropriations": 23968664440.0,
-    "budget_authority": 21177259000.0,
-    "obligations": 17509118297.22,
-    "outlays": 13857302509.84
+    "appropriations": 21896137255.0,
+    "budget_authority": 18487376000.0,
+    "obligations": 13823879334.009998,
+    "outlays": 11979586404.009998,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "U.S. Immigration and Customs Enforcement",
-    "appropriations": 11043508071.0,
-    "budget_authority": 10496295062.0,
-    "obligations": 7563955488.039999,
-    "outlays": 5889972979.39
+    "appropriations": 10846732616.0,
+    "budget_authority": 10351562000.0,
+    "obligations": 7352391180.409999,
+    "outlays": 5741090341.35,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "United States Coast Guard",
-    "appropriations": 39305270763.0,
-    "budget_authority": 18037626965.0,
-    "obligations": 12254476713.71,
-    "outlays": 8380267206.99
+    "appropriations": 35212341898.0,
+    "budget_authority": 12414773265.0,
+    "obligations": 7746807506.05,
+    "outlays": 5598740697.26,
+    "note": "FY2025 obligations/outlays through Q3 only"
   },
   {
     "fiscal_year": 2025,
     "component": "United States Secret Service",
-    "appropriations": 3757991940.0,
-    "budget_authority": 3616883000.0,
-    "obligations": 2523462145.17,
-    "outlays": 1955353443.99
+    "appropriations": 3383244615.0,
+    "budget_authority": 3318797000.0,
+    "obligations": 2250282164.33,
+    "outlays": 1811691769.19,
+    "note": "FY2025 obligations/outlays through Q3 only"
   }
 ]

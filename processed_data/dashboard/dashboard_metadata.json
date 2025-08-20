@@ -1,10 +1,11 @@
 {
-  "generated_at": "2025-08-20T14:11:37.982287",
+  "generated_at": "2025-08-20T14:29:14.680784",
   "description": "Pre-aggregated data for dashboard performance",
   "files": {
     "appropriations_summary.json": "Appropriations by component and account with recent apportionments",
     "spending_summary.json": "Spending by component and category",
     "vendor_summary.json": "Top 100 vendors and changes",
-    "spending_lifecycle.json": "Spending lifecycle from appropriations to outlays"
+    "spending_lifecycle.json": "Spending lifecycle from appropriations to outlays",
+    "monthly_trends.json": "Monthly time series data for appropriations and outlays"
   }
 }

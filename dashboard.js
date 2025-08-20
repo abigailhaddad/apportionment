@@ -58,11 +58,12 @@ class DashboardManager {
         console.log('Loading dashboard data...');
         
         // Load optimized summary data for better performance
-        const [appropriationsSummary, spendingSummary, vendorSummary, spendingLifecycle, metadata] = await Promise.all([
+        const [appropriationsSummary, spendingSummary, vendorSummary, spendingLifecycle, monthlyTrends, metadata] = await Promise.all([
             this.loadJSON('processed_data/dashboard/appropriations_summary.json'),
             this.loadJSON('processed_data/dashboard/spending_summary.json'), 
             this.loadJSON('processed_data/dashboard/vendor_summary.json'),
             this.loadJSON('processed_data/dashboard/spending_lifecycle.json'),
+            this.loadJSON('processed_data/dashboard/monthly_trends.json'),
             this.loadJSON('processed_data/appropriations/update_metadata.json')
         ]);
         
@@ -71,6 +72,7 @@ class DashboardManager {
             spendingSummary,
             vendorSummary,
             spendingLifecycle,
+            monthlyTrends,
             metadata
         };
         
@@ -78,7 +80,8 @@ class DashboardManager {
             appropriationsSummary: this.data.appropriationsSummary ? 'loaded' : 'missing',
             spendingSummary: this.data.spendingSummary ? 'loaded' : 'missing',
             vendorSummary: this.data.vendorSummary ? 'loaded' : 'missing',
-            spendingLifecycle: this.data.spendingLifecycle ? 'loaded' : 'missing'
+            spendingLifecycle: this.data.spendingLifecycle ? 'loaded' : 'missing',
+            monthlyTrends: this.data.monthlyTrends ? 'loaded' : 'missing'
         });
     }
     
@@ -505,42 +508,167 @@ class DashboardManager {
     // Year-over-Year Comparison
     renderYearOverYear() {
         const container = document.getElementById('yearOverYear');
+        container.innerHTML = `
+            <h2>Year-over-Year Spending Trends</h2>
+            <div id="yearOverYearControls" style="margin-bottom: 20px;">
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 300px;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 5px;">Components:</label>
+                        <div id="componentFilters" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                            <!-- Component checkboxes will be added here -->
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <button onclick="dashboard.selectAllComponents()">Select All</button>
+                            <button onclick="dashboard.clearAllComponents()">Clear All</button>
+                        </div>
+                    </div>
+                    <div style="flex: 1; min-width: 300px;">
+                        <label style="display: block; font-weight: bold; margin-bottom: 5px;">Spending Types:</label>
+                        <div id="spendingTypeFilters" style="border: 1px solid #ddd; padding: 10px; border-radius: 4px;">
+                            <!-- Spending type checkboxes will be added here -->
+                        </div>
+                        <div style="margin-top: 5px;">
+                            <button onclick="dashboard.selectAllSpendingTypes()">Select All</button>
+                            <button onclick="dashboard.clearAllSpendingTypes()">Clear All</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="yearOverYearChart"></div>
+        `;
         
-        if (!this.data.spendingLifecycle) {
-            container.innerHTML = '<h2>Year-over-Year Trends</h2><div class="error">Failed to load data</div>';
+        // Initialize filters
+        this.selectedComponents = new Set();
+        this.selectedSpendingTypes = new Set();
+        
+        if (!this.data.monthlyTrends) {
+            container.innerHTML += '<div class="error">Monthly trends data not available</div>';
             return;
         }
         
-        // Get all fiscal years
-        const fiscalYears = [...new Set(this.data.spendingLifecycle.map(d => d.fiscal_year))].sort();
+        // Create component filters
+        const componentFilters = document.getElementById('componentFilters');
+        this.data.monthlyTrends.components.forEach(component => {
+            const checkbox = document.createElement('div');
+            checkbox.innerHTML = `
+                <label style="display: block; padding: 2px 0; cursor: pointer;">
+                    <input type="checkbox" value="${component}" onchange="dashboard.updateYearOverYear()" 
+                           style="margin-right: 5px;" checked>
+                    ${component}
+                </label>
+            `;
+            componentFilters.appendChild(checkbox);
+            this.selectedComponents.add(component);
+        });
         
-        // Aggregate by fiscal year
-        const yearTotals = d3.rollup(
-            this.data.spendingLifecycle,
-            v => ({
-                appropriations: d3.sum(v, d => d.appropriations),
-                obligations: d3.sum(v, d => d.obligations),
-                outlays: d3.sum(v, d => d.outlays)
-            }),
-            d => d.fiscal_year
-        );
+        // Create spending type filters  
+        const spendingTypeFilters = document.getElementById('spendingTypeFilters');
+        this.data.monthlyTrends.spending_types.forEach(type => {
+            const checkbox = document.createElement('div');
+            checkbox.style.display = 'inline-block';
+            checkbox.style.marginRight = '15px';
+            checkbox.innerHTML = `
+                <label style="cursor: pointer;">
+                    <input type="checkbox" value="${type}" onchange="dashboard.updateYearOverYear()" 
+                           style="margin-right: 5px;" disabled>
+                    ${type}
+                </label>
+            `;
+            spendingTypeFilters.appendChild(checkbox);
+        });
         
-        const yearData = Array.from(yearTotals, ([year, totals]) => ({
-            year,
-            ...totals
-        })).sort((a, b) => a.year - b.year);
+        // Note about spending type data
+        const note = document.createElement('div');
+        note.style.marginTop = '5px';
+        note.style.fontSize = '0.9em';
+        note.style.color = '#666';
+        note.innerHTML = '<em>Note: Spending type breakdown not yet available in monthly data</em>';
+        spendingTypeFilters.appendChild(note);
         
-        container.innerHTML = `
-            <h2>Year-over-Year Spending Trends</h2>
-            <div class="chart-container" id="yearChart"></div>
-        `;
-        
-        this.createYearOverYearChart(document.getElementById('yearChart'), yearData);
+        this.updateYearOverYear();
     }
     
-    createYearOverYearChart(container, data) {
-        const margin = { top: 20, right: 80, bottom: 50, left: 100 };
-        const width = container.clientWidth - margin.left - margin.right;
+    selectAllComponents() {
+        document.querySelectorAll('#componentFilters input[type="checkbox"]').forEach(cb => {
+            cb.checked = true;
+            this.selectedComponents.add(cb.value);
+        });
+        this.updateYearOverYear();
+    }
+    
+    clearAllComponents() {
+        document.querySelectorAll('#componentFilters input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+        });
+        this.selectedComponents.clear();
+        this.updateYearOverYear();
+    }
+    
+    selectAllSpendingTypes() {
+        document.querySelectorAll('#spendingTypeFilters input[type="checkbox"]:not(:disabled)').forEach(cb => {
+            cb.checked = true;
+            this.selectedSpendingTypes.add(cb.value);
+        });
+        this.updateYearOverYear();
+    }
+    
+    clearAllSpendingTypes() {
+        document.querySelectorAll('#spendingTypeFilters input[type="checkbox"]').forEach(cb => {
+            cb.checked = false;
+        });
+        this.selectedSpendingTypes.clear();
+        this.updateYearOverYear();
+    }
+    
+    updateYearOverYear() {
+        // Update selected components
+        this.selectedComponents.clear();
+        document.querySelectorAll('#componentFilters input[type="checkbox"]:checked').forEach(cb => {
+            this.selectedComponents.add(cb.value);
+        });
+        
+        // Update selected spending types
+        this.selectedSpendingTypes.clear();
+        document.querySelectorAll('#spendingTypeFilters input[type="checkbox"]:checked').forEach(cb => {
+            this.selectedSpendingTypes.add(cb.value);
+        });
+        
+        this.renderYearOverYearChart();
+    }
+    
+    renderYearOverYearChart() {
+        const container = document.getElementById('yearOverYearChart');
+        container.innerHTML = '';
+        
+        if (!this.data.monthlyTrends || !this.data.monthlyTrends.monthly) {
+            container.innerHTML = '<div class="error">No monthly data available</div>';
+            return;
+        }
+        
+        // Filter and aggregate data based on selected components
+        const monthlyData = this.data.monthlyTrends.monthly.map(month => {
+            let appropriations = 0;
+            let outlays = 0;
+            
+            // Sum only selected components
+            this.selectedComponents.forEach(component => {
+                appropriations += month.appropriations_by_component[component] || 0;
+                outlays += month.outlays_by_component[component] || 0;
+            });
+            
+            return {
+                date: new Date(month.date + '-01'),
+                appropriations,
+                outlays
+            };
+        });
+        
+        this.createMonthlyTrendChart(container, monthlyData);
+    }
+    
+    createMonthlyTrendChart(container, monthlyData) {
+        const margin = { top: 20, right: 150, bottom: 60, left: 100 };
+        const width = 900 - margin.left - margin.right;
         const height = 400 - margin.top - margin.bottom;
         
         const svg = d3.select(container)
@@ -552,56 +680,73 @@ class DashboardManager {
             .attr('transform', `translate(${margin.left},${margin.top})`);
         
         // Scales
-        const x = d3.scaleBand()
-            .domain(data.map(d => d.year))
-            .range([0, width])
-            .padding(0.1);
-        
+        const x = d3.scaleTime()
+            .domain(d3.extent(monthlyData, d => d.date))
+            .range([0, width]);
+            
         const y = d3.scaleLinear()
-            .domain([0, d3.max(data, d => Math.max(d.appropriations, d.obligations, d.outlays))])
+            .domain([0, d3.max(monthlyData, d => Math.max(d.appropriations, d.outlays))])
             .range([height, 0]);
         
-        // Create line data
-        const lines = [
-            { name: 'Appropriations', color: '#007bff', values: data.map(d => ({ year: d.year, value: d.appropriations })) },
-            { name: 'Obligations', color: '#ffc107', values: data.map(d => ({ year: d.year, value: d.obligations })) },
-            { name: 'Outlays', color: '#28a745', values: data.map(d => ({ year: d.year, value: d.outlays })) }
-        ];
-        
-        // Line generator
-        const line = d3.line()
-            .x(d => x(d.year) + x.bandwidth() / 2)
-            .y(d => y(d.value));
-        
-        // Draw lines
-        lines.forEach(series => {
-            g.append('path')
-                .datum(series.values)
-                .attr('fill', 'none')
-                .attr('stroke', series.color)
-                .attr('stroke-width', 3)
-                .attr('d', line);
+        // Line generators
+        const lineAppr = d3.line()
+            .x(d => x(d.date))
+            .y(d => y(d.appropriations))
+            .curve(d3.curveMonotoneX);
             
-            // Add dots
-            g.selectAll(`.dot-${series.name}`)
-                .data(series.values)
-                .enter().append('circle')
-                .attr('class', `dot-${series.name}`)
-                .attr('cx', d => x(d.year) + x.bandwidth() / 2)
-                .attr('cy', d => y(d.value))
-                .attr('r', 5)
-                .attr('fill', series.color);
-        });
+        const lineOutlay = d3.line()
+            .x(d => x(d.date))
+            .y(d => y(d.outlays))
+            .curve(d3.curveMonotoneX);
         
         // Add axes
         g.append('g')
-            .attr('class', 'axis')
             .attr('transform', `translate(0,${height})`)
-            .call(d3.axisBottom(x).tickFormat(d => `FY ${d}`));
-        
+            .call(d3.axisBottom(x)
+                .tickFormat(d3.timeFormat('%b %Y'))
+                .ticks(d3.timeMonth.every(3)))
+            .selectAll('text')
+            .style('text-anchor', 'end')
+            .attr('dx', '-.8em')
+            .attr('dy', '.15em')
+            .attr('transform', 'rotate(-45)');
+            
         g.append('g')
-            .attr('class', 'axis')
             .call(d3.axisLeft(y).tickFormat(d => formatCurrency(d, true)));
+        
+        // Add grid lines
+        g.append('g')
+            .attr('class', 'grid')
+            .attr('transform', `translate(0,${height})`)
+            .call(d3.axisBottom(x)
+                .tickSize(-height)
+                .tickFormat(''))
+            .style('stroke-dasharray', '3,3')
+            .style('opacity', 0.3);
+            
+        g.append('g')
+            .attr('class', 'grid')
+            .call(d3.axisLeft(y)
+                .tickSize(-width)
+                .tickFormat(''))
+            .style('stroke-dasharray', '3,3')
+            .style('opacity', 0.3);
+        
+        // Add lines
+        const lines = [
+            {name: 'Appropriations', line: lineAppr, color: '#1f77b4', data: monthlyData},
+            {name: 'Outlays', line: lineOutlay, color: '#2ca02c', data: monthlyData}
+        ];
+        
+        lines.forEach(series => {
+            // Add line
+            g.append('path')
+                .datum(series.data)
+                .attr('fill', 'none')
+                .attr('stroke', series.color)
+                .attr('stroke-width', 2)
+                .attr('d', series.line);
+        });
         
         // Add legend
         const legend = svg.append('g')
@@ -624,8 +769,57 @@ class DashboardManager {
                 .style('font-size', '12px');
         });
         
-        // Add table below
-        container.innerHTML += this.createYearOverYearTable(data);
+        // Add hover interactions
+        const tooltip = d3.select('body').append('div')
+            .attr('class', 'tooltip')
+            .style('opacity', 0)
+            .style('position', 'absolute')
+            .style('background', 'rgba(0,0,0,0.8)')
+            .style('color', 'white')
+            .style('padding', '10px')
+            .style('border-radius', '5px')
+            .style('pointer-events', 'none');
+            
+        // Add invisible rect for mouse tracking
+        g.append('rect')
+            .attr('width', width)
+            .attr('height', height)
+            .style('fill', 'none')
+            .style('pointer-events', 'all')
+            .on('mousemove', function(event) {
+                const x0 = x.invert(d3.pointer(event)[0]);
+                const i = d3.bisectLeft(monthlyData.map(d => d.date), x0, 1);
+                const d0 = monthlyData[i - 1];
+                const d1 = monthlyData[i];
+                const d = d1 && (x0 - d0.date > d1.date - x0) ? d1 : d0;
+                
+                if (d) {
+                    tooltip.transition().duration(200).style('opacity', .9);
+                    tooltip.html(`
+                        <strong>${d3.timeFormat('%B %Y')(d.date)}</strong><br>
+                        Appropriations: ${formatCurrency(d.appropriations)}<br>
+                        Outlays: ${formatCurrency(d.outlays)}
+                    `)
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 28) + 'px');
+                }
+            })
+            .on('mouseout', function() {
+                tooltip.transition().duration(500).style('opacity', 0);
+            });
+        
+        // Add note about data currency
+        container.innerHTML += `
+            <div class="data-note" style="margin-top: 15px;">
+                <strong>Note:</strong> Appropriations show actual apportionment dates. 
+                Outlays are distributed evenly across fiscal year months (actual monthly data not available).
+            </div>
+        `;
+    }
+    
+    createYearOverYearChart(container, data) {
+        // Keep the old function for compatibility
+        this.createMonthlyTrendChart(container, data);
     }
     
     createYearOverYearTable(data) {
