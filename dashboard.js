@@ -226,20 +226,25 @@ class DashboardManager {
             return;
         }
         
-        // Show all fiscal years combined, sorted by appropriations
-        const lifecycleData = this.data.spendingLifecycle
-            .sort((a, b) => b.appropriations - a.appropriations)
-            .slice(0, 15); // Top 15 components
+        // Handle both old (array) and new (object with aggregated/detailed) formats
+        let aggregatedData, detailedData;
+        if (Array.isArray(this.data.spendingLifecycle)) {
+            // Old format - use as aggregated data
+            aggregatedData = this.data.spendingLifecycle;
+            detailedData = [];
+        } else {
+            // New format with both views
+            aggregatedData = this.data.spendingLifecycle.aggregated || [];
+            detailedData = this.data.spendingLifecycle.detailed || [];
+        }
         
-        // Clear and set up
-        container.innerHTML = '<h2>Spending Lifecycle: Appropriations → Obligations → Outlays</h2>';
+        // Store both views for easy access
+        this.lifecycleAggregated = aggregatedData;
+        this.lifecycleDetailed = detailedData;
         
-        const chartContainer = document.createElement('div');
-        chartContainer.className = 'chart-container';
-        chartContainer.id = 'lifecycleChart';
-        container.appendChild(chartContainer);
-        
-        this.createLifecycleChart(chartContainer, lifecycleData);
+        // Get unique components and fiscal years from aggregated data
+        const components = [...new Set(aggregatedData.map(d => d.component))].sort();
+        const fiscalYears = [...new Set(aggregatedData.map(d => d.fiscal_year))].sort((a, b) => b - a);
         
         // Get data currency info
         const apportionmentDate = this.data.metadata?.max_approval_date ? 
@@ -248,21 +253,66 @@ class DashboardManager {
                 day: 'numeric',
                 year: 'numeric'
             }) : 'current';
+        
+        container.innerHTML = `
+            <h2>Spending Lifecycle: Appropriations → Obligations → Outlays</h2>
             
-        // Add legend and notes
-        container.innerHTML += `
-            <div class="legend">
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #28a745;"></div>
-                    <span>Outlays (Paid)</span>
+            <div class="controls" style="margin-bottom: 20px;">
+                <div class="control-group">
+                    <label for="lifecycleComponentFilter">Component:</label>
+                    <select id="lifecycleComponentFilter" style="min-width: 300px;">
+                        <option value="">All Components</option>
+                        ${components.map(c => `<option value="${c}">${getComponentName(c, 'label')}</option>`).join('')}
+                    </select>
                 </div>
-                <div class="legend-item">
-                    <div class="legend-color" style="background: #ffc107;"></div>
-                    <span>Obligated (Committed)</span>
+                
+                <div class="control-group">
+                    <label for="lifecycleFYFilter">Fiscal Year:</label>
+                    <select id="lifecycleFYFilter">
+                        <option value="">All Years</option>
+                        ${fiscalYears.map(fy => `<option value="${fy}">FY ${fy}</option>`).join('')}
+                    </select>
                 </div>
+                
+                ${detailedData.length > 0 ? `
+                <div class="control-group">
+                    <label>View:</label>
+                    <div style="display: flex; gap: 10px;">
+                        <label style="font-weight: normal;">
+                            <input type="radio" name="lifecycleView" value="aggregated" checked> 
+                            Aggregated by Component
+                        </label>
+                        <label style="font-weight: normal;">
+                            <input type="radio" name="lifecycleView" value="detailed"> 
+                            Detailed by Availability Period
+                        </label>
+                    </div>
+                </div>
+                ` : ''}
+            </div>
+            
+            <div class="table-container">
+                <table id="lifecycleTable" class="display" style="width:100%">
+                    <thead>
+                        <tr id="lifecycleTableHeader">
+                            <th>Component</th>
+                            <th>Fiscal Year</th>
+                            <th>Appropriations</th>
+                            <th>Obligations</th>
+                            <th>Outlays</th>
+                            <th>Obligation Rate</th>
+                            <th>Outlay Rate</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="legend" style="margin-top: 15px;">
                 <div class="legend-item">
-                    <div class="legend-color" style="background: #6c757d;"></div>
-                    <span>Unobligated (Available)</span>
+                    <span style="font-weight: bold;">Color Scale:</span>
+                    <span>Darker blue = higher dollar amount (scaled to maximum across all values)</span>
                 </div>
             </div>
             <div class="alert" style="margin-top: 15px;">
@@ -271,159 +321,290 @@ class DashboardManager {
                 • Obligations & Outlays: FY2025 through June (Q3), FY2022-2024 complete
             </div>
             <div class="data-note">
-                Bar height shows total appropriation amount. Segments show spending status.
+                <strong>Note:</strong> Appropriations shown are ${detailedData.length > 0 ? 'based on selected view' : 'aggregated by fiscal year'}. 
+                Multi-year and no-year funds may have obligations and outlays in subsequent years.
+                ⚠️ indicates obligations or outlays exceeding appropriations, which may occur with multi-year funds.
             </div>
         `;
+        
+        // Initialize the table
+        this.initializeLifecycleTable();
+        
+        // Set up event listeners for filters
+        document.getElementById('lifecycleComponentFilter').addEventListener('change', () => {
+            this.updateLifecycleTable();
+        });
+        
+        document.getElementById('lifecycleFYFilter').addEventListener('change', () => {
+            this.updateLifecycleTable();
+        });
+        
+        // Add listener for view toggle if detailed data exists
+        if (detailedData.length > 0) {
+            document.querySelectorAll('input[name="lifecycleView"]').forEach(radio => {
+                radio.addEventListener('change', () => {
+                    this.updateLifecycleTable();
+                });
+            });
+        }
     }
     
-    createLifecycleChart(container, data) {
-        const margin = { top: 20, right: 120, bottom: 120, left: 200 };
-        const width = container.clientWidth - margin.left - margin.right;
-        const height = 500 - margin.top - margin.bottom;
+    initializeLifecycleTable() {
+        // Initialize table with aggregated view
+        this.createLifecycleTable('aggregated');
+    }
+    
+    createLifecycleTable(viewType) {
+        // Destroy existing table if it exists
+        if (this.lifecycleTable) {
+            this.lifecycleTable.destroy();
+            $('#lifecycleTable').empty();
+        }
         
-        const svg = d3.select(container)
-            .append('svg')
-            .attr('width', width + margin.left + margin.right)
-            .attr('height', height + margin.top + margin.bottom);
+        // Get filtered data
+        const filteredData = this.getFilteredLifecycleData();
         
-        const g = svg.append('g')
-            .attr('transform', `translate(${margin.left},${margin.top})`);
+        // Find max value for color scale
+        const maxValue = Math.max(
+            ...filteredData.map(d => Math.max(d.appropriations || 0, d.obligations || 0, d.outlays || 0))
+        );
         
-        // Calculate percentages and prepare data
-        data.forEach(d => {
-            d.outlayPercent = d.appropriations > 0 ? (d.outlays / d.appropriations) * 100 : 0;
-            d.obligatedPercent = d.appropriations > 0 ? ((d.obligations - d.outlays) / d.appropriations) * 100 : 0;
-            d.unobligatedPercent = d.appropriations > 0 ? 
-                ((d.appropriations - d.obligations) / d.appropriations) * 100 : 0;
-        });
+        // Create color scale function
+        const getColor = (value) => {
+            if (!value || value === 0) return 'rgb(255, 255, 255)';
+            const intensity = value / maxValue;
+            const blue = Math.round(255 - (intensity * 200)); // From light to dark blue
+            return `rgb(${blue}, ${blue}, 255)`;
+        };
         
-        // Scales
-        const y = d3.scaleBand()
-            .domain(data.map(d => d.component))
-            .range([0, height])
-            .padding(0.2);
+        // Create text color function
+        const getTextColor = (value) => {
+            if (!value) return 'black';
+            const intensity = value / maxValue;
+            return intensity > 0.5 ? 'white' : 'black';
+        };
         
-        const x = d3.scaleLinear()
-            .domain([0, 100])
-            .range([0, width]);
-        
-        // Set minimum bar height to 20px for readability
-        const minBarHeight = 20;
-        const heightScale = d3.scaleLinear()
-            .domain([0, d3.max(data, d => d.appropriations)])
-            .range([minBarHeight, y.bandwidth()])
-        
-        // Create bars
-        const bars = g.selectAll('.component-bar')
-            .data(data)
-            .enter().append('g')
-            .attr('class', 'component-bar')
-            .attr('transform', d => `translate(0, ${y(d.component) + (y.bandwidth() - heightScale(d.appropriations)) / 2})`);
-        
-        // Outlays (green)
-        bars.append('rect')
-            .attr('class', 'outlay-bar')
-            .attr('x', 0)
-            .attr('y', 0)
-            .attr('width', d => x(d.outlayPercent))
-            .attr('height', d => heightScale(d.appropriations))
-            .attr('fill', '#28a745');
-        
-        // Obligated but not outlayed (yellow)
-        bars.append('rect')
-            .attr('class', 'obligated-bar')
-            .attr('x', d => x(d.outlayPercent))
-            .attr('y', 0)
-            .attr('width', d => x(d.obligatedPercent))
-            .attr('height', d => heightScale(d.appropriations))
-            .attr('fill', '#ffc107');
-        
-        // Unobligated (gray)
-        bars.append('rect')
-            .attr('class', 'unobligated-bar')
-            .attr('x', d => x(d.outlayPercent + d.obligatedPercent))
-            .attr('y', 0)
-            .attr('width', d => x(d.unobligatedPercent))
-            .attr('height', d => heightScale(d.appropriations))
-            .attr('fill', '#6c757d');
-        
-        // Add percentage labels
-        bars.each(function(d) {
-            const bar = d3.select(this);
-            const barHeight = heightScale(d.appropriations);
-            
-            // Only show labels if bar is tall enough
-            if (barHeight >= 15) {
-                // Only show outlay percentage if segment is wide enough
-                if (d.outlayPercent > 10) {
-                    bar.append('text')
-                        .attr('x', x(d.outlayPercent / 2))
-                        .attr('y', barHeight / 2)
-                        .attr('dy', '.35em')
-                        .attr('text-anchor', 'middle')
-                        .text(`${d.outlayPercent.toFixed(0)}%`)
-                        .style('fill', 'white')
-                        .style('font-size', '11px')
-                        .style('font-weight', '500');
+        // Define columns based on view type
+        let columns;
+        if (viewType === 'detailed') {
+            columns = [
+                { 
+                    data: 'component',
+                    title: 'Component',
+                    render: function(data) {
+                        return getComponentName(data, 'label');
+                    }
+                },
+                { 
+                    data: 'account_name',
+                    title: 'Account',
+                    render: function(data) {
+                        return data || '';
+                    }
+                },
+                { 
+                    data: 'period_label',
+                    title: 'Period',
+                    render: function(data) {
+                        return data || '';
+                    }
+                },
+                { 
+                    data: 'availability_type',
+                    title: 'Type',
+                    render: function(data) {
+                        return data || '';
+                    }
+                },
+                { 
+                    data: 'appropriations',
+                    title: 'Appropriations',
+                    render: function(data, type) {
+                        if (type === 'display') {
+                            const color = getColor(data);
+                            const textColor = getTextColor(data);
+                            return `<div style="background-color: ${color}; color: ${textColor}; padding: 8px; text-align: right; font-weight: 500;">
+                                ${formatCurrency(data || 0)}
+                            </div>`;
+                        }
+                        return data || 0;
+                    }
+                },
+                { 
+                    data: 'obligations',
+                    title: 'Obligations',
+                    render: function(data, type, row) {
+                        if (type === 'display') {
+                            const color = getColor(data);
+                            const textColor = getTextColor(data);
+                            const percentage = row.appropriations > 0 ? (data / row.appropriations * 100).toFixed(1) : 0;
+                            const warningIcon = data > row.appropriations ? ' ⚠️' : '';
+                            return `<div style="background-color: ${color}; color: ${textColor}; padding: 8px; text-align: right; font-weight: 500;" 
+                                    title="${percentage}% of appropriations${warningIcon}">
+                                ${formatCurrency(data || 0)}${warningIcon}
+                            </div>`;
+                        }
+                        return data || 0;
+                    }
+                },
+                { 
+                    data: 'outlays',
+                    title: 'Outlays',
+                    render: function(data, type, row) {
+                        if (type === 'display') {
+                            const color = getColor(data);
+                            const textColor = getTextColor(data);
+                            const percentage = row.appropriations > 0 ? (data / row.appropriations * 100).toFixed(1) : 0;
+                            const warningIcon = data > row.appropriations ? ' ⚠️' : '';
+                            return `<div style="background-color: ${color}; color: ${textColor}; padding: 8px; text-align: right; font-weight: 500;"
+                                    title="${percentage}% of appropriations${warningIcon}">
+                                ${formatCurrency(data || 0)}${warningIcon}
+                            </div>`;
+                        }
+                        return data || 0;
+                    }
                 }
-                
-                // Only show obligated percentage if segment is wide enough
-                if (d.obligatedPercent > 10) {
-                    bar.append('text')
-                        .attr('x', x(d.outlayPercent + d.obligatedPercent / 2))
-                        .attr('y', barHeight / 2)
-                        .attr('dy', '.35em')
-                        .attr('text-anchor', 'middle')
-                        .text(`${d.obligatedPercent.toFixed(0)}%`)
-                        .style('fill', 'black')
-                        .style('font-size', '11px')
-                        .style('font-weight', '500');
+            ];
+        } else {
+            // Aggregated view columns
+            columns = [
+                { 
+                    data: 'component',
+                    title: 'Component',
+                    render: function(data) {
+                        return getComponentName(data, 'label');
+                    }
+                },
+                { 
+                    data: 'fiscal_year',
+                    title: 'Fiscal Year',
+                    render: function(data) {
+                        return `FY ${data}`;
+                    }
+                },
+                { 
+                    data: 'appropriations',
+                    title: 'Appropriations',
+                    render: function(data, type) {
+                        if (type === 'display') {
+                            const color = getColor(data);
+                            const textColor = getTextColor(data);
+                            return `<div style="background-color: ${color}; color: ${textColor}; padding: 8px; text-align: right; font-weight: 500;">
+                                ${formatCurrency(data || 0)}
+                            </div>`;
+                        }
+                        return data || 0;
+                    }
+                },
+                { 
+                    data: 'obligations',
+                    title: 'Obligations',
+                    render: function(data, type, row) {
+                        if (type === 'display') {
+                            const color = getColor(data);
+                            const textColor = getTextColor(data);
+                            const percentage = row.appropriations > 0 ? (data / row.appropriations * 100).toFixed(1) : 0;
+                            const warningIcon = data > row.appropriations ? ' ⚠️' : '';
+                            return `<div style="background-color: ${color}; color: ${textColor}; padding: 8px; text-align: right; font-weight: 500;" 
+                                    title="${percentage}% of appropriations${warningIcon}">
+                                ${formatCurrency(data || 0)}${warningIcon}
+                            </div>`;
+                        }
+                        return data || 0;
+                    }
+                },
+                { 
+                    data: 'outlays',
+                    title: 'Outlays',
+                    render: function(data, type, row) {
+                        if (type === 'display') {
+                            const color = getColor(data);
+                            const textColor = getTextColor(data);
+                            const percentage = row.appropriations > 0 ? (data / row.appropriations * 100).toFixed(1) : 0;
+                            const warningIcon = data > row.appropriations ? ' ⚠️' : '';
+                            return `<div style="background-color: ${color}; color: ${textColor}; padding: 8px; text-align: right; font-weight: 500;"
+                                    title="${percentage}% of appropriations${warningIcon}">
+                                ${formatCurrency(data || 0)}${warningIcon}
+                            </div>`;
+                        }
+                        return data || 0;
+                    }
+                },
+                { 
+                    data: null,
+                    title: 'Obligation Rate',
+                    render: function(data, type, row) {
+                        const rate = row.appropriations > 0 ? (row.obligations / row.appropriations * 100) : 0;
+                        if (type === 'display') {
+                            const warningStyle = rate > 100 ? 'color: red; font-weight: bold;' : '';
+                            return `<div style="text-align: right; ${warningStyle}">${rate.toFixed(1)}%</div>`;
+                        }
+                        return rate;
+                    }
+                },
+                { 
+                    data: null,
+                    title: 'Outlay Rate',
+                    render: function(data, type, row) {
+                        const rate = row.appropriations > 0 ? (row.outlays / row.appropriations * 100) : 0;
+                        if (type === 'display') {
+                            const warningStyle = rate > 100 ? 'color: red; font-weight: bold;' : '';
+                            return `<div style="text-align: right; ${warningStyle}">${rate.toFixed(1)}%</div>`;
+                        }
+                        return rate;
+                    }
                 }
-            }
-        });
+            ];
+        }
         
-        // Add axes
-        g.append('g')
-            .attr('class', 'axis')
-            .call(d3.axisLeft(y).tickFormat(d => getComponentName(d, 'label')));
-        
-        g.append('g')
-            .attr('class', 'axis')
-            .attr('transform', `translate(0,${height})`)
-            .call(d3.axisBottom(x).tickFormat(d => d + '%'));
-        
-        // Add amount labels on the right
-        g.selectAll('.amount-label')
-            .data(data)
-            .enter().append('text')
-            .attr('x', width + 5)
-            .attr('y', d => y(d.component) + y.bandwidth() / 2)
-            .attr('dy', '.35em')
-            .text(d => formatCurrency(d.appropriations, true))
-            .style('font-size', '12px')
-            .style('fill', '#666');
-        
-        // Add tooltips
-        const tooltip = d3.select('body').append('div')
-            .attr('class', 'tooltip')
-            .style('opacity', 0);
-        
-        bars.on('mouseover', function(event, d) {
-            tooltip.transition().duration(200).style('opacity', .9);
-            tooltip.html(`
-                <strong>${d.component}</strong><br>
-                Appropriations: ${formatCurrency(d.appropriations)}<br>
-                Obligations: ${formatCurrency(d.obligations)} (${d.outlayPercent.toFixed(1) + d.obligatedPercent.toFixed(1)}%)<br>
-                Outlays: ${formatCurrency(d.outlays)} (${d.outlayPercent.toFixed(1)}%)<br>
-                Unobligated: ${formatCurrency(d.appropriations - d.obligations)} (${d.unobligatedPercent.toFixed(1)}%)
-            `)
-            .style('left', (event.pageX + 10) + 'px')
-            .style('top', (event.pageY - 28) + 'px');
-        })
-        .on('mouseout', function(d) {
-            tooltip.transition().duration(500).style('opacity', 0);
+        // Initialize DataTable
+        this.lifecycleTable = $('#lifecycleTable').DataTable({
+            data: filteredData,
+            columns: columns,
+            pageLength: 25,
+            order: [[viewType === 'detailed' ? 4 : 2, 'desc']], // Sort by appropriations descending
+            dom: 'lrtip' // Remove search box and buttons
         });
     }
+    
+    getFilteredLifecycleData() {
+        const componentFilter = document.getElementById('lifecycleComponentFilter')?.value || '';
+        const fyFilter = document.getElementById('lifecycleFYFilter')?.value || '';
+        const viewType = document.querySelector('input[name="lifecycleView"]:checked')?.value || 'aggregated';
+        
+        // Choose the appropriate data based on view type
+        let filteredData = viewType === 'detailed' ? this.lifecycleDetailed : this.lifecycleAggregated;
+        
+        // Apply component filter
+        if (componentFilter) {
+            filteredData = filteredData.filter(d => d.component === componentFilter);
+        }
+        
+        // Apply fiscal year filter
+        if (fyFilter) {
+            filteredData = filteredData.filter(d => d.fiscal_year == fyFilter);
+        }
+        
+        // Sort by appropriations descending
+        return filteredData.sort((a, b) => (b.appropriations || 0) - (a.appropriations || 0));
+    }
+    
+    updateLifecycleTable() {
+        const viewType = document.querySelector('input[name="lifecycleView"]:checked')?.value || 'aggregated';
+        
+        // If view type changed, we need to recreate the table with different columns
+        if (this.currentLifecycleView !== viewType) {
+            this.currentLifecycleView = viewType;
+            this.createLifecycleTable(viewType);
+        } else if (this.lifecycleTable) {
+            // Otherwise just update the data
+            const filteredData = this.getFilteredLifecycleData();
+            this.lifecycleTable.clear();
+            this.lifecycleTable.rows.add(filteredData);
+            this.lifecycleTable.draw();
+        }
+    }
+    
     
     // Old Spending Trends Section (to be replaced)
     renderSpendingTrends() {
@@ -623,34 +804,38 @@ class DashboardManager {
         
         // Create component filters
         const componentFilters = document.getElementById('componentFilters');
-        this.data.monthlyTrends.components.forEach(component => {
-            const checkbox = document.createElement('div');
-            checkbox.innerHTML = `
-                <label style="display: block; padding: 2px 0; cursor: pointer;">
-                    <input type="checkbox" value="${component}" onchange="dashboard.updateYearOverYear()" 
-                           style="margin-right: 5px;" checked>
-                    ${component}
-                </label>
-            `;
-            componentFilters.appendChild(checkbox);
-            this.selectedComponents.add(component);
-        });
+        if (this.data.monthlyTrends.components) {
+            this.data.monthlyTrends.components.forEach(component => {
+                const checkbox = document.createElement('div');
+                checkbox.innerHTML = `
+                    <label style="display: block; padding: 2px 0; cursor: pointer;">
+                        <input type="checkbox" value="${component}" onchange="dashboard.updateYearOverYear()" 
+                               style="margin-right: 5px;" checked>
+                        ${component}
+                    </label>
+                `;
+                componentFilters.appendChild(checkbox);
+                this.selectedComponents.add(component);
+            });
+        }
         
         // Create spending type filters  
         const spendingTypeFilters = document.getElementById('spendingTypeFilters');
-        this.data.monthlyTrends.spending_types.forEach(type => {
-            const checkbox = document.createElement('div');
-            checkbox.style.display = 'inline-block';
-            checkbox.style.marginRight = '15px';
-            checkbox.innerHTML = `
-                <label style="cursor: pointer;">
-                    <input type="checkbox" value="${type}" onchange="dashboard.updateYearOverYear()" 
-                           style="margin-right: 5px;" disabled>
-                    ${type}
-                </label>
-            `;
-            spendingTypeFilters.appendChild(checkbox);
-        });
+        if (this.data.monthlyTrends.spending_types) {
+            this.data.monthlyTrends.spending_types.forEach(type => {
+                const checkbox = document.createElement('div');
+                checkbox.style.display = 'inline-block';
+                checkbox.style.marginRight = '15px';
+                checkbox.innerHTML = `
+                    <label style="cursor: pointer;">
+                        <input type="checkbox" value="${type}" onchange="dashboard.updateYearOverYear()" 
+                               style="margin-right: 5px;" disabled>
+                        ${type}
+                    </label>
+                `;
+                spendingTypeFilters.appendChild(checkbox);
+            });
+        }
         
         // Note about spending type data
         const note = document.createElement('div');
@@ -701,7 +886,7 @@ class DashboardManager {
     updateComponentFilterLabel() {
         const label = document.getElementById('componentFilterLabel');
         const selected = this.selectedComponents.size;
-        const total = this.data.monthlyTrends.components.length;
+        const total = this.data.monthlyTrends?.components?.length || 0;
         
         if (selected === 0) {
             label.textContent = 'No Components Selected';

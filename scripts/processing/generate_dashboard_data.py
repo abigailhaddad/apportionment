@@ -142,42 +142,74 @@ def generate_spending_lifecycle():
             'budget_authority': 'first',  # These should be the same for all records
             'obligations': 'first',        # with the same TAS/period
             'outlays': 'first',
-            'apportionment_amount': 'sum'  # Sum apportionments across years
+            'apportionment_amount': 'sum',  # Sum apportionments across years
+            'apportionment_fy': 'min',      # Get earliest fiscal year
+            'availability_type': 'first',
+            'account_name': 'first',
+            'begin_year': 'first',
+            'end_year': 'first'
         }).reset_index()
         
-        # Now aggregate by component and the earliest apportionment year
-        # Get the min apportionment year for each TAS/period
-        min_years = df.groupby(['tas_simple', 'availability_period'])['apportionment_fy'].min().reset_index()
-        min_years.columns = ['tas_simple', 'availability_period', 'fiscal_year']
-        
-        # Merge to get fiscal year
-        unique_tas = pd.merge(unique_tas, min_years, on=['tas_simple', 'availability_period'])
-        
-        # Group by fiscal year and component
-        summary = unique_tas.groupby(['fiscal_year', 'component']).agg({
+        # Create aggregated view (by component and fiscal year)
+        aggregated = unique_tas.groupby(['apportionment_fy', 'component']).agg({
             'apportionment_amount': 'sum',
             'budget_authority': 'sum', 
             'obligations': 'sum',
             'outlays': 'sum'
         }).reset_index()
         
-        # Rename for output consistency
-        summary.rename(columns={'apportionment_amount': 'appropriations'}, inplace=True)
+        # Rename columns
+        aggregated.rename(columns={
+            'apportionment_fy': 'fiscal_year',
+            'apportionment_amount': 'appropriations'
+        }, inplace=True)
         
-        # Add a note about partial year data for FY2025
-        for idx, row in summary.iterrows():
-            if row['fiscal_year'] == 2025:
-                # For FY2025, scale down obligations/outlays since we only have Q3 data
-                # This is approximate but gives a better picture
-                summary.at[idx, 'note'] = 'FY2025 obligations/outlays through Q3 only'
+        # Add note for FY2025
+        aggregated['note'] = None
+        aggregated.loc[aggregated['fiscal_year'] == 2025, 'note'] = 'FY2025 obligations/outlays through Q3 only'
+        
+        # Create detailed view (preserving availability periods)
+        detailed = unique_tas.copy()
+        detailed.rename(columns={
+            'apportionment_fy': 'fiscal_year',
+            'apportionment_amount': 'appropriations'
+        }, inplace=True)
+        
+        # Add period label for display
+        detailed['period_label'] = detailed.apply(lambda row: 
+            f"FY{row['begin_year']}" if row['begin_year'] == row['end_year'] 
+            else f"FY{row['begin_year']}-{str(row['end_year'])[2:]}", axis=1)
+        
+        # Sort both views
+        aggregated = aggregated.sort_values(['fiscal_year', 'appropriations'], ascending=[True, False])
+        detailed = detailed.sort_values(['component', 'fiscal_year', 'availability_period'], ascending=[True, True, True])
         
         # Replace NaN values with None for valid JSON
-        summary = summary.where(pd.notna(summary), None)
+        aggregated = aggregated.where(pd.notna(aggregated), None)
+        detailed = detailed.where(pd.notna(detailed), None)
         
-        return summary.to_dict('records')
+        # Convert to list of dicts
+        aggregated_list = aggregated.to_dict('records')
+        detailed_list = detailed.to_dict('records')
+        
+        # Return both aggregated (for backward compatibility) and detailed views
+        return {
+            'aggregated': aggregated_list,
+            'detailed': detailed_list,
+            'metadata': {
+                'total_aggregated_records': len(aggregated_list),
+                'total_detailed_records': len(detailed_list),
+                'unique_components': len(aggregated['component'].unique()),
+                'fiscal_years': sorted(aggregated['fiscal_year'].unique().tolist()),
+                'availability_types': sorted(detailed['availability_type'].dropna().unique().tolist())
+            }
+        }
+        
     except Exception as e:
         print(f"Error generating spending lifecycle: {e}")
-        return []
+        import traceback
+        traceback.print_exc()
+        return {'aggregated': [], 'detailed': [], 'metadata': {}}
 
 def generate_monthly_trends():
     """Generate monthly appropriations and outlays data for time series visualization"""
