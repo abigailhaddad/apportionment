@@ -240,28 +240,44 @@ def generate_monthly_trends():
         }).reset_index()
         monthly_appr['date'] = monthly_appr['year_month'].dt.to_timestamp()
         
-        # For obligations, we need to distribute fiscal year totals across months
-        # This is an approximation since we don't have monthly obligation data
-        # We'll distribute evenly across the fiscal year months
+        # For obligations, we need to handle the fact that obligations/outlays are cumulative per TAS
+        # We'll only count each TAS once and distribute based on the fiscal year appropriations
+        
+        # First, get unique obligations by TAS (to avoid counting the same obligations multiple times)
+        unique_tas_obligations = outlay_df.drop_duplicates(subset=['tas_simple'])[['tas_simple', 'component', 'obligations']]
+        
+        # For each unique TAS, distribute its obligations proportionally based on when it received appropriations
         monthly_obligations = []
         
-        for _, row in outlay_df.iterrows():
-            fy = row['apportionment_fy']
-            # Fiscal year runs Oct-Sep
-            start_date = pd.Timestamp(f'{fy-1}-10-01')
-            end_date = pd.Timestamp(f'{fy}-09-30')
+        for _, tas_row in unique_tas_obligations.iterrows():
+            tas = tas_row['tas_simple']
+            total_obligations = tas_row['obligations']
+            component = tas_row['component']
             
-            # Create monthly records
-            months = pd.date_range(start_date, end_date, freq='MS')
-            monthly_amount = row['obligations'] / 12  # Distribute obligations evenly
+            # Get all appropriations for this TAS across years
+            tas_apportionments = outlay_df[outlay_df['tas_simple'] == tas]
+            total_apportionment = tas_apportionments['apportionment_amount'].sum()
             
-            for month in months:
-                monthly_obligations.append({
-                    'date': month,
-                    'component': row['component'],
-                    'obligations': monthly_amount,
-                    'fiscal_year': fy
-                })
+            if total_apportionment > 0:
+                # Distribute obligations proportionally to each fiscal year based on appropriations
+                for _, apport_row in tas_apportionments.iterrows():
+                    fy = apport_row['apportionment_fy']
+                    fy_proportion = apport_row['apportionment_amount'] / total_apportionment
+                    fy_obligations = total_obligations * fy_proportion
+                    
+                    # Distribute this fiscal year's portion evenly across its months
+                    start_date = pd.Timestamp(f'{fy-1}-10-01')
+                    end_date = pd.Timestamp(f'{fy}-09-30')
+                    months = pd.date_range(start_date, end_date, freq='MS')
+                    monthly_amount = fy_obligations / 12
+                    
+                    for month in months:
+                        monthly_obligations.append({
+                            'date': month,
+                            'component': component,
+                            'obligations': monthly_amount,
+                            'fiscal_year': fy
+                        })
         
         obligations_df_monthly = pd.DataFrame(monthly_obligations)
         

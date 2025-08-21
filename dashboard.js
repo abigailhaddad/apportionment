@@ -1160,8 +1160,9 @@ class DashboardManager {
         // Add note about data currency
         container.innerHTML += `
             <div class="data-note" style="margin-top: 15px;">
-                <strong>Note:</strong> Appropriations show actual apportionment dates. 
-                Obligations are distributed evenly across fiscal year months (actual monthly data not available).
+                <strong>Note:</strong> Appropriations show actual apportionment approval dates (causing spikes when bills pass). 
+                Obligations are cumulative totals distributed evenly across fiscal year months.
+                Due to data limitations, the scale may appear mismatched - see the Spending Lifecycle table for accurate fiscal year comparisons.
             </div>
         `;
     }
