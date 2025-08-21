@@ -240,10 +240,10 @@ def generate_monthly_trends():
         }).reset_index()
         monthly_appr['date'] = monthly_appr['year_month'].dt.to_timestamp()
         
-        # For outlays, we need to distribute fiscal year totals across months
-        # This is an approximation since we don't have monthly outlay data
+        # For obligations, we need to distribute fiscal year totals across months
+        # This is an approximation since we don't have monthly obligation data
         # We'll distribute evenly across the fiscal year months
-        monthly_outlays = []
+        monthly_obligations = []
         
         for _, row in outlay_df.iterrows():
             fy = row['apportionment_fy']
@@ -253,24 +253,24 @@ def generate_monthly_trends():
             
             # Create monthly records
             months = pd.date_range(start_date, end_date, freq='MS')
-            monthly_amount = row['outlays'] / 12  # Distribute evenly
+            monthly_amount = row['obligations'] / 12  # Distribute obligations evenly
             
             for month in months:
-                monthly_outlays.append({
+                monthly_obligations.append({
                     'date': month,
                     'component': row['component'],
-                    'outlays': monthly_amount,
+                    'obligations': monthly_amount,
                     'fiscal_year': fy
                 })
         
-        outlay_df_monthly = pd.DataFrame(monthly_outlays)
+        obligations_df_monthly = pd.DataFrame(monthly_obligations)
         
         # Get date range from appropriations data
         min_date = appr_df['approval_date'].min()
         max_date = appr_df['approval_date'].max()
         
-        # Create complete date range
-        all_months = pd.date_range(min_date, max_date, freq='MS')
+        # Create complete date range (make it timezone-naive to match the data)
+        all_months = pd.date_range(min_date, max_date, freq='MS', tz=None)
         all_components = list(set(appr_df['component'].unique()) | set(outlay_df['component'].unique()))
         
         # Create time series data structure
@@ -290,23 +290,28 @@ def generate_monthly_trends():
         # Aggregate by month for time series
         for month in all_months:
             month_str = month.strftime('%Y-%m')
+            month_period = month.to_period('M')
             
-            # Get appropriations for this month
-            month_appr = monthly_appr[monthly_appr['date'] == month]
+            # Get appropriations for this month using period comparison
+            month_appr = monthly_appr[monthly_appr['year_month'] == month_period]
             appr_total = month_appr['amount'].sum()
             appr_by_component = month_appr.set_index('component')['amount'].to_dict()
             
-            # Get outlays for this month  
-            month_outlays = outlay_df_monthly[outlay_df_monthly['date'] == month]
-            outlays_total = month_outlays['outlays'].sum()
-            outlays_by_component = month_outlays.groupby('component')['outlays'].sum().to_dict()
+            # Get obligations for this month - convert to period for comparison
+            if len(obligations_df_monthly) > 0:
+                obligations_df_monthly['month_period'] = obligations_df_monthly['date'].dt.to_period('M')
+                month_obligations = obligations_df_monthly[obligations_df_monthly['month_period'] == month_period]
+            else:
+                month_obligations = pd.DataFrame()
+            obligations_total = month_obligations['obligations'].sum()
+            obligations_by_component = month_obligations.groupby('component')['obligations'].sum().to_dict()
             
             time_series_data['monthly'].append({
                 'date': month_str,
                 'appropriations_total': float(appr_total),
-                'outlays_total': float(outlays_total),
+                'obligations_total': float(obligations_total),
                 'appropriations_by_component': appr_by_component,
-                'outlays_by_component': outlays_by_component
+                'obligations_by_component': obligations_by_component
             })
         
         return time_series_data

@@ -67,6 +67,15 @@ class DashboardManager {
             metadata
         };
         
+        // Debug monthly trends
+        if (monthlyTrends && monthlyTrends.monthly) {
+            const nonZeroMonths = monthlyTrends.monthly.filter(m => 
+                m.appropriations_total > 0 || m.outlays_total > 0
+            );
+            console.log(`Monthly trends: ${monthlyTrends.monthly.length} months, ${nonZeroMonths.length} with data`);
+            console.log('First non-zero month:', nonZeroMonths[0]);
+        }
+        
         console.log('Data loaded:', {
             appropriationsSummary: this.data.appropriationsSummary ? 'loaded' : 'missing',
             spendingSummary: this.data.spendingSummary ? 'loaded' : 'missing',
@@ -78,9 +87,14 @@ class DashboardManager {
     
     async loadJSON(path) {
         try {
-            const response = await fetch(path);
+            // Add cache-busting parameter to force reload
+            const cacheBuster = new Date().getTime();
+            const url = `${path}?v=${cacheBuster}`;
+            const response = await fetch(url);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return await response.json();
+            const data = await response.json();
+            console.log(`Loaded ${path}, size: ${JSON.stringify(data).length} bytes`);
+            return data;
         } catch (error) {
             console.error(`Error loading ${path}:`, error);
             return null;
@@ -791,6 +805,20 @@ class DashboardManager {
                 </div>
             </div>
             <div id="yearOverYearChart"></div>
+            <div style="margin-top: 20px;">
+                <button onclick="
+                    const totals = dashboard.data.monthlyTrends.monthly.reduce((acc, m) => {
+                        acc.appr += m.appropriations_total;
+                        acc.obligations += m.obligations_total;
+                        return acc;
+                    }, {appr: 0, obligations: 0});
+                    console.log('Total appropriations:', totals.appr, 'Total obligations:', totals.obligations);
+                    console.log('Monthly data:', dashboard.data.monthlyTrends); 
+                    alert('Total appropriations: $' + totals.appr.toLocaleString() + ', Total obligations: $' + totals.obligations.toLocaleString() + ' - Check console for details');
+                ">
+                    Debug: Check Data Totals
+                </button>
+            </div>
         `;
         
         // Initialize filters
@@ -811,7 +839,7 @@ class DashboardManager {
                     <label style="display: block; padding: 2px 0; cursor: pointer;">
                         <input type="checkbox" value="${component}" onchange="dashboard.updateYearOverYear()" 
                                style="margin-right: 5px;" checked>
-                        ${component}
+                        ${getComponentName(component, 'label')}
                     </label>
                 `;
                 componentFilters.appendChild(checkbox);
@@ -924,20 +952,45 @@ class DashboardManager {
         }
         
         // Filter and aggregate data based on selected components
+        console.log('Selected components:', this.selectedComponents.size, 'of', this.data.monthlyTrends.components?.length);
+        console.log('Monthly trends data:', this.data.monthlyTrends);
+        console.log('First month data:', this.data.monthlyTrends.monthly?.[0]);
+        console.log('Sample months with data:', this.data.monthlyTrends.monthly?.filter(m => m.appropriations_total > 0 || m.obligations_total > 0).slice(0, 5));
+        
+        // Log what we're looking for
+        console.log('Sample month structure:', this.data.monthlyTrends.monthly?.[10]);
+        console.log('Selected components:', Array.from(this.selectedComponents));
+        
         const monthlyData = this.data.monthlyTrends.monthly.map(month => {
             let appropriations = 0;
-            let outlays = 0;
+            let obligations = 0;
             
-            // Sum only selected components
-            this.selectedComponents.forEach(component => {
-                appropriations += month.appropriations_by_component[component] || 0;
-                outlays += month.outlays_by_component[component] || 0;
-            });
+            // If no components selected, show all
+            if (this.selectedComponents.size === 0) {
+                // Sum all components
+                Object.values(month.appropriations_by_component || {}).forEach(value => {
+                    appropriations += value || 0;
+                });
+                Object.values(month.obligations_by_component || {}).forEach(value => {
+                    obligations += value || 0;
+                });
+            } else {
+                // Sum only selected components
+                this.selectedComponents.forEach(component => {
+                    const apprValue = month.appropriations_by_component[component] || 0;
+                    const obligValue = month.obligations_by_component[component] || 0;
+                    if (apprValue > 0 || obligValue > 0) {
+                        console.log(`Month ${month.date}, Component ${component}: appr=${apprValue}, oblig=${obligValue}`);
+                    }
+                    appropriations += apprValue;
+                    obligations += obligValue;
+                });
+            }
             
             return {
                 date: new Date(month.date + '-01'),
                 appropriations,
-                outlays
+                obligations
             };
         });
         
@@ -945,6 +998,12 @@ class DashboardManager {
     }
     
     createMonthlyTrendChart(container, monthlyData) {
+        // Check if we have valid data
+        if (!monthlyData || monthlyData.length === 0) {
+            container.innerHTML = '<div class="error">No data available for selected filters</div>';
+            return;
+        }
+        
         const margin = { top: 20, right: 150, bottom: 60, left: 100 };
         const width = 900 - margin.left - margin.right;
         const height = 400 - margin.top - margin.bottom;
@@ -958,12 +1017,21 @@ class DashboardManager {
             .attr('transform', `translate(${margin.left},${margin.top})`);
         
         // Scales
+        const dateExtent = d3.extent(monthlyData, d => d.date);
+        if (!dateExtent[0] || !dateExtent[1]) {
+            console.error('Invalid date extent:', dateExtent);
+            container.innerHTML = '<div class="error">Invalid date data</div>';
+            return;
+        }
+        
         const x = d3.scaleTime()
-            .domain(d3.extent(monthlyData, d => d.date))
+            .domain(dateExtent)
             .range([0, width]);
             
+        // Ensure we have a valid Y domain
+        const maxY = d3.max(monthlyData, d => Math.max(d.appropriations, d.obligations)) || 1000000;
         const y = d3.scaleLinear()
-            .domain([0, d3.max(monthlyData, d => Math.max(d.appropriations, d.outlays))])
+            .domain([0, maxY])
             .range([height, 0]);
         
         // Line generators
@@ -972,9 +1040,9 @@ class DashboardManager {
             .y(d => y(d.appropriations))
             .curve(d3.curveMonotoneX);
             
-        const lineOutlay = d3.line()
+        const lineObligations = d3.line()
             .x(d => x(d.date))
-            .y(d => y(d.outlays))
+            .y(d => y(d.obligations))
             .curve(d3.curveMonotoneX);
         
         // Add axes
@@ -1013,7 +1081,7 @@ class DashboardManager {
         // Add lines
         const lines = [
             {name: 'Appropriations', line: lineAppr, color: '#1f77b4', data: monthlyData},
-            {name: 'Outlays', line: lineOutlay, color: '#2ca02c', data: monthlyData}
+            {name: 'Obligations', line: lineObligations, color: '#ff7f0e', data: monthlyData}
         ];
         
         lines.forEach(series => {
@@ -1048,8 +1116,11 @@ class DashboardManager {
         });
         
         // Add hover interactions
+        // Remove any existing tooltips first
+        d3.select('body').selectAll('.year-over-year-tooltip').remove();
+        
         const tooltip = d3.select('body').append('div')
-            .attr('class', 'tooltip')
+            .attr('class', 'tooltip year-over-year-tooltip')
             .style('opacity', 0)
             .style('position', 'absolute')
             .style('background', 'rgba(0,0,0,0.8)')
@@ -1076,7 +1147,7 @@ class DashboardManager {
                     tooltip.html(`
                         <strong>${d3.timeFormat('%B %Y')(d.date)}</strong><br>
                         Appropriations: ${formatCurrency(d.appropriations)}<br>
-                        Outlays: ${formatCurrency(d.outlays)}
+                        Obligations: ${formatCurrency(d.obligations)}
                     `)
                     .style('left', (event.pageX + 10) + 'px')
                     .style('top', (event.pageY - 28) + 'px');
@@ -1090,7 +1161,7 @@ class DashboardManager {
         container.innerHTML += `
             <div class="data-note" style="margin-top: 15px;">
                 <strong>Note:</strong> Appropriations show actual apportionment dates. 
-                Outlays are distributed evenly across fiscal year months (actual monthly data not available).
+                Obligations are distributed evenly across fiscal year months (actual monthly data not available).
             </div>
         `;
     }
