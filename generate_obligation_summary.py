@@ -43,50 +43,60 @@ def generate_obligation_summary():
                 period_of_perf = ''
                 expiration_year = ''
                 
-                # First check if it's a special format like "14-91-0301 /23"
-                if tafs_parts.startswith('14-'):
-                    parts = tafs_parts.split('-', 2)
-                    if len(parts) >= 3:
-                        account_num = f"{parts[0]}-{parts[1]}"
-                        remainder = parts[2]
-                        if ' ' in remainder:
-                            code_part, year_part = remainder.split(' ', 1)
-                            if '/' in year_part:
-                                year_val = year_part.strip('/')
-                                if year_val.isdigit() and len(year_val) == 2:
-                                    period_of_perf = f"FY20{year_val}"
-                                    expiration_year = f"20{year_val}"
-                elif '-' in tafs_parts:
-                    parts = tafs_parts.split('-')
-                    if len(parts) >= 2:
-                        account_num = f"{parts[0]}-{parts[1]}"
+                # Parse the TAFS code (e.g., "91-0204 25/26" or "91-0204 /25" or "14-91-0301 /23")
+                # First extract the main account number
+                if tafs_parts.startswith('14-91-'):
+                    # Special case: 14-91-XXXX format
+                    parts = tafs_parts.split(' ', 1)
+                    code_part = parts[0]
+                    year_part = parts[1] if len(parts) > 1 else ''
                     
-                    # Extract period of performance and expiration year
-                    if len(parts) >= 3:
-                        perf_part = parts[2].strip()
-                        if ' ' in perf_part:
-                            # Handle space-separated year info
-                            perf_part = perf_part.split(' ')[0]
-                        
-                        if '/' in perf_part:
-                            # Handle cases like "21/25", "/25", "/X"
-                            if perf_part.startswith('/'):
-                                year_val = perf_part[1:]
-                                if year_val == 'X':
-                                    period_of_perf = 'No Year'
+                    # Extract account number from format like "14-91-0301"
+                    code_pieces = code_part.split('-')
+                    if len(code_pieces) >= 3:
+                        account_num = f"{code_pieces[0]}-{code_pieces[1]}-{code_pieces[2]}"
+                else:
+                    # Standard format: 91-XXXX
+                    parts = tafs_parts.split(' ', 1)
+                    code_part = parts[0]
+                    year_part = parts[1] if len(parts) > 1 else ''
+                    
+                    # Extract account number (e.g., "91-0204")
+                    code_pieces = code_part.split('-')
+                    if len(code_pieces) >= 2:
+                        account_num = f"{code_pieces[0]}-{code_pieces[1]}"
+                
+                # Now parse the year/period part
+                if year_part:
+                    year_part = year_part.strip()
+                    if '/' in year_part:
+                        if year_part.startswith('/'):
+                            # Format: /25 or /X
+                            year_val = year_part[1:]
+                            if year_val == 'X':
+                                period_of_perf = 'No Year'
+                                expiration_year = 'No Year'
+                            elif year_val.isdigit():
+                                period_of_perf = f"FY20{year_val}"
+                                expiration_year = f"20{year_val}"
+                        else:
+                            # Format: 21/25 or 25/26
+                            period_parts = year_part.split('/')
+                            if len(period_parts) == 2:
+                                start_year = period_parts[0]
+                                end_year = period_parts[1]
+                                
+                                if start_year.isdigit() and end_year.isdigit():
+                                    # Convert to full years
+                                    start_full = f"20{start_year}" if len(start_year) == 2 else start_year
+                                    end_full = f"20{end_year}" if len(end_year) == 2 else end_year
+                                    
+                                    period_of_perf = f"FY{start_full}-FY{end_full}"
+                                    expiration_year = end_full
+                                elif end_year == 'X':
+                                    start_full = f"20{start_year}" if len(start_year) == 2 else start_year
+                                    period_of_perf = f"FY{start_full}-No Year"
                                     expiration_year = 'No Year'
-                                elif year_val.isdigit() and len(year_val) == 2:
-                                    period_of_perf = f"FY20{year_val}"
-                                    expiration_year = f"20{year_val}"
-                            else:
-                                period_parts = perf_part.split('/')
-                                if len(period_parts) == 2:
-                                    if period_parts[0].isdigit() and period_parts[1].isdigit():
-                                        period_of_perf = f"FY20{period_parts[0]}-FY20{period_parts[1]}"
-                                        expiration_year = f"20{period_parts[1]}"
-                                    elif period_parts[1] == 'X':
-                                        period_of_perf = f"FY20{period_parts[0]}-No Year"
-                                        expiration_year = 'No Year'
                 
                 summary_data.append({
                     'Department': 'Department of Education',
