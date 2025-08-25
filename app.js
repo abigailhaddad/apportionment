@@ -2,6 +2,7 @@
 
 let dataTable;
 let obligationData = [];
+let columnFilters = {};
 
 // Format currency values
 function formatCurrency(value) {
@@ -46,9 +47,6 @@ async function loadData() {
             obligationData.push(row);
         }
         
-        // Populate filters
-        populateFilters();
-        
         // Calculate summary statistics
         updateSummaryStats();
         
@@ -87,25 +85,27 @@ function parseCSVLine(line) {
     return result;
 }
 
-// Populate filter dropdowns
-function populateFilters() {
-    // Get unique bureaus
-    const bureaus = [...new Set(obligationData.map(row => row.Bureau))].sort();
-    const bureauSelect = $('#bureauFilter');
-    bureaus.forEach(bureau => {
-        if (bureau && bureau !== '') {
-            bureauSelect.append(`<option value="${bureau}">${bureau}</option>`);
-        }
+// Create column filter HTML
+function createColumnFilter(columnName, values) {
+    const filterId = `filter-${columnName.replace(/\s+/g, '-')}`;
+    let html = `<div class="column-filter-container" id="${filterId}">`;
+    html += `<input type="text" class="filter-search" placeholder="Search...">`;
+    html += `<div class="filter-values">`;
+    
+    values.forEach((value, index) => {
+        const checkId = `${filterId}-${index}`;
+        html += `<label><input type="checkbox" value="${value}" checked> ${value || '(empty)'}</label>`;
     });
     
-    // Get unique expiration years
-    const years = [...new Set(obligationData.map(row => row.Expiration_Year))].sort();
-    const yearSelect = $('#expirationFilter');
-    years.forEach(year => {
-        if (year && year !== '') {
-            yearSelect.append(`<option value="${year}">${year}</option>`);
-        }
-    });
+    html += `</div>`;
+    html += `<div class="filter-buttons">`;
+    html += `<button class="clear-all">Clear</button>`;
+    html += `<button class="select-all">Select All</button>`;
+    html += `<button class="apply">Apply</button>`;
+    html += `</div>`;
+    html += `</div>`;
+    
+    return html;
 }
 
 // Update summary statistics
@@ -199,53 +199,145 @@ function initializeDataTable() {
         }
     });
     
-    // Set up custom filters
-    setupFilters();
+    // Set up column click filters
+    setupColumnFilters();
 }
 
-// Setup custom filter functionality
-function setupFilters() {
-    // Bureau filter
-    $('#bureauFilter').on('change', function() {
-        const value = $(this).val();
-        if (value === '') {
-            dataTable.column(0).search('').draw();
-        } else {
-            dataTable.column(0).search('^' + $.fn.dataTable.util.escapeRegex(value) + '$', true, false).draw();
-        }
-        updateFilteredStats();
-    });
+// Setup column click filters
+function setupColumnFilters() {
+    // Define which columns should have filters
+    const filterColumns = [
+        { index: 0, name: 'Bureau' },
+        { index: 3, name: 'Period_of_Performance' },
+        { index: 4, name: 'Expiration_Year' }
+    ];
     
-    // Expiration year filter
-    $('#expirationFilter').on('change', function() {
-        const value = $(this).val();
-        if (value === '') {
-            dataTable.column(4).search('').draw();
-        } else {
-            dataTable.column(4).search('^' + $.fn.dataTable.util.escapeRegex(value) + '$', true, false).draw();
-        }
-        updateFilteredStats();
-    });
-    
-    // Percentage range filter
-    $('#percentageFilter').on('change', function() {
-        const value = $(this).val();
+    // Add click handlers to specific column headers
+    filterColumns.forEach(col => {
+        const th = $(`#obligationTable thead th:eq(${col.index})`);
+        th.addClass('has-filter');
         
-        // Remove any existing search function
-        $.fn.dataTable.ext.search.pop();
-        
-        if (value !== '') {
-            const ranges = value.split('-').map(v => parseFloat(v));
+        th.on('click', function(e) {
+            e.stopPropagation();
             
-            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
-                const percentage = parseFloat(data[7].replace(/<[^>]*>/g, '').replace('%', ''));
-                return percentage >= ranges[0] && percentage <= ranges[1];
+            // Close any open filters
+            $('.column-filter-container').remove();
+            $('.filtering').removeClass('filtering');
+            
+            // Get unique values for this column
+            const columnData = dataTable.column(col.index).data().unique().sort();
+            const uniqueValues = Array.from(columnData).filter(v => v !== null && v !== undefined);
+            
+            // Create and show filter
+            const filterHtml = createColumnFilter(col.name, uniqueValues);
+            const $filter = $(filterHtml);
+            
+            // Position the filter
+            const offset = $(this).offset();
+            $filter.css({
+                top: offset.top + $(this).outerHeight(),
+                left: offset.left
             });
+            
+            $('body').append($filter);
+            $(this).addClass('filtering');
+            
+            // Initialize filter behavior
+            initializeFilterBehavior($filter, col.index, col.name);
+        });
+    });
+    
+    // Close filter when clicking outside
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest('.column-filter-container, .has-filter').length) {
+            $('.column-filter-container').remove();
+            $('.filtering').removeClass('filtering');
+        }
+    });
+}
+
+// Initialize filter behavior
+function initializeFilterBehavior($filter, columnIndex, columnName) {
+    const $searchInput = $filter.find('.filter-search');
+    const $checkboxes = $filter.find('input[type="checkbox"]');
+    
+    // Search functionality
+    $searchInput.on('input', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        $filter.find('label').each(function() {
+            const text = $(this).text().toLowerCase();
+            $(this).toggle(text.includes(searchTerm));
+        });
+    });
+    
+    // Select all button
+    $filter.find('.select-all').on('click', function() {
+        $checkboxes.prop('checked', true);
+    });
+    
+    // Clear all button
+    $filter.find('.clear-all').on('click', function() {
+        $checkboxes.prop('checked', false);
+    });
+    
+    // Apply button
+    $filter.find('.apply').on('click', function() {
+        const selectedValues = [];
+        $checkboxes.filter(':checked').each(function() {
+            selectedValues.push($(this).val());
+        });
+        
+        // Store filter state
+        columnFilters[columnName] = selectedValues;
+        
+        // Apply custom filter
+        applyColumnFilters();
+        
+        // Close filter
+        $filter.remove();
+        $('.filtering').removeClass('filtering');
+    });
+}
+
+// Apply all column filters
+function applyColumnFilters() {
+    // Remove existing custom filter
+    $.fn.dataTable.ext.search = [];
+    
+    // Add new filter function
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        let show = true;
+        
+        // Check Bureau filter
+        if (columnFilters.Bureau && columnFilters.Bureau.length > 0) {
+            const bureauValue = data[0];
+            if (!columnFilters.Bureau.includes(bureauValue)) {
+                show = false;
+            }
         }
         
-        dataTable.draw();
-        updateFilteredStats();
+        // Check Period filter
+        if (show && columnFilters.Period_of_Performance && columnFilters.Period_of_Performance.length > 0) {
+            const periodValue = data[3];
+            if (!columnFilters.Period_of_Performance.includes(periodValue)) {
+                show = false;
+            }
+        }
+        
+        // Check Expiration Year filter
+        if (show && columnFilters.Expiration_Year && columnFilters.Expiration_Year.length > 0) {
+            const yearValue = data[4];
+            if (!columnFilters.Expiration_Year.includes(yearValue)) {
+                show = false;
+            }
+        }
+        
+        return show;
     });
+    
+    // Redraw table
+    dataTable.draw();
+    updateFilteredStats();
 }
 
 // Update statistics based on filtered data

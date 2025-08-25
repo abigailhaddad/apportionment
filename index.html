@@ -94,6 +94,12 @@
             font-weight: 600;
             border-bottom: none !important;
             white-space: nowrap;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        table.dataTable thead th.filtering {
+            background-color: #00508f;
         }
         
         table.dataTable tbody tr:hover {
@@ -121,38 +127,78 @@
             color: #388e3c;
         }
         
-        .filter-container {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-        
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            min-width: 200px;
-        }
-        
-        .filter-group label {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 5px;
-        }
-        
-        .filter-group select {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: white;
-        }
-        
         .expiring-soon {
             background-color: #fff3cd;
         }
         
         .no-year {
             background-color: #e8f4f8;
+        }
+        
+        /* Column filter styles */
+        .column-filter-container {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 10px;
+            z-index: 1000;
+            min-width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .column-filter-container input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        
+        .column-filter-container label {
+            display: block;
+            padding: 3px 0;
+            cursor: pointer;
+        }
+        
+        .column-filter-container label:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .column-filter-container input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        
+        .filter-buttons {
+            margin-top: 10px;
+            text-align: right;
+        }
+        
+        .filter-buttons button {
+            margin-left: 5px;
+            padding: 3px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        
+        .filter-buttons button.apply {
+            background: #003366;
+            color: white;
+        }
+        
+        .filter-buttons button:hover {
+            opacity: 0.8;
+        }
+        
+        th.has-filter::after {
+            content: " ▼";
+            font-size: 0.8em;
+            opacity: 0.5;
         }
     </style>
 </head>
@@ -183,31 +229,6 @@
         </div>
         
         <div class="table-container">
-            <div class="filter-container">
-                <div class="filter-group">
-                    <label for="bureauFilter">Bureau/Office</label>
-                    <select id="bureauFilter" class="form-control">
-                        <option value="">All Bureaus</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="expirationFilter">Expiration Year</label>
-                    <select id="expirationFilter" class="form-control">
-                        <option value="">All Years</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label for="percentageFilter">Unobligated %</label>
-                    <select id="percentageFilter" class="form-control">
-                        <option value="">All Percentages</option>
-                        <option value="0-25">0-25%</option>
-                        <option value="25-50">25-50%</option>
-                        <option value="50-75">50-75%</option>
-                        <option value="75-100">75-100%</option>
-                    </select>
-                </div>
-            </div>
-            
             <table id="obligationTable" class="table table-striped">
                 <thead>
                     <tr>
