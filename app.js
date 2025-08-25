@@ -23,7 +23,7 @@ function formatPercentage(value) {
 async function loadData() {
     try {
         console.log('Starting to load CSV data...');
-        const response = await fetch('data/education_obligation_summary_july.csv');
+        const response = await fetch('data/education_obligation_summary_enhanced.csv');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -53,6 +53,15 @@ async function loadData() {
             row.unobligatedValue = parseFloat(row['Unobligated Balance (Line 2490)'].replace(/[$,M]/g, ''));
             row.budgetAuthorityValue = parseFloat(row['Budget Authority (Line 2500)'].replace(/[$,M]/g, ''));
             row.percentageValue = parseFloat(row['Percentage Unobligated'].replace('%', ''));
+            
+            // Parse time series data
+            try {
+                row.baTimeSeries = JSON.parse(row['BA_TimeSeries'] || '[]');
+                row.unobTimeSeries = JSON.parse(row['Unob_TimeSeries'] || '[]');
+            } catch (e) {
+                row.baTimeSeries = [];
+                row.unobTimeSeries = [];
+            }
             
             obligationData.push(row);
         }
@@ -86,7 +95,7 @@ async function loadData() {
         
     } catch (error) {
         console.error('Error loading data:', error);
-        console.error('Failed to load: data/education_obligation_summary_july.csv');
+        console.error('Failed to load: data/education_obligation_summary_enhanced.csv');
         console.error('Make sure you are running the server with ./serve.py or python3 serve.py');
         alert('Error loading data. Please ensure you are running the server with ./serve.py and not just opening the HTML file directly.');
     }
@@ -304,6 +313,23 @@ function initializeDataTable() {
                     return data;
                 }
             },
+            {
+                data: null,
+                orderable: false,
+                render: function(data, type, row) {
+                    if (type === 'display') {
+                        // Create container for sparklines
+                        const sparklineId = `spark-${Math.random().toString(36).substr(2, 9)}`;
+                        return `
+                            <div style="min-width: 120px;">
+                                <div id="${sparklineId}-ba" class="sparkline-ba"></div>
+                                <div id="${sparklineId}-unob" class="sparkline-unob" style="margin-top: 2px;"></div>
+                            </div>
+                        `;
+                    }
+                    return '';
+                }
+            },
             { 
                 data: 'Unobligated Balance (Line 2490)',
                 className: 'text-end',
@@ -351,6 +377,9 @@ function initializeDataTable() {
             } else if (data.Expiration_Year === 'No Year') {
                 $(row).addClass('no-year');
             }
+        },
+        drawCallback: function() {
+            renderSparklines();
         }
     });
     
@@ -365,7 +394,7 @@ function setupColumnFilters() {
         { index: 0, name: 'Bureau' },
         { index: 3, name: 'Period_of_Performance' },
         { index: 4, name: 'Expiration_Year' },
-        { index: 7, name: 'Percentage_Unobligated' }
+        { index: 8, name: 'Percentage_Unobligated' }
     ];
     
     // Add click handlers to specific column headers
@@ -542,9 +571,9 @@ function applyAllFilters() {
             }
         }
         
-        // Check percentage range filter
+        // Check percentage range filter (now column 8 due to trends column)
         if (show && columnFilters.Percentage_Ranges && columnFilters.Percentage_Ranges.length > 0) {
-            const percentage = parseFloat(data[7].replace(/<[^>]*>/g, '').replace('%', ''));
+            const percentage = parseFloat(data[8].replace(/<[^>]*>/g, '').replace('%', ''));
             let inRange = false;
             
             for (const range of columnFilters.Percentage_Ranges) {
@@ -927,6 +956,61 @@ function getFilteredBureauData() {
         percentageUnobligated: bureau.budgetAuthority > 0 ? 
             (bureau.unobligated / bureau.budgetAuthority * 100) : 0
     }));
+}
+
+// Render sparklines in visible rows
+function renderSparklines() {
+    // Get visible rows
+    const visibleRows = dataTable.rows({ page: 'current', search: 'applied' }).data();
+    
+    visibleRows.each(function(row, idx) {
+        const node = dataTable.row(idx, { page: 'current', search: 'applied' }).node();
+        if (node) {
+            const $row = $(node);
+            
+            // Find sparkline containers
+            const $baSparkline = $row.find('.sparkline-ba');
+            const $unobSparkline = $row.find('.sparkline-unob');
+            
+            if ($baSparkline.length && !$baSparkline.data('sparkline-rendered')) {
+                // Render BA sparkline (blue)
+                if (row.baTimeSeries && row.baTimeSeries.length > 0) {
+                    $baSparkline.sparkline(row.baTimeSeries, {
+                        type: 'line',
+                        width: '100px',
+                        height: '20px',
+                        lineColor: '#2196F3',
+                        fillColor: 'transparent',
+                        spotColor: false,
+                        minSpotColor: false,
+                        maxSpotColor: false,
+                        lineWidth: 1.5,
+                        tooltipFormat: 'BA: ${{y:,.1f}}M'
+                    });
+                    $baSparkline.data('sparkline-rendered', true);
+                }
+            }
+            
+            if ($unobSparkline.length && !$unobSparkline.data('sparkline-rendered')) {
+                // Render unobligated sparkline (orange)
+                if (row.unobTimeSeries && row.unobTimeSeries.length > 0) {
+                    $unobSparkline.sparkline(row.unobTimeSeries, {
+                        type: 'line',
+                        width: '100px', 
+                        height: '20px',
+                        lineColor: '#FF9800',
+                        fillColor: 'transparent',
+                        spotColor: false,
+                        minSpotColor: false,
+                        maxSpotColor: false,
+                        lineWidth: 1.5,
+                        tooltipFormat: 'Unob: ${{y:,.1f}}M'
+                    });
+                    $unobSparkline.data('sparkline-rendered', true);
+                }
+            }
+        }
+    });
 }
 
 // Initialize on page load
