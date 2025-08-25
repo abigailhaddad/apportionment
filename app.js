@@ -19,8 +19,15 @@ function formatPercentage(value) {
 // Load CSV data
 async function loadData() {
     try {
+        console.log('Starting to load CSV data...');
         const response = await fetch('data/education_obligation_summary_july.csv');
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const csvText = await response.text();
+        console.log('CSV loaded successfully, length:', csvText.length);
         
         // Parse CSV
         const lines = csvText.split('\n');
@@ -55,7 +62,9 @@ async function loadData() {
         
     } catch (error) {
         console.error('Error loading data:', error);
-        alert('Error loading data. Please ensure the CSV file is in the correct location.');
+        console.error('Failed to load: data/education_obligation_summary_july.csv');
+        console.error('Make sure you are running the server with ./serve.py or python3 serve.py');
+        alert('Error loading data. Please ensure you are running the server with ./serve.py and not just opening the HTML file directly.');
     }
 }
 
