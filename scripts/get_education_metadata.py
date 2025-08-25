@@ -7,22 +7,22 @@ import time
 from tqdm import tqdm
 import os
 
-# Get all DHS account URLs from the sitemap
-print("=== Step 1: Getting all DHS account URLs from sitemap ===")
+# Get all Department of Education account URLs from the sitemap
+print("=== Step 1: Getting all Department of Education account URLs from sitemap ===")
 sitemap_url = "https://openomb.org/sitemaps/accounts.xml"
 response = requests.get(sitemap_url)
 
-dhs_account_urls = []
+education_account_urls = []
 if response.status_code == 200:
-    dhs_account_urls = re.findall(r'<loc>(https://openomb\.org/agency/department-of-homeland-security/bureau/[^/]+/account/[^<]+)</loc>', response.text)
-    print(f"Found {len(dhs_account_urls)} DHS account URLs from sitemap")
+    education_account_urls = re.findall(r'<loc>(https://openomb\.org/agency/department-of-education/bureau/[^/]+/account/[^<]+)</loc>', response.text)
+    print(f"Found {len(education_account_urls)} Department of Education account URLs from sitemap")
 
 print("\n=== Step 2: Scraping file IDs and fiscal years from account pages ===")
 
 all_files_data = []
 account_summaries = []
 
-for account_url in tqdm(dhs_account_urls, desc="Scraping account pages"):
+for account_url in tqdm(education_account_urls, desc="Scraping account pages"):
     try:
         response = requests.get(account_url)
         if response.status_code == 200:
@@ -108,22 +108,32 @@ for bureau, count in bureau_summary.head(10).items():
     print(f"{bureau}: {count} files")
 
 # Create data directory if it doesn't exist
-os.makedirs('processed_data/appropriations', exist_ok=True)
+os.makedirs('../processed_data/appropriations', exist_ok=True)
 
 # Save the enhanced data
-files_df.to_csv("processed_data/appropriations/dhs_files_with_fy.csv", index=False)
-print(f"\nSaved {len(files_df)} files to processed_data/appropriations/dhs_files_with_fy.csv")
+files_df.to_csv("../processed_data/appropriations/education_files_with_fy.csv", index=False)
+print(f"\nSaved {len(files_df)} files to processed_data/appropriations/education_files_with_fy.csv")
 
-accounts_df.to_csv("processed_data/appropriations/dhs_accounts_summary.csv", index=False)
-print(f"Saved account summary to processed_data/appropriations/dhs_accounts_summary.csv")
+accounts_df.to_csv("../processed_data/appropriations/education_accounts_summary.csv", index=False)
+print(f"Saved account summary to processed_data/appropriations/education_accounts_summary.csv")
 
 # Save just the file IDs for easy access
 file_ids = sorted(files_df['file_id'].unique())
-with open("processed_data/appropriations/dhs_complete_file_ids.json", "w") as f:
+with open("../processed_data/appropriations/education_complete_file_ids.json", "w") as f:
     json.dump({
         'file_ids': file_ids,
         'total_files': len(file_ids),
         'bureau_counts': bureau_summary.to_dict()
     }, f, indent=2)
 
-print(f"Saved {len(file_ids)} file IDs to processed_data/appropriations/dhs_complete_file_ids.json")
+print(f"Saved {len(file_ids)} file IDs to processed_data/appropriations/education_complete_file_ids.json")
+
+# Also save file IDs as CSV
+file_ids_df = pd.DataFrame({'file_id': file_ids})
+file_ids_df.to_csv("../processed_data/appropriations/education_file_ids.csv", index=False)
+print(f"Saved {len(file_ids)} file IDs to processed_data/appropriations/education_file_ids.csv")
+
+# Save bureau summary as CSV
+bureau_summary_df = pd.DataFrame(bureau_summary.items(), columns=['bureau', 'file_count'])
+bureau_summary_df.to_csv("../processed_data/appropriations/education_bureau_summary.csv", index=False)
+print(f"Saved bureau summary to processed_data/appropriations/education_bureau_summary.csv")

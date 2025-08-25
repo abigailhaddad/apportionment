@@ -23,7 +23,7 @@ def download_fast_book():
     }
     
     # Create data directory if it doesn't exist
-    os.makedirs('raw_data/fast_book', exist_ok=True)
+    os.makedirs('../raw_data/fast_book', exist_ok=True)
     
     # Try each URL
     for url in fast_book_urls:
@@ -32,7 +32,7 @@ def download_fast_book():
             response = requests.get(url, headers=headers, timeout=30)
             if response.status_code == 200:
                 # Save the file
-                filename = f"raw_data/fast_book/fast_book_part2_{datetime.now().strftime('%Y%m%d')}.xlsx"
+                filename = f"../raw_data/fast_book/fast_book_part2_{datetime.now().strftime('%Y%m%d')}.xlsx"
                 with open(filename, 'wb') as f:
                     f.write(response.content)
                 print(f"Successfully downloaded to: {filename}")
@@ -46,7 +46,7 @@ def download_fast_book():
     print("\n⚠️  Could not download FAST Book automatically.")
     print("Please manually download Part II from:")
     print("https://tfx.treasury.gov/reference-books/fast-book")
-    print("And save it as: raw_data/fast_book/fast_book_part2.xlsx")
+    print("And save it as: ../raw_data/fast_book/fast_book_part2.xlsx")
     return None
 
 def parse_fast_book(filename):
@@ -102,7 +102,7 @@ def parse_fast_book(filename):
         combined_df = pd.concat(all_accounts, ignore_index=True)
         
         # Save as CSV for easier use
-        output_file = "raw_data/fast_book/fast_book_accounts.csv"
+        output_file = "../raw_data/fast_book/fast_book_accounts.csv"
         combined_df.to_csv(output_file, index=False)
         print(f"\nSaved parsed data to: {output_file}")
         
@@ -112,8 +112,8 @@ def parse_fast_book(filename):
         print(f"Error parsing file: {e}")
         return None
 
-def extract_dhs_accounts(df):
-    """Extract DHS-specific accounts from FAST Book data"""
+def extract_education_accounts(df):
+    """Extract Department of Education-specific accounts from FAST Book data"""
     
     if df is None:
         return None
@@ -130,26 +130,26 @@ def extract_dhs_accounts(df):
             break
     
     if agency_col:
-        # Filter for DHS - need to check the actual agency name
+        # Filter for Department of Education - need to check the actual agency name
         # Also try using the AID column if it exists
         if 'AID' in df.columns:
-            # Use AID column for filtering
-            dhs_df = df[(df['AID'] == 70) | (df['AID'] == '70')].copy()
+            # Use AID column for filtering - Education is typically 018 or 18
+            education_df = df[(df['AID'] == 18) | (df['AID'] == '18') | (df['AID'] == '018')].copy()
         else:
             # Use agency name
-            dhs_df = df[df[agency_col].str.contains('Department of Homeland Security', case=False, na=False)].copy()
+            education_df = df[df[agency_col].str.contains('Department of Education', case=False, na=False)].copy()
         
-        print(f"\nFound {len(dhs_df)} DHS accounts")
+        print(f"\nFound {len(education_df)} Department of Education accounts")
         
         # Also check what unique agency values we have
         print(f"Sample agency values for debugging:")
         
-        # Save DHS-specific accounts
-        dhs_output = "raw_data/fast_book/dhs_fast_book_accounts.csv"
-        dhs_df.to_csv(dhs_output, index=False)
-        print(f"Saved DHS accounts to: {dhs_output}")
+        # Save Education-specific accounts
+        education_output = "../raw_data/fast_book/education_fast_book_accounts.csv"
+        education_df.to_csv(education_output, index=False)
+        print(f"Saved Department of Education accounts to: {education_output}")
         
-        return dhs_df
+        return education_df
     else:
         print("Could not find agency code column")
         print(f"Available columns: {list(df.columns)}")
@@ -163,7 +163,7 @@ def main():
     
     if not filename:
         # Check if we have a manually downloaded file
-        manual_file = "raw_data/fast_book/fast_book_part2.xlsx"
+        manual_file = "../raw_data/fast_book/fast_book_part2.xlsx"
         if os.path.exists(manual_file):
             print(f"\nUsing manually downloaded file: {manual_file}")
             filename = manual_file
@@ -175,16 +175,16 @@ def main():
     df = parse_fast_book(filename)
     
     if df is not None:
-        # Extract DHS accounts
-        dhs_df = extract_dhs_accounts(df)
+        # Extract Department of Education accounts
+        education_df = extract_education_accounts(df)
         
         # Print summary
-        if dhs_df is not None:
-            print("\n=== DHS FAST Book Summary ===")
-            print(f"Total DHS accounts: {len(dhs_df)}")
-            if 'fund_type_sheet' in dhs_df.columns:
+        if education_df is not None:
+            print("\n=== Department of Education FAST Book Summary ===")
+            print(f"Total Department of Education accounts: {len(education_df)}")
+            if 'fund_type_sheet' in education_df.columns:
                 print("\nAccounts by fund type:")
-                print(dhs_df['fund_type_sheet'].value_counts())
+                print(education_df['fund_type_sheet'].value_counts())
 
 if __name__ == "__main__":
     main()

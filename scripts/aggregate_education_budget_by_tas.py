@@ -127,12 +127,25 @@ def aggregate_by_tas_and_period(schedule_df):
         # If no 1920 lines, try 6190 which is also a total
         totals_df = schedule_df[schedule_df['line_number'] == '6190'].copy()
     
-    # Group by TAS, availability period, bureau, and account
-    # Take the maximum amount for each group (handles iterations)
+    # First, for each TAS and fiscal year, keep only the latest iteration
+    # Group by TAS and fiscal year to find max iteration
+    latest_iterations = totals_df.groupby(['tas', 'fiscal_year'])['iteration'].max().reset_index()
+    latest_iterations.columns = ['tas', 'fiscal_year', 'max_iteration']
+    
+    # Merge to keep only latest iteration records
+    totals_df = totals_df.merge(
+        latest_iterations, 
+        on=['tas', 'fiscal_year'],
+        how='left'
+    )
+    totals_df = totals_df[totals_df['iteration'] == totals_df['max_iteration']]
+    
+    # Now group by TAS, availability period, bureau, and account
+    # Since we already filtered to latest iteration, we can just take first/max
     aggregated = totals_df.groupby(
         ['tas', 'availability_period', 'bureau', 'account', 'fiscal_year']
     ).agg({
-        'amount': 'max',  # Use max to get latest iteration
+        'amount': 'first',  # Already filtered to latest iteration
         'approval_date': 'max',  # Latest approval
         'iteration': 'max'  # Latest iteration number
     }).reset_index()
@@ -179,17 +192,17 @@ def save_full_detail_data(all_schedule_data, output_path):
     return pd.DataFrame()
 
 def main():
-    parser = argparse.ArgumentParser(description='Aggregate DHS budget data by TAS and availability period')
+    parser = argparse.ArgumentParser(description='Aggregate Department of Education budget data by TAS and availability period')
     parser.add_argument('--bureau', help='Specific bureau to process')
     parser.add_argument('--account', help='Specific account to process')
     parser.add_argument('--fy', help='Specific fiscal year (2022-2025)')
-    parser.add_argument('--output', default='processed_data/appropriations/dhs_tas_aggregated.csv', help='Output filename')
+    parser.add_argument('--output', default='../processed_data/appropriations/education_tas_aggregated.csv', help='Output filename')
     
     args = parser.parse_args()
     
     # Load the file metadata
-    print("Loading DHS file metadata...")
-    files_df = pd.read_csv('processed_data/appropriations/dhs_files_with_fy.csv')
+    print("Loading Department of Education file metadata...")
+    files_df = pd.read_csv('../processed_data/appropriations/education_files_with_fy.csv')
     files_df['fiscal_year'] = files_df['fiscal_year'].astype(str)
     
     # Filter by fiscal year if specified
