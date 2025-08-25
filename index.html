@@ -258,14 +258,54 @@
             opacity: 0.7;
         }
         
-        /* Sparkline styles */
-        .sparkline-ba, .sparkline-unob {
-            display: inline-block;
+        /* Filter section styles */
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
         }
         
-        td .sparkline-container {
-            white-space: nowrap;
+        .filter-section h3 {
+            color: #003366;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
         }
+        
+        .filter-controls label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .active-filters {
+            margin-top: 15px;
+            min-height: 30px;
+        }
+        
+        .filter-badge {
+            display: inline-block;
+            background: #003366;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin-right: 10px;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+        
+        .filter-badge .remove-filter {
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .filter-badge .remove-filter:hover {
+            color: #ff6b6b;
+        }
+        
         
     </style>
 </head>
@@ -295,31 +335,52 @@
             </div>
         </div>
         
+        <!-- Unified Filter Section -->
+        <div class="filter-section">
+            <h3>Filters & Display Options</h3>
+            <div class="filter-controls">
+                <div class="row mb-3">
+                    <div class="col-md-2">
+                        <label for="mainBureauFilter">Bureau</label>
+                        <select id="mainBureauFilter" class="form-control form-control-sm">
+                            <option value="">All Bureaus</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="mainPeriodFilter">Period</label>
+                        <select id="mainPeriodFilter" class="form-control form-control-sm">
+                            <option value="">All Periods</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="mainExpirationFilter">Expiration Year</label>
+                        <select id="mainExpirationFilter" class="form-control form-control-sm">
+                            <option value="">All Years</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="mainPercentageFilter">% Unobligated</label>
+                        <select id="mainPercentageFilter" class="form-control form-control-sm">
+                            <option value="">All Ranges</option>
+                            <option value="0-25">0-25%</option>
+                            <option value="25-50">25-50%</option>
+                            <option value="50-75">50-75%</option>
+                            <option value="75-100">75-100%</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>&nbsp;</label>
+                        <button id="mainAggregateToggle" class="btn btn-sm btn-primary w-100">Show Bureau Totals</button>
+                    </div>
+                </div>
+                <div class="active-filters" id="activeFilters">
+                    <!-- Active filter badges will appear here -->
+                </div>
+            </div>
+        </div>
+        
         <div class="treemap-container">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h2 class="treemap-title" style="margin: 0;">Budget Authority vs. Unobligated Balance by Bureau</h2>
-                <button id="aggregateToggle" class="btn btn-sm btn-outline-primary">Show Bureau Totals</button>
-            </div>
-            <div class="filter-container" style="margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
-                <div class="filter-group" style="min-width: 220px;">
-                    <label for="chartBureauFilter">Filter by Bureau</label>
-                    <select id="chartBureauFilter" class="form-control">
-                        <option value="">All Bureaus</option>
-                    </select>
-                </div>
-                <div class="filter-group" style="min-width: 220px;">
-                    <label for="chartPeriodFilter">Filter by Period</label>
-                    <select id="chartPeriodFilter" class="form-control">
-                        <option value="">All Periods</option>
-                    </select>
-                </div>
-                <div class="filter-group" style="min-width: 180px;">
-                    <label for="chartExpirationFilter">Expiration Year</label>
-                    <select id="chartExpirationFilter" class="form-control">
-                        <option value="">All Years</option>
-                    </select>
-                </div>
-            </div>
+            <h2 class="treemap-title">Budget Authority vs. Unobligated Balance</h2>
             <div id="bubble-chart"></div>
         </div>
         
@@ -332,7 +393,6 @@
                         <th>Account Number</th>
                         <th>Period</th>
                         <th>Expiration</th>
-                        <th>Trends</th>
                         <th>Unobligated (2490)</th>
                         <th>Budget Authority (2500)</th>
                         <th>% Unobligated</th>
@@ -353,8 +413,6 @@
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <!-- D3.js for Treemap -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
-    <!-- jQuery Sparkline -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2/jquery.sparkline.min.js"></script>
     
     <script src="app.js"></script>
 </body>

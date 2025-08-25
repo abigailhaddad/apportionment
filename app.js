@@ -54,14 +54,6 @@ async function loadData() {
             row.budgetAuthorityValue = parseFloat(row['Budget Authority (Line 2500)'].replace(/[$,M]/g, ''));
             row.percentageValue = parseFloat(row['Percentage Unobligated'].replace('%', ''));
             
-            // Parse time series data
-            try {
-                row.baTimeSeries = JSON.parse(row['BA_TimeSeries'] || '[]');
-                row.unobTimeSeries = JSON.parse(row['Unob_TimeSeries'] || '[]');
-            } catch (e) {
-                row.baTimeSeries = [];
-                row.unobTimeSeries = [];
-            }
             
             obligationData.push(row);
         }
@@ -78,20 +70,14 @@ async function loadData() {
         // Calculate summary statistics
         updateSummaryStats();
         
-        // Populate chart filters
-        populateChartFilters();
-        
-        // Set default filter to 2025 expiration BEFORE initializing
-        columnFilters.Expiration_Year = ['2025'];
+        // Populate main filters
+        populateMainFilters();
         
         // Initialize DataTable
         initializeDataTable();
         
-        // Initialize bubble chart
-        initializeBubbleChart();
-        
-        // Now apply the filter
-        applyAllFilters();
+        // Set default filter to 2025 expiration
+        $('#mainExpirationFilter').val('2025').trigger('change');
         
     } catch (error) {
         console.error('Error loading data:', error);
@@ -113,7 +99,7 @@ function parseCSVLine(line) {
         if (char === '"') {
             inQuotes = !inQuotes;
         } else if (char === ',' && !inQuotes) {
-            result.push(current.trim());
+            result.push(current.trim().replace(/^"|"$/g, ''));
             current = '';
         } else {
             current += char;
@@ -121,7 +107,7 @@ function parseCSVLine(line) {
     }
     
     if (current) {
-        result.push(current.trim());
+        result.push(current.trim().replace(/^"|"$/g, ''));
     }
     
     return result;
@@ -216,53 +202,128 @@ function updateSummaryStats() {
     $('#accountCount').text(obligationData.length);
 }
 
-// Populate chart filter dropdowns
-function populateChartFilters() {
+// Populate main filter dropdowns
+function populateMainFilters() {
     // Get unique values
     const bureaus = [...new Set(obligationData.map(row => row.Bureau))].filter(b => b).sort();
     const periods = [...new Set(obligationData.map(row => row.Period_of_Performance))].filter(p => p).sort();
     const years = [...new Set(obligationData.map(row => row.Expiration_Year))].filter(y => y).sort();
     
     // Populate bureau filter
-    const bureauSelect = $('#chartBureauFilter');
+    const bureauSelect = $('#mainBureauFilter');
     bureaus.forEach(bureau => {
         bureauSelect.append(`<option value="${bureau}">${bureau}</option>`);
     });
     
     // Populate period filter
-    const periodSelect = $('#chartPeriodFilter');
+    const periodSelect = $('#mainPeriodFilter');
     periods.forEach(period => {
         periodSelect.append(`<option value="${period}">${period}</option>`);
     });
     
     // Populate expiration year filter
-    const yearSelect = $('#chartExpirationFilter');
+    const yearSelect = $('#mainExpirationFilter');
     years.forEach(year => {
         yearSelect.append(`<option value="${year}">${year}</option>`);
     });
     
-    // Set up event handlers
-    $('#chartBureauFilter, #chartPeriodFilter, #chartExpirationFilter').on('change', function() {
-        // Update column filters based on dropdown selections
-        const selectedBureau = $('#chartBureauFilter').val();
-        const selectedPeriod = $('#chartPeriodFilter').val();
-        const selectedYear = $('#chartExpirationFilter').val();
-        
-        // Update filters
-        columnFilters.Bureau = selectedBureau ? [selectedBureau] : null;
-        columnFilters.Period_of_Performance = selectedPeriod ? [selectedPeriod] : null;
-        columnFilters.Expiration_Year = selectedYear ? [selectedYear] : null;
-        
-        // Apply all filters
-        applyAllFilters();
+    // Set up event handlers for all main filters
+    $('#mainBureauFilter, #mainPeriodFilter, #mainExpirationFilter, #mainPercentageFilter').on('change', function() {
+        updateFiltersFromUI();
     });
     
     // Set up aggregate toggle button
-    $('#aggregateToggle').on('click', function() {
+    $('#mainAggregateToggle').on('click', function() {
         showBureauAggregates = !showBureauAggregates;
         $(this).text(showBureauAggregates ? 'Show Individual Accounts' : 'Show Bureau Totals');
+        
+        // Update both table and chart
+        if (showBureauAggregates) {
+            showAggregatedTable();
+        } else {
+            showDetailedTable();
+        }
         initializeBubbleChart();
     });
+}
+
+// Update filters from UI and display active filter badges
+function updateFiltersFromUI() {
+    const bureau = $('#mainBureauFilter').val();
+    const period = $('#mainPeriodFilter').val();
+    const year = $('#mainExpirationFilter').val();
+    const percentage = $('#mainPercentageFilter').val();
+    
+    // Update column filters
+    columnFilters.Bureau = bureau ? [bureau] : null;
+    columnFilters.Period_of_Performance = period ? [period] : null;
+    columnFilters.Expiration_Year = year ? [year] : null;
+    columnFilters.Percentage_Ranges = percentage ? [percentage] : null;
+    
+    // Update active filter badges
+    updateActiveFilterBadges();
+    
+    // Apply all filters
+    applyAllFilters();
+}
+
+// Update active filter badges display
+function updateActiveFilterBadges() {
+    const $activeFilters = $('#activeFilters');
+    $activeFilters.empty();
+    
+    const filters = [];
+    
+    if ($('#mainBureauFilter').val()) {
+        filters.push({
+            type: 'Bureau',
+            value: $('#mainBureauFilter').val(),
+            id: 'mainBureauFilter'
+        });
+    }
+    
+    if ($('#mainPeriodFilter').val()) {
+        filters.push({
+            type: 'Period',
+            value: $('#mainPeriodFilter').val(),
+            id: 'mainPeriodFilter'
+        });
+    }
+    
+    if ($('#mainExpirationFilter').val()) {
+        filters.push({
+            type: 'Expiration Year',
+            value: $('#mainExpirationFilter').val(),
+            id: 'mainExpirationFilter'
+        });
+    }
+    
+    if ($('#mainPercentageFilter').val()) {
+        const range = $('#mainPercentageFilter').val();
+        filters.push({
+            type: 'Unobligated %',
+            value: range.replace('-', '-') + '%',
+            id: 'mainPercentageFilter'
+        });
+    }
+    
+    if (filters.length === 0) {
+        $activeFilters.html('<span style="color: #999;">No filters active</span>');
+    } else {
+        filters.forEach(filter => {
+            const $badge = $(`<span class="filter-badge">
+                ${filter.type}: ${filter.value}
+                <span class="remove-filter" data-filter-id="${filter.id}">×</span>
+            </span>`);
+            $activeFilters.append($badge);
+        });
+        
+        // Set up remove filter handlers
+        $('.remove-filter').on('click', function() {
+            const filterId = $(this).data('filter-id');
+            $(`#${filterId}`).val('').trigger('change');
+        });
+    }
 }
 
 // Initialize DataTable
@@ -313,23 +374,6 @@ function initializeDataTable() {
                     return data;
                 }
             },
-            {
-                data: null,
-                orderable: false,
-                render: function(data, type, row) {
-                    if (type === 'display') {
-                        // Create container for sparklines
-                        const sparklineId = `spark-${Math.random().toString(36).substr(2, 9)}`;
-                        return `
-                            <div style="min-width: 120px;">
-                                <div id="${sparklineId}-ba" class="sparkline-ba"></div>
-                                <div id="${sparklineId}-unob" class="sparkline-unob" style="margin-top: 2px;"></div>
-                            </div>
-                        `;
-                    }
-                    return '';
-                }
-            },
             { 
                 data: 'Unobligated Balance (Line 2490)',
                 className: 'text-end',
@@ -378,9 +422,6 @@ function initializeDataTable() {
                 $(row).addClass('no-year');
             }
         },
-        drawCallback: function() {
-            renderSparklines();
-        }
     });
     
     // Set up column click filters
@@ -394,7 +435,7 @@ function setupColumnFilters() {
         { index: 0, name: 'Bureau' },
         { index: 3, name: 'Period_of_Performance' },
         { index: 4, name: 'Expiration_Year' },
-        { index: 8, name: 'Percentage_Unobligated' }
+        { index: 7, name: 'Percentage_Unobligated' }
     ];
     
     // Add click handlers to specific column headers
@@ -571,9 +612,9 @@ function applyAllFilters() {
             }
         }
         
-        // Check percentage range filter (now column 8 due to trends column)
+        // Check percentage range filter
         if (show && columnFilters.Percentage_Ranges && columnFilters.Percentage_Ranges.length > 0) {
-            const percentage = parseFloat(data[8].replace(/<[^>]*>/g, '').replace('%', ''));
+            const percentage = parseFloat(data[7].replace(/<[^>]*>/g, '').replace('%', ''));
             let inRange = false;
             
             for (const range of columnFilters.Percentage_Ranges) {
@@ -592,13 +633,14 @@ function applyAllFilters() {
         return show;
     });
     
-    // Update dropdown selections to match filters
-    $('#chartBureauFilter').val(columnFilters.Bureau && columnFilters.Bureau.length === 1 ? columnFilters.Bureau[0] : '');
-    $('#chartPeriodFilter').val(columnFilters.Period_of_Performance && columnFilters.Period_of_Performance.length === 1 ? columnFilters.Period_of_Performance[0] : '');
-    $('#chartExpirationFilter').val(columnFilters.Expiration_Year && columnFilters.Expiration_Year.length === 1 ? columnFilters.Expiration_Year[0] : '');
-    
-    // Redraw table
-    dataTable.draw();
+    // Redraw table or show aggregated view
+    if (showBureauAggregates) {
+        // Remove the custom filter temporarily for aggregated view
+        $.fn.dataTable.ext.search = [];
+        showAggregatedTable();
+    } else {
+        dataTable.draw();
+    }
     updateFilteredStats();
     
     // Update bubble chart
@@ -888,15 +930,15 @@ function getFilteredAccountData() {
 
 // Get filtered bureau data based on current filters
 function getFilteredBureauData() {
-    // If no filters, return all bureau data
-    if (!columnFilters.Period_of_Performance && 
-        !columnFilters.Expiration_Year && 
-        !columnFilters.Percentage_Ranges) {
-        return bureauData;
-    }
-    
     // Filter the raw data first
     const filteredAccounts = obligationData.filter(row => {
+        // Check Bureau filter
+        if (columnFilters.Bureau && 
+            columnFilters.Bureau.length > 0 &&
+            !columnFilters.Bureau.includes(row.Bureau)) {
+            return false;
+        }
+        
         // Check Period filter
         if (columnFilters.Period_of_Performance && 
             columnFilters.Period_of_Performance.length > 0 &&
@@ -930,87 +972,78 @@ function getFilteredBureauData() {
         return true;
     });
     
-    // Re-aggregate by bureau
-    const bureauMap = new Map();
+    // Re-aggregate by bureau/period/expiration combination
+    const aggregateMap = new Map();
     
     filteredAccounts.forEach(row => {
         const bureau = row.Bureau || 'Other';
-        if (!bureauMap.has(bureau)) {
-            bureauMap.set(bureau, {
+        const period = row.Period_of_Performance || 'Unknown';
+        const expiration = row.Expiration_Year || 'Unknown';
+        const key = `${bureau}|${period}|${expiration}`;
+        
+        if (!aggregateMap.has(key)) {
+            aggregateMap.set(key, {
                 name: bureau,
+                period: period,
+                expiration: expiration,
                 budgetAuthority: 0,
                 unobligated: 0,
                 accountCount: 0
             });
         }
         
-        const bureauInfo = bureauMap.get(bureau);
-        bureauInfo.budgetAuthority += row.budgetAuthorityValue;
-        bureauInfo.unobligated += row.unobligatedValue;
-        bureauInfo.accountCount += 1;
+        const aggregateInfo = aggregateMap.get(key);
+        aggregateInfo.budgetAuthority += row.budgetAuthorityValue;
+        aggregateInfo.unobligated += row.unobligatedValue;
+        aggregateInfo.accountCount += 1;
     });
     
     // Convert to array and calculate percentages
-    return Array.from(bureauMap.values()).map(bureau => ({
-        ...bureau,
-        percentageUnobligated: bureau.budgetAuthority > 0 ? 
-            (bureau.unobligated / bureau.budgetAuthority * 100) : 0
+    return Array.from(aggregateMap.values()).map(aggregate => ({
+        ...aggregate,
+        percentageUnobligated: aggregate.budgetAuthority > 0 ? 
+            (aggregate.unobligated / aggregate.budgetAuthority * 100) : 0
     }));
 }
 
-// Render sparklines in visible rows
-function renderSparklines() {
-    // Get visible rows
-    const visibleRows = dataTable.rows({ page: 'current', search: 'applied' }).data();
+
+// Show aggregated table (bureau totals)
+function showAggregatedTable() {
+    // Get filtered bureau data (now aggregated by bureau/period/expiration)
+    const filteredBureauData = getFilteredBureauData();
     
-    visibleRows.each(function(row, idx) {
-        const node = dataTable.row(idx, { page: 'current', search: 'applied' }).node();
-        if (node) {
-            const $row = $(node);
-            
-            // Find sparkline containers
-            const $baSparkline = $row.find('.sparkline-ba');
-            const $unobSparkline = $row.find('.sparkline-unob');
-            
-            if ($baSparkline.length && !$baSparkline.data('sparkline-rendered')) {
-                // Render BA sparkline (blue)
-                if (row.baTimeSeries && row.baTimeSeries.length > 0) {
-                    $baSparkline.sparkline(row.baTimeSeries, {
-                        type: 'line',
-                        width: '100px',
-                        height: '20px',
-                        lineColor: '#2196F3',
-                        fillColor: 'transparent',
-                        spotColor: false,
-                        minSpotColor: false,
-                        maxSpotColor: false,
-                        lineWidth: 1.5,
-                        tooltipFormat: 'BA: ${{y:,.1f}}M'
-                    });
-                    $baSparkline.data('sparkline-rendered', true);
-                }
-            }
-            
-            if ($unobSparkline.length && !$unobSparkline.data('sparkline-rendered')) {
-                // Render unobligated sparkline (orange)
-                if (row.unobTimeSeries && row.unobTimeSeries.length > 0) {
-                    $unobSparkline.sparkline(row.unobTimeSeries, {
-                        type: 'line',
-                        width: '100px', 
-                        height: '20px',
-                        lineColor: '#FF9800',
-                        fillColor: 'transparent',
-                        spotColor: false,
-                        minSpotColor: false,
-                        maxSpotColor: false,
-                        lineWidth: 1.5,
-                        tooltipFormat: 'Unob: ${{y:,.1f}}M'
-                    });
-                    $unobSparkline.data('sparkline-rendered', true);
-                }
-            }
-        }
-    });
+    // Transform bureau data to match table structure
+    const aggregatedRows = filteredBureauData.map(aggregate => ({
+        Bureau: aggregate.name,
+        Account: `${aggregate.accountCount} accounts`,
+        Account_Number: '',
+        Period_of_Performance: aggregate.period,
+        Expiration_Year: aggregate.expiration,
+        Department: 'Department of Education',
+        'Unobligated Balance (Line 2490)': formatCurrency(aggregate.unobligated),
+        'Budget Authority (Line 2500)': formatCurrency(aggregate.budgetAuthority),
+        'Percentage Unobligated': aggregate.percentageUnobligated.toFixed(1) + '%',
+        unobligatedValue: aggregate.unobligated,
+        budgetAuthorityValue: aggregate.budgetAuthority,
+        percentageValue: aggregate.percentageUnobligated,
+        TAFS: ''
+    }));
+    
+    // Clear existing data and add new data
+    dataTable.clear();
+    dataTable.rows.add(aggregatedRows);
+    dataTable.draw();
+}
+
+// Show detailed table (individual accounts)
+function showDetailedTable() {
+    // Get the filtered data respecting current filters
+    const filteredData = getFilteredAccountData();
+    
+    // Clear and add filtered data
+    dataTable.clear();
+    dataTable.rows.add(filteredData);
+    dataTable.draw();
 }
 
 // Initialize on page load
