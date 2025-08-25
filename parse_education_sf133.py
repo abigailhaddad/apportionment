@@ -1,116 +1,118 @@
 #!/usr/bin/env python3
 """
-Parse Department of Education SF 133 file to extract obligation data.
+Parse Department of Education SF 133 file to extract and structure the TAFS detail tab.
 """
 
 import pandas as pd
 import sys
 from pathlib import Path
+import openpyxl
 
 def parse_sf133_file(file_path):
-    """Parse the Education SF 133 file to extract obligation data."""
+    """Parse the Education SF 133 file TAFS detail tab into a clean dataframe."""
     
-    # Read the TAFS detail sheet
-    df = pd.read_excel(file_path, sheet_name='TAFS detail', header=None)
+    # Use openpyxl to handle merged cells properly
+    wb = openpyxl.load_workbook(file_path, data_only=True)
+    ws = wb['TAFS detail']
     
-    results = []
+    # Convert to dataframe, unmerging cells
+    data = []
+    for row in ws.iter_rows():
+        data.append([cell.value for cell in row])
+    
+    df = pd.DataFrame(data)
+    
+    print(f"Raw data shape: {df.shape}")
+    
+    # Row 9 (index 8) has our headers
+    headers = df.iloc[8].tolist()
+    
+    # Replace None with generic column names
+    headers = [str(h) if h is not None else f'Col_{i}' for i, h in enumerate(headers)]
+    
+    print(f"Headers from row 9: {headers}")
+    
+    # Process the data starting after the header row
+    clean_rows = []
+    
+    # Variables to forward-fill
     current_bureau = None
-    current_account = None
+    current_account_code = None
+    current_account_name = None
     current_tafs = None
     
-    # Process each row
-    for idx in range(df.shape[0]):
+    for idx in range(9, len(df)):  # Start from row 10 (index 9)
         row = df.iloc[idx]
         
-        # Check for bureau name (usually in column 0)
-        if pd.notna(row[0]) and 'Office of' in str(row[0]):
-            current_bureau = str(row[0]).strip()
+        # Skip completely empty rows
+        if row.isna().all():
             continue
+        
+        # Update bureau if found (column 0)
+        if pd.notna(row[0]):
+            val = str(row[0]).strip()
+            if 'Office of' in val or 'Department' in val:
+                current_bureau = val
+        
+        # Update account code if found (column 1)
+        if pd.notna(row[1]):
+            current_account_code = str(row[1]).strip()
+        
+        # Update account name if found (column 2)
+        if pd.notna(row[2]):
+            current_account_name = str(row[2]).strip()
+        
+        # Update TAFS if found (column 4)
+        if pd.notna(row[4]):
+            val = str(row[4]).strip()
+            if '-' in val and '/' in val:  # Looks like a TAFS
+                current_tafs = val
+        
+        # Create a row with all columns
+        clean_row = {}
+        
+        # Add all columns with proper headers
+        for col_idx in range(len(headers)):
+            col_name = headers[col_idx]
             
-        # Check for account info (column 1 and 2)
-        if pd.notna(row[1]) and pd.notna(row[2]) and '-' in str(row[1]):
-            current_account = f"{row[1]} - {row[2]}"
-            continue
-            
-        # Check for TAFS (column 4)
-        if pd.notna(row[4]) and '-' in str(row[4]) and len(str(row[4])) > 10:
-            current_tafs = str(row[4]).strip()
-            continue
+            # For certain columns, use forward-filled values
+            if col_idx == 0:  # Bureau column
+                clean_row[col_name] = current_bureau
+            elif col_idx == 1:  # Account Code
+                clean_row[col_name] = current_account_code
+            elif col_idx == 2:  # Account Name
+                clean_row[col_name] = current_account_name
+            elif col_idx == 4:  # TAFS
+                clean_row[col_name] = current_tafs
+            else:
+                # For all other columns, use the actual value
+                clean_row[col_name] = row[col_idx]
         
-        # Look for line items
-        line_no = str(row[7]) if pd.notna(row[7]) else ''
-        
-        if line_no == '2490':  # Unobligated balance
-            # Value is usually in column 10 or nearby
-            for col in range(8, min(15, df.shape[1])):
-                if pd.notna(row[col]) and isinstance(row[col], (int, float)) and row[col] != 0:
-                    if current_tafs and 'unobligated' not in results[-1] if results else True:
-                        if not results or results[-1].get('tafs') != current_tafs:
-                            results.append({
-                                'bureau': current_bureau,
-                                'account': current_account,
-                                'tafs': current_tafs,
-                                'unobligated': row[col]
-                            })
-                        else:
-                            results[-1]['unobligated'] = row[col]
-                    break
-                    
-        elif line_no == '2500':  # Budget authority
-            # Value is usually in column 10 or nearby
-            for col in range(8, min(15, df.shape[1])):
-                if pd.notna(row[col]) and isinstance(row[col], (int, float)) and row[col] != 0:
-                    if current_tafs:
-                        if not results or results[-1].get('tafs') != current_tafs:
-                            results.append({
-                                'bureau': current_bureau,
-                                'account': current_account,
-                                'tafs': current_tafs,
-                                'budget_authority': row[col]
-                            })
-                        else:
-                            results[-1]['budget_authority'] = row[col]
-                    break
+        clean_rows.append(clean_row)
     
-    # Create summary DataFrame
-    summary_data = []
-    for item in results:
-        if 'unobligated' in item and 'budget_authority' in item:
-            pct_unobligated = (item['unobligated'] / item['budget_authority'] * 100) if item['budget_authority'] > 0 else 0
-            summary_data.append({
-                'Bureau': item['bureau'],
-                'Account': item['account'],
-                'TAFS': item['tafs'],
-                'Unobligated Balance (2490)': item['unobligated'],
-                'Budget Authority (2500)': item['budget_authority'],
-                'Percent Unobligated': round(pct_unobligated, 2)
-            })
+    # Convert to DataFrame
+    result_df = pd.DataFrame(clean_rows)
     
-    summary_df = pd.DataFrame(summary_data)
+    # Remove rows where all numeric/data columns are empty
+    # Keep rows that have at least some data
+    numeric_cols = ['Nov', 'Dec (1Q)', 'Jan', 'Feb', 'Mar (2Q)', 'Apr', 'May', 'Jun (3Q)', 'Jul', 'Aug', 'Sep (4Q)']
+    cols_to_check = [col for col in numeric_cols if col in result_df.columns]
     
-    if len(summary_df) > 0:
-        print("\nDepartment of Education SF 133 Obligation Summary")
-        print("=" * 80)
-        print(summary_df.to_string(index=False))
-        
-        # Save to CSV
-        output_path = Path(file_path).parent / 'education_obligation_summary.csv'
-        summary_df.to_csv(output_path, index=False)
-        print(f"\nSaved to: {output_path}")
-        
-        # Print totals
-        total_unobligated = summary_df['Unobligated Balance (2490)'].sum()
-        total_budget_auth = summary_df['Budget Authority (2500)'].sum()
-        total_obligated = total_budget_auth - total_unobligated
-        total_pct = (total_unobligated / total_budget_auth * 100) if total_budget_auth > 0 else 0
-        
-        print(f"\nTotals:")
-        print(f"Total Budget Authority: ${total_budget_auth:,.0f}")
-        print(f"Total Obligated: ${total_obligated:,.0f}")
-        print(f"Total Unobligated: ${total_unobligated:,.0f}")
-        print(f"Overall Percent Unobligated: {total_pct:.2f}%")
-    else:
-        print("No complete account data found (need both line 2490 and 2500)")
+    if cols_to_check:
+        result_df = result_df.dropna(subset=cols_to_check, how='all')
+    
+    print(f"Cleaned data shape: {result_df.shape}")
+    
+    # Save the full structured data
+    output_path = Path(file_path).parent / 'education_sf133_structured.csv'
+    result_df.to_csv(output_path, index=False)
+    print(f"\nSaved structured TAFS detail to: {output_path}")
+    
+    # Show a sample of the data
+    print("\nFirst 10 rows of structured data:")
+    print(result_df.head(10).to_string())
+    
+    print(f"\nColumn names: {list(result_df.columns)}")
 
 if __name__ == "__main__":
     file_path = Path("data/2580778249.xlsx")
