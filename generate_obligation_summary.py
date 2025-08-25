@@ -34,10 +34,68 @@ def generate_obligation_summary():
             if ba > 0:
                 pct = (unob / ba * 100)
                 
+                # Parse TAFS to extract components
+                tafs = row['Col_4']
+                tafs_parts = tafs.split(' - ')[0] if ' - ' in tafs else tafs
+                
+                # Extract account number (e.g., 91-0204)
+                account_num = ''
+                period_of_perf = ''
+                expiration_year = ''
+                
+                # First check if it's a special format like "14-91-0301 /23"
+                if tafs_parts.startswith('14-'):
+                    parts = tafs_parts.split('-', 2)
+                    if len(parts) >= 3:
+                        account_num = f"{parts[0]}-{parts[1]}"
+                        remainder = parts[2]
+                        if ' ' in remainder:
+                            code_part, year_part = remainder.split(' ', 1)
+                            if '/' in year_part:
+                                year_val = year_part.strip('/')
+                                if year_val.isdigit() and len(year_val) == 2:
+                                    period_of_perf = f"FY20{year_val}"
+                                    expiration_year = f"20{year_val}"
+                elif '-' in tafs_parts:
+                    parts = tafs_parts.split('-')
+                    if len(parts) >= 2:
+                        account_num = f"{parts[0]}-{parts[1]}"
+                    
+                    # Extract period of performance and expiration year
+                    if len(parts) >= 3:
+                        perf_part = parts[2].strip()
+                        if ' ' in perf_part:
+                            # Handle space-separated year info
+                            perf_part = perf_part.split(' ')[0]
+                        
+                        if '/' in perf_part:
+                            # Handle cases like "21/25", "/25", "/X"
+                            if perf_part.startswith('/'):
+                                year_val = perf_part[1:]
+                                if year_val == 'X':
+                                    period_of_perf = 'No Year'
+                                    expiration_year = 'No Year'
+                                elif year_val.isdigit() and len(year_val) == 2:
+                                    period_of_perf = f"FY20{year_val}"
+                                    expiration_year = f"20{year_val}"
+                            else:
+                                period_parts = perf_part.split('/')
+                                if len(period_parts) == 2:
+                                    if period_parts[0].isdigit() and period_parts[1].isdigit():
+                                        period_of_perf = f"FY20{period_parts[0]}-FY20{period_parts[1]}"
+                                        expiration_year = f"20{period_parts[1]}"
+                                    elif period_parts[1] == 'X':
+                                        period_of_perf = f"FY20{period_parts[0]}-No Year"
+                                        expiration_year = 'No Year'
+                
                 summary_data.append({
-                    'Account': row['Col_1'] if pd.notna(row['Col_1']) else '',
-                    'TAFS': row['Col_4'],
+                    'Department': 'Department of Education',
                     'Bureau': row['Col_0'] if pd.notna(row['Col_0']) else '',
+                    'Account': row['Col_1'] if pd.notna(row['Col_1']) else '',
+                    'Account_Number': account_num,
+                    'Period_of_Performance': period_of_perf,
+                    'Expiration_Year': expiration_year,
+                    'TAFS': row['Col_4'],
                     'Unobligated_Balance_M': round(unob / 1_000_000, 1),
                     'Budget_Authority_M': round(ba / 1_000_000, 1),
                     'Percentage_Unobligated': round(pct, 1)
@@ -53,28 +111,32 @@ def generate_obligation_summary():
         
     summary_df = summary_df.sort_values('Budget_Authority_M', ascending=False)
     
-    # Format the output table
+    # Format the output table - include new fields
     output_df = summary_df.copy()
-    output_df['Account_Display'] = output_df['Account'] + '\n' + output_df['Bureau']
     output_df['Unobligated Balance (Line 2490)'] = output_df['Unobligated_Balance_M'].apply(lambda x: f'${x:,.1f}M')
     output_df['Budget Authority (Line 2500)'] = output_df['Budget_Authority_M'].apply(lambda x: f'${x:,.1f}M')
     output_df['Percentage Unobligated'] = output_df['Percentage_Unobligated'].apply(lambda x: f'{x:.1f}%')
     
-    # Select final columns
-    final_df = output_df[['Account_Display', 'Unobligated Balance (Line 2490)', 
+    # Select final columns including the new parsed fields
+    final_df = output_df[['Department', 'Bureau', 'Account', 'Account_Number', 
+                         'Period_of_Performance', 'Expiration_Year', 'TAFS',
+                         'Unobligated Balance (Line 2490)', 
                          'Budget Authority (Line 2500)', 'Percentage Unobligated']]
-    final_df.columns = ['Account', 'Unobligated Balance\n(Line 2490)', 
-                        'Budget Authority\n(Line 2500)', 'Percentage\nUnobligated']
     
     # Save to CSV
     output_path = Path('data/education_obligation_summary_july.csv')
     final_df.to_csv(output_path, index=False)
     print(f"Saved summary to: {output_path}")
     
-    # Print the table
+    # Print the table - just show key columns for display
+    display_df = final_df[['Bureau', 'Account_Number', 'Period_of_Performance', 
+                          'Unobligated Balance (Line 2490)', 'Budget Authority (Line 2500)', 
+                          'Percentage Unobligated']].copy()
+    
     print("\nDepartment of Education - Obligation Summary (June 2025)")
-    print("=" * 100)
-    print(final_df.to_string(index=False))
+    print("=" * 150)
+    print(display_df.head(20).to_string(index=False))
+    print("\nFull data with all fields saved to:", output_path)
     
     # Find specific account
     loan_account = summary_df[summary_df['TAFS'].str.contains('91-0243 /25', na=False)]
