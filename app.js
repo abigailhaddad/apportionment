@@ -585,11 +585,21 @@ function initializeBubbleChart() {
     const width = container.node().getBoundingClientRect().width - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
     
-    // Filter bureau data based on current filters
-    const filteredBureauData = getFilteredBureauData();
+    // Decide whether to show bureau-level or account-level data
+    let dataToShow;
+    let bubbleLabel;
     
-    // Remove any bureaus with 0 budget authority
-    const validBureauData = filteredBureauData.filter(d => d.budgetAuthority > 0);
+    // If any filters are active, show individual accounts
+    if (columnFilters.Bureau || columnFilters.Period_of_Performance || columnFilters.Expiration_Year) {
+        // Show filtered individual accounts
+        dataToShow = getFilteredAccountData();
+        bubbleLabel = d => d.Account || d.Bureau || 'Unknown';
+    } else {
+        // Show bureau-level aggregated data
+        const filteredBureauData = getFilteredBureauData();
+        dataToShow = filteredBureauData.filter(d => d.budgetAuthority > 0);
+        bubbleLabel = d => d.name;
+    }
     
     // Create scales
     const xScale = d3.scaleLinear()
@@ -597,15 +607,16 @@ function initializeBubbleChart() {
         .range([0, width]);
     
     // Size scale for bubbles
+    const maxBudget = d3.max(dataToShow, d => d.budgetAuthority || d.budgetAuthorityValue || 0);
     const sizeScale = d3.scaleSqrt()
-        .domain([0, d3.max(validBureauData, d => d.budgetAuthority)])
-        .range([8, 60]);
+        .domain([0, maxBudget])
+        .range([5, 40]);
     
     // Create force simulation for jittering
-    const simulation = d3.forceSimulation(validBureauData)
-        .force('x', d3.forceX(d => xScale(d.percentageUnobligated)).strength(1))
+    const simulation = d3.forceSimulation(dataToShow)
+        .force('x', d3.forceX(d => xScale(d.percentageUnobligated || d.percentageValue || 0)).strength(1))
         .force('y', d3.forceY(height / 2).strength(0.1))
-        .force('collide', d3.forceCollide(d => sizeScale(d.budgetAuthority) + 2))
+        .force('collide', d3.forceCollide(d => sizeScale(d.budgetAuthority || d.budgetAuthorityValue || 0) + 2))
         .stop();
     
     // Run simulation
@@ -659,26 +670,43 @@ function initializeBubbleChart() {
     
     // Add bubbles
     const bubbles = g.selectAll('.bubble')
-        .data(validBureauData)
+        .data(dataToShow)
         .enter().append('circle')
         .attr('class', 'bubble')
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
-        .attr('r', d => sizeScale(d.budgetAuthority))
+        .attr('r', d => sizeScale(d.budgetAuthority || d.budgetAuthorityValue || 0))
         .attr('fill', '#003366')
         .on('mouseover', function(event, d) {
             tooltip.transition()
                 .duration(200)
                 .style('opacity', .9);
-            tooltip.html(`
-                <strong>${d.name}</strong><br/>
-                Budget Authority: ${formatCurrency(d.budgetAuthority)}<br/>
-                Obligated: ${formatCurrency(d.budgetAuthority - d.unobligated)}<br/>
-                Unobligated: ${formatCurrency(d.unobligated)}<br/>
-                % Unobligated: ${d.percentageUnobligated.toFixed(1)}%<br/>
-                Accounts: ${d.accountCount}
-            `)
-                .style('left', (event.pageX + 10) + 'px')
+            
+            // Different tooltips for bureau vs account level
+            if (d.accountCount !== undefined) {
+                // Bureau-level data
+                tooltip.html(`
+                    <strong>${d.name}</strong><br/>
+                    Budget Authority: ${formatCurrency(d.budgetAuthority)}<br/>
+                    Obligated: ${formatCurrency(d.budgetAuthority - d.unobligated)}<br/>
+                    Unobligated: ${formatCurrency(d.unobligated)}<br/>
+                    % Unobligated: ${d.percentageUnobligated.toFixed(1)}%<br/>
+                    Accounts: ${d.accountCount}
+                `);
+            } else {
+                // Account-level data
+                const budget = d.budgetAuthorityValue || 0;
+                const unobligated = d.unobligatedValue || 0;
+                tooltip.html(`
+                    <strong>${bubbleLabel(d)}</strong><br/>
+                    ${d.Bureau ? `Bureau: ${d.Bureau}<br/>` : ''}
+                    Budget Authority: ${formatCurrency(budget)}<br/>
+                    Obligated: ${formatCurrency(budget - unobligated)}<br/>
+                    Unobligated: ${formatCurrency(unobligated)}<br/>
+                    % Unobligated: ${(d.percentageValue || 0).toFixed(1)}%
+                `);
+            }
+            tooltip.style('left', (event.pageX + 10) + 'px')
                 .style('top', (event.pageY - 28) + 'px');
         })
         .on('mouseout', function() {
@@ -722,6 +750,51 @@ function initializeBubbleChart() {
         .attr('font-size', '12px')
         .attr('fill', '#f44336')
         .text('75%');
+}
+
+// Get filtered account data
+function getFilteredAccountData() {
+    // Filter the raw account data based on current filters
+    return obligationData.filter(row => {
+        // Check Bureau filter
+        if (columnFilters.Bureau && 
+            columnFilters.Bureau.length > 0 &&
+            !columnFilters.Bureau.includes(row.Bureau)) {
+            return false;
+        }
+        
+        // Check Period filter
+        if (columnFilters.Period_of_Performance && 
+            columnFilters.Period_of_Performance.length > 0 &&
+            !columnFilters.Period_of_Performance.includes(row.Period_of_Performance)) {
+            return false;
+        }
+        
+        // Check Expiration Year filter
+        if (columnFilters.Expiration_Year && 
+            columnFilters.Expiration_Year.length > 0 &&
+            !columnFilters.Expiration_Year.includes(row.Expiration_Year)) {
+            return false;
+        }
+        
+        // Check percentage range filter
+        if (columnFilters.Percentage_Ranges && columnFilters.Percentage_Ranges.length > 0) {
+            const percentage = row.percentageValue;
+            let inRange = false;
+            
+            for (const range of columnFilters.Percentage_Ranges) {
+                const [min, max] = range.split('-').map(v => parseFloat(v));
+                if (percentage >= min && percentage <= max) {
+                    inRange = true;
+                    break;
+                }
+            }
+            
+            if (!inRange) return false;
+        }
+        
+        return true;
+    });
 }
 
 // Get filtered bureau data based on current filters
