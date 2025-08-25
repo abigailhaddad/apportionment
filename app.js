@@ -3,6 +3,7 @@
 let dataTable;
 let obligationData = [];
 let columnFilters = {};
+let bureauData = [];
 
 // Format currency values
 function formatCurrency(value) {
@@ -54,8 +55,14 @@ async function loadData() {
             obligationData.push(row);
         }
         
+        // Calculate bureau-level aggregations
+        aggregateBureauData();
+        
         // Calculate summary statistics
         updateSummaryStats();
+        
+        // Initialize visualizations
+        initializeTreemap();
         
         // Initialize DataTable
         initializeDataTable();
@@ -135,6 +142,40 @@ function createPercentageRangeFilter() {
     html += `</div>`;
     
     return html;
+}
+
+// Aggregate data by bureau
+function aggregateBureauData() {
+    const bureauMap = new Map();
+    
+    obligationData.forEach(row => {
+        const bureau = row.Bureau || 'Other';
+        if (!bureauMap.has(bureau)) {
+            bureauMap.set(bureau, {
+                name: bureau,
+                budgetAuthority: 0,
+                unobligated: 0,
+                accountCount: 0,
+                accounts: []
+            });
+        }
+        
+        const bureauInfo = bureauMap.get(bureau);
+        bureauInfo.budgetAuthority += row.budgetAuthorityValue;
+        bureauInfo.unobligated += row.unobligatedValue;
+        bureauInfo.accountCount += 1;
+        bureauInfo.accounts.push(row);
+    });
+    
+    // Convert to array and calculate percentages
+    bureauData = Array.from(bureauMap.values()).map(bureau => ({
+        ...bureau,
+        percentageUnobligated: bureau.budgetAuthority > 0 ? 
+            (bureau.unobligated / bureau.budgetAuthority * 100) : 0
+    }));
+    
+    // Sort by budget authority descending
+    bureauData.sort((a, b) => b.budgetAuthority - a.budgetAuthority);
 }
 
 // Update summary statistics
@@ -457,6 +498,9 @@ function applyAllFilters() {
     // Redraw table
     dataTable.draw();
     updateFilteredStats();
+    
+    // Update treemap
+    initializeTreemap();
 }
 
 // Update statistics based on filtered data
@@ -479,6 +523,207 @@ function updateFilteredStats() {
     $('#totalUnobligated').text(formatCurrency(totalUnobligated));
     $('#overallPercentage').text(overallPercentage.toFixed(1) + '%');
     $('#accountCount').text(count);
+}
+
+// Initialize treemap
+function initializeTreemap() {
+    const container = d3.select('#treemap');
+    container.selectAll('*').remove();
+    
+    // Get dimensions
+    const width = container.node().getBoundingClientRect().width;
+    const height = 400;
+    
+    // Create color scale based on percentage unobligated
+    const colorScale = d3.scaleSequential()
+        .domain([0, 100])
+        .interpolator(d3.interpolateRdYlGn);
+    
+    // Filter bureau data based on current filters
+    const filteredBureauData = getFilteredBureauData();
+    
+    // Create hierarchy
+    const root = d3.hierarchy({children: filteredBureauData})
+        .sum(d => d.budgetAuthority)
+        .sort((a, b) => b.value - a.value);
+    
+    // Create treemap layout
+    d3.treemap()
+        .size([width, height])
+        .padding(2)
+        (root);
+    
+    // Create SVG
+    const svg = container
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height);
+    
+    // Create tooltip
+    const tooltip = d3.select('body').append('div')
+        .attr('class', 'tooltip')
+        .style('opacity', 0)
+        .style('position', 'absolute')
+        .style('background', 'rgba(0, 0, 0, 0.8)')
+        .style('color', 'white')
+        .style('padding', '10px')
+        .style('border-radius', '4px')
+        .style('font-size', '12px')
+        .style('pointer-events', 'none');
+    
+    // Create cells
+    const cell = svg.selectAll('g')
+        .data(root.leaves())
+        .enter().append('g')
+        .attr('transform', d => `translate(${d.x0},${d.y0})`);
+    
+    // Add rectangles
+    cell.append('rect')
+        .attr('class', 'treemap-rect')
+        .attr('width', d => d.x1 - d.x0)
+        .attr('height', d => d.y1 - d.y0)
+        .attr('fill', d => colorScale(100 - d.data.percentageUnobligated))
+        .on('mouseover', function(event, d) {
+            tooltip.transition()
+                .duration(200)
+                .style('opacity', .9);
+            tooltip.html(`
+                <strong>${d.data.name}</strong><br/>
+                Budget Authority: ${formatCurrency(d.data.budgetAuthority)}<br/>
+                Unobligated: ${formatCurrency(d.data.unobligated)}<br/>
+                % Unobligated: ${d.data.percentageUnobligated.toFixed(1)}%<br/>
+                Accounts: ${d.data.accountCount}
+            `)
+                .style('left', (event.pageX + 10) + 'px')
+                .style('top', (event.pageY - 28) + 'px');
+        })
+        .on('mouseout', function() {
+            tooltip.transition()
+                .duration(500)
+                .style('opacity', 0);
+        })
+        .on('click', function(event, d) {
+            const rect = d3.select(this);
+            const bureauName = d.data.name;
+            
+            // Toggle selection
+            if (rect.classed('selected')) {
+                rect.classed('selected', false);
+                // Clear bureau filter
+                columnFilters.Bureau = null;
+            } else {
+                svg.selectAll('.treemap-rect').classed('selected', false);
+                rect.classed('selected', true);
+                // Set bureau filter
+                columnFilters.Bureau = [bureauName];
+            }
+            
+            // Apply filters
+            applyAllFilters();
+        });
+    
+    // Add text labels
+    cell.append('text')
+        .attr('class', 'treemap-text')
+        .attr('x', d => (d.x1 - d.x0) / 2)
+        .attr('y', d => (d.y1 - d.y0) / 2 - 10)
+        .text(d => {
+            const width = d.x1 - d.x0;
+            const name = d.data.name;
+            if (width > 150) return name;
+            if (width > 100) return name.substring(0, 15) + '...';
+            if (width > 50) return name.substring(0, 8) + '...';
+            return '';
+        })
+        .style('font-size', d => {
+            const width = d.x1 - d.x0;
+            if (width > 150) return '14px';
+            if (width > 100) return '12px';
+            return '10px';
+        });
+    
+    // Add value labels
+    cell.append('text')
+        .attr('class', 'treemap-value')
+        .attr('x', d => (d.x1 - d.x0) / 2)
+        .attr('y', d => (d.y1 - d.y0) / 2 + 10)
+        .text(d => {
+            const width = d.x1 - d.x0;
+            if (width > 80) return formatCurrency(d.data.budgetAuthority);
+            return '';
+        });
+}
+
+// Get filtered bureau data based on current filters
+function getFilteredBureauData() {
+    // If no filters, return all bureau data
+    if (!columnFilters.Period_of_Performance && 
+        !columnFilters.Expiration_Year && 
+        !columnFilters.Percentage_Ranges) {
+        return bureauData;
+    }
+    
+    // Filter the raw data first
+    const filteredAccounts = obligationData.filter(row => {
+        // Check Period filter
+        if (columnFilters.Period_of_Performance && 
+            columnFilters.Period_of_Performance.length > 0 &&
+            !columnFilters.Period_of_Performance.includes(row.Period_of_Performance)) {
+            return false;
+        }
+        
+        // Check Expiration Year filter
+        if (columnFilters.Expiration_Year && 
+            columnFilters.Expiration_Year.length > 0 &&
+            !columnFilters.Expiration_Year.includes(row.Expiration_Year)) {
+            return false;
+        }
+        
+        // Check percentage range filter
+        if (columnFilters.Percentage_Ranges && columnFilters.Percentage_Ranges.length > 0) {
+            const percentage = row.percentageValue;
+            let inRange = false;
+            
+            for (const range of columnFilters.Percentage_Ranges) {
+                const [min, max] = range.split('-').map(v => parseFloat(v));
+                if (percentage >= min && percentage <= max) {
+                    inRange = true;
+                    break;
+                }
+            }
+            
+            if (!inRange) return false;
+        }
+        
+        return true;
+    });
+    
+    // Re-aggregate by bureau
+    const bureauMap = new Map();
+    
+    filteredAccounts.forEach(row => {
+        const bureau = row.Bureau || 'Other';
+        if (!bureauMap.has(bureau)) {
+            bureauMap.set(bureau, {
+                name: bureau,
+                budgetAuthority: 0,
+                unobligated: 0,
+                accountCount: 0
+            });
+        }
+        
+        const bureauInfo = bureauMap.get(bureau);
+        bureauInfo.budgetAuthority += row.budgetAuthorityValue;
+        bureauInfo.unobligated += row.unobligatedValue;
+        bureauInfo.accountCount += 1;
+    });
+    
+    // Convert to array and calculate percentages
+    return Array.from(bureauMap.values()).map(bureau => ({
+        ...bureau,
+        percentageUnobligated: bureau.budgetAuthority > 0 ? 
+            (bureau.unobligated / bureau.budgetAuthority * 100) : 0
+    }));
 }
 
 // Initialize on page load
