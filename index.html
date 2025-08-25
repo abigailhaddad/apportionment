@@ -235,12 +235,6 @@
             stroke-width: 3;
         }
         
-        .bubble.selected {
-            stroke: #003366;
-            stroke-width: 4;
-            opacity: 1;
-        }
-        
         .axis-label {
             font-size: 14px;
             font-weight: 600;
@@ -294,6 +288,26 @@
         
         <div class="treemap-container">
             <h2 class="treemap-title">Budget Authority vs. Unobligated Balance by Bureau</h2>
+            <div class="filter-container" style="margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
+                <div class="filter-group" style="min-width: 220px;">
+                    <label for="chartBureauFilter">Filter by Bureau</label>
+                    <select id="chartBureauFilter" class="form-control">
+                        <option value="">All Bureaus</option>
+                    </select>
+                </div>
+                <div class="filter-group" style="min-width: 220px;">
+                    <label for="chartPeriodFilter">Filter by Period</label>
+                    <select id="chartPeriodFilter" class="form-control">
+                        <option value="">All Periods</option>
+                    </select>
+                </div>
+                <div class="filter-group" style="min-width: 180px;">
+                    <label for="chartExpirationFilter">Expiration Year</label>
+                    <select id="chartExpirationFilter" class="form-control">
+                        <option value="">All Years</option>
+                    </select>
+                </div>
+            </div>
             <div id="bubble-chart"></div>
         </div>
         

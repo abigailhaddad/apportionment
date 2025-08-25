@@ -61,6 +61,9 @@ async function loadData() {
         // Calculate summary statistics
         updateSummaryStats();
         
+        // Populate chart filters
+        populateChartFilters();
+        
         // Initialize visualizations
         initializeBubbleChart();
         
@@ -188,6 +191,48 @@ function updateSummaryStats() {
     $('#totalUnobligated').text(formatCurrency(totalUnobligated));
     $('#overallPercentage').text(overallPercentage.toFixed(1) + '%');
     $('#accountCount').text(obligationData.length);
+}
+
+// Populate chart filter dropdowns
+function populateChartFilters() {
+    // Get unique values
+    const bureaus = [...new Set(obligationData.map(row => row.Bureau))].filter(b => b).sort();
+    const periods = [...new Set(obligationData.map(row => row.Period_of_Performance))].filter(p => p).sort();
+    const years = [...new Set(obligationData.map(row => row.Expiration_Year))].filter(y => y).sort();
+    
+    // Populate bureau filter
+    const bureauSelect = $('#chartBureauFilter');
+    bureaus.forEach(bureau => {
+        bureauSelect.append(`<option value="${bureau}">${bureau}</option>`);
+    });
+    
+    // Populate period filter
+    const periodSelect = $('#chartPeriodFilter');
+    periods.forEach(period => {
+        periodSelect.append(`<option value="${period}">${period}</option>`);
+    });
+    
+    // Populate expiration year filter
+    const yearSelect = $('#chartExpirationFilter');
+    years.forEach(year => {
+        yearSelect.append(`<option value="${year}">${year}</option>`);
+    });
+    
+    // Set up event handlers
+    $('#chartBureauFilter, #chartPeriodFilter, #chartExpirationFilter').on('change', function() {
+        // Update column filters based on dropdown selections
+        const selectedBureau = $('#chartBureauFilter').val();
+        const selectedPeriod = $('#chartPeriodFilter').val();
+        const selectedYear = $('#chartExpirationFilter').val();
+        
+        // Update filters
+        columnFilters.Bureau = selectedBureau ? [selectedBureau] : null;
+        columnFilters.Period_of_Performance = selectedPeriod ? [selectedPeriod] : null;
+        columnFilters.Expiration_Year = selectedYear ? [selectedYear] : null;
+        
+        // Apply all filters
+        applyAllFilters();
+    });
 }
 
 // Initialize DataTable
@@ -495,6 +540,11 @@ function applyAllFilters() {
         return show;
     });
     
+    // Update dropdown selections to match filters
+    $('#chartBureauFilter').val(columnFilters.Bureau && columnFilters.Bureau.length === 1 ? columnFilters.Bureau[0] : '');
+    $('#chartPeriodFilter').val(columnFilters.Period_of_Performance && columnFilters.Period_of_Performance.length === 1 ? columnFilters.Period_of_Performance[0] : '');
+    $('#chartExpirationFilter').val(columnFilters.Expiration_Year && columnFilters.Expiration_Year.length === 1 ? columnFilters.Expiration_Year[0] : '');
+    
     // Redraw table
     dataTable.draw();
     updateFilteredStats();
@@ -592,6 +642,9 @@ function initializeBubbleChart() {
         .attr('y', height + 45)
         .text('Percentage Unobligated');
     
+    // Remove any existing tooltips first
+    d3.selectAll('.tooltip').remove();
+    
     // Create tooltip
     const tooltip = d3.select('body').append('div')
         .attr('class', 'tooltip')
@@ -632,25 +685,6 @@ function initializeBubbleChart() {
             tooltip.transition()
                 .duration(500)
                 .style('opacity', 0);
-        })
-        .on('click', function(event, d) {
-            const bubble = d3.select(this);
-            const bureauName = d.name;
-            
-            // Toggle selection
-            if (bubble.classed('selected')) {
-                bubble.classed('selected', false);
-                // Clear bureau filter
-                columnFilters.Bureau = null;
-            } else {
-                g.selectAll('.bubble').classed('selected', false);
-                bubble.classed('selected', true);
-                // Set bureau filter
-                columnFilters.Bureau = [bureauName];
-            }
-            
-            // Apply filters
-            applyAllFilters();
         });
     
     // Add reference lines at 50% and 75%
