@@ -165,11 +165,25 @@ function initializeDataTable() {
             },
             { 
                 data: 'Unobligated Balance (Line 2490)',
-                className: 'text-end'
+                className: 'text-end',
+                type: 'num',
+                render: function(data, type, row) {
+                    if (type === 'sort' || type === 'type') {
+                        return row.unobligatedValue;
+                    }
+                    return data;
+                }
             },
             { 
                 data: 'Budget Authority (Line 2500)',
-                className: 'text-end'
+                className: 'text-end',
+                type: 'num',
+                render: function(data, type, row) {
+                    if (type === 'sort' || type === 'type') {
+                        return row.budgetAuthorityValue;
+                    }
+                    return data;
+                }
             },
             { 
                 data: 'percentageValue',
@@ -201,6 +215,9 @@ function initializeDataTable() {
     
     // Set up column click filters
     setupColumnFilters();
+    
+    // Set up percentage dropdown filter
+    setupPercentageFilter();
 }
 
 // Setup column click filters
@@ -290,8 +307,8 @@ function initializeFilterBehavior($filter, columnIndex, columnName) {
         // Store filter state
         columnFilters[columnName] = selectedValues;
         
-        // Apply custom filter
-        applyColumnFilters();
+        // Apply all filters (column + percentage)
+        applyAllFilters();
         
         // Close filter
         $filter.remove();
@@ -301,10 +318,24 @@ function initializeFilterBehavior($filter, columnIndex, columnName) {
 
 // Apply all column filters
 function applyColumnFilters() {
+    // Redraw table (filters are applied via custom search function)
+    dataTable.draw();
+    updateFilteredStats();
+}
+
+// Setup percentage dropdown filter
+function setupPercentageFilter() {
+    $('#percentageFilter').on('change', function() {
+        applyAllFilters();
+    });
+}
+
+// Apply all filters (column filters + percentage filter)
+function applyAllFilters() {
     // Remove existing custom filter
     $.fn.dataTable.ext.search = [];
     
-    // Add new filter function
+    // Add new filter function that combines all filters
     $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
         let show = true;
         
@@ -329,6 +360,18 @@ function applyColumnFilters() {
             const yearValue = data[4];
             if (!columnFilters.Expiration_Year.includes(yearValue)) {
                 show = false;
+            }
+        }
+        
+        // Check percentage range filter
+        if (show) {
+            const percentageRange = $('#percentageFilter').val();
+            if (percentageRange !== '') {
+                const percentage = parseFloat(data[7].replace(/<[^>]*>/g, '').replace('%', ''));
+                const ranges = percentageRange.split('-').map(v => parseFloat(v));
+                if (percentage < ranges[0] || percentage > ranges[1]) {
+                    show = false;
+                }
             }
         }
         

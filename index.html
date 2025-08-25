@@ -229,6 +229,19 @@
         </div>
         
         <div class="table-container">
+            <div class="filter-container" style="margin-bottom: 20px;">
+                <div class="filter-group">
+                    <label for="percentageFilter">Unobligated % Range</label>
+                    <select id="percentageFilter" class="form-control">
+                        <option value="">All Percentages</option>
+                        <option value="0-25">0-25%</option>
+                        <option value="25-50">25-50%</option>
+                        <option value="50-75">50-75%</option>
+                        <option value="75-100">75-100%</option>
+                    </select>
+                </div>
+            </div>
+            
             <table id="obligationTable" class="table table-striped">
                 <thead>
                     <tr>
