@@ -201,7 +201,7 @@
             opacity: 0.5;
         }
         
-        /* Treemap styles */
+        /* Bubble chart styles */
         .treemap-container {
             background: white;
             padding: 20px;
@@ -217,41 +217,51 @@
             margin-bottom: 15px;
         }
         
-        #treemap {
+        #bubble-chart {
             width: 100%;
-            height: 400px;
+            height: 500px;
             position: relative;
         }
         
-        .treemap-rect {
-            stroke: white;
-            stroke-width: 2;
+        .bubble {
             cursor: pointer;
-            transition: opacity 0.2s;
-        }
-        
-        .treemap-rect:hover {
             opacity: 0.8;
+            transition: all 0.3s;
         }
         
-        .treemap-rect.selected {
+        .bubble:hover {
+            opacity: 1;
             stroke: #003366;
             stroke-width: 3;
         }
         
-        .treemap-text {
-            fill: white;
-            font-size: 12px;
-            pointer-events: none;
-            text-anchor: middle;
+        .bubble.selected {
+            stroke: #003366;
+            stroke-width: 4;
+            opacity: 1;
         }
         
-        .treemap-value {
-            fill: white;
+        .axis-label {
             font-size: 14px;
             font-weight: 600;
-            pointer-events: none;
-            text-anchor: middle;
+            fill: #333;
+        }
+        
+        .grid line {
+            stroke: #e0e0e0;
+            stroke-opacity: 0.7;
+            shape-rendering: crispEdges;
+        }
+        
+        .grid path {
+            stroke-width: 0;
+        }
+        
+        .quadrant-label {
+            fill: #666;
+            font-size: 12px;
+            font-style: italic;
+            opacity: 0.7;
         }
         
     </style>
@@ -283,8 +293,8 @@
         </div>
         
         <div class="treemap-container">
-            <h2 class="treemap-title">Bureau Budget Authority Overview (Click to Filter)</h2>
-            <div id="treemap"></div>
+            <h2 class="treemap-title">Bureau Spending Efficiency (Click to Filter)</h2>
+            <div id="bubble-chart"></div>
         </div>
         
         <div class="table-container">

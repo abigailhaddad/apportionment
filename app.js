@@ -62,7 +62,7 @@ async function loadData() {
         updateSummaryStats();
         
         // Initialize visualizations
-        initializeTreemap();
+        initializeBubbleChart();
         
         // Initialize DataTable
         initializeDataTable();
@@ -499,8 +499,8 @@ function applyAllFilters() {
     dataTable.draw();
     updateFilteredStats();
     
-    // Update treemap
-    initializeTreemap();
+    // Update bubble chart
+    initializeBubbleChart();
 }
 
 // Update statistics based on filtered data
@@ -525,39 +525,102 @@ function updateFilteredStats() {
     $('#accountCount').text(count);
 }
 
-// Initialize treemap
-function initializeTreemap() {
-    const container = d3.select('#treemap');
+// Initialize bubble chart
+function initializeBubbleChart() {
+    const container = d3.select('#bubble-chart');
     container.selectAll('*').remove();
     
     // Get dimensions
-    const width = container.node().getBoundingClientRect().width;
-    const height = 400;
-    
-    // Create color scale based on percentage unobligated
-    const colorScale = d3.scaleSequential()
-        .domain([0, 100])
-        .interpolator(d3.interpolateRdYlGn);
+    const margin = {top: 40, right: 80, bottom: 60, left: 80};
+    const width = container.node().getBoundingClientRect().width - margin.left - margin.right;
+    const height = 500 - margin.top - margin.bottom;
     
     // Filter bureau data based on current filters
     const filteredBureauData = getFilteredBureauData();
     
-    // Create hierarchy
-    const root = d3.hierarchy({children: filteredBureauData})
-        .sum(d => d.budgetAuthority)
-        .sort((a, b) => b.value - a.value);
+    // Remove any bureaus with 0 budget authority
+    const validBureauData = filteredBureauData.filter(d => d.budgetAuthority > 0);
     
-    // Create treemap layout
-    d3.treemap()
-        .size([width, height])
-        .padding(2)
-        (root);
+    // Create scales
+    const xScale = d3.scaleLinear()
+        .domain([0, d3.max(validBureauData, d => d.budgetAuthority) * 1.1])
+        .range([0, width]);
+    
+    const yScale = d3.scaleLinear()
+        .domain([0, 100])
+        .range([height, 0]);
+    
+    // Size scale for bubbles
+    const sizeScale = d3.scaleSqrt()
+        .domain([0, d3.max(validBureauData, d => d.budgetAuthority)])
+        .range([5, 50]);
+    
+    // Color scale - use a categorical scale for bureaus
+    const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
     
     // Create SVG
     const svg = container
         .append('svg')
-        .attr('width', width)
-        .attr('height', height);
+        .attr('width', width + margin.left + margin.right)
+        .attr('height', height + margin.top + margin.bottom);
+    
+    const g = svg.append('g')
+        .attr('transform', `translate(${margin.left},${margin.top})`);
+    
+    // Add grid
+    g.append('g')
+        .attr('class', 'grid')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(xScale)
+            .tickSize(-height)
+            .tickFormat(''));
+    
+    g.append('g')
+        .attr('class', 'grid')
+        .call(d3.axisLeft(yScale)
+            .tickSize(-width)
+            .tickFormat(''));
+    
+    // Add axes
+    g.append('g')
+        .attr('transform', `translate(0,${height})`)
+        .call(d3.axisBottom(xScale)
+            .tickFormat(d => formatCurrency(d)));
+    
+    g.append('g')
+        .call(d3.axisLeft(yScale)
+            .tickFormat(d => d + '%'));
+    
+    // Add axis labels
+    g.append('text')
+        .attr('class', 'axis-label')
+        .attr('text-anchor', 'middle')
+        .attr('x', width / 2)
+        .attr('y', height + 45)
+        .text('Budget Authority →');
+    
+    g.append('text')
+        .attr('class', 'axis-label')
+        .attr('text-anchor', 'middle')
+        .attr('transform', 'rotate(-90)')
+        .attr('y', -50)
+        .attr('x', -height / 2)
+        .text('Percentage Unobligated →');
+    
+    // Add quadrant labels
+    g.append('text')
+        .attr('class', 'quadrant-label')
+        .attr('x', width - 10)
+        .attr('y', 20)
+        .attr('text-anchor', 'end')
+        .text('High Budget, High Unobligated');
+    
+    g.append('text')
+        .attr('class', 'quadrant-label')
+        .attr('x', width - 10)
+        .attr('y', height - 10)
+        .attr('text-anchor', 'end')
+        .text('High Budget, Well Spent');
     
     // Create tooltip
     const tooltip = d3.select('body').append('div')
@@ -571,28 +634,26 @@ function initializeTreemap() {
         .style('font-size', '12px')
         .style('pointer-events', 'none');
     
-    // Create cells
-    const cell = svg.selectAll('g')
-        .data(root.leaves())
-        .enter().append('g')
-        .attr('transform', d => `translate(${d.x0},${d.y0})`);
-    
-    // Add rectangles
-    cell.append('rect')
-        .attr('class', 'treemap-rect')
-        .attr('width', d => d.x1 - d.x0)
-        .attr('height', d => d.y1 - d.y0)
-        .attr('fill', d => colorScale(100 - d.data.percentageUnobligated))
+    // Add bubbles
+    const bubbles = g.selectAll('.bubble')
+        .data(validBureauData)
+        .enter().append('circle')
+        .attr('class', 'bubble')
+        .attr('cx', d => xScale(d.budgetAuthority))
+        .attr('cy', d => yScale(d.percentageUnobligated))
+        .attr('r', d => sizeScale(d.budgetAuthority))
+        .attr('fill', d => colorScale(d.name))
         .on('mouseover', function(event, d) {
             tooltip.transition()
                 .duration(200)
                 .style('opacity', .9);
             tooltip.html(`
-                <strong>${d.data.name}</strong><br/>
-                Budget Authority: ${formatCurrency(d.data.budgetAuthority)}<br/>
-                Unobligated: ${formatCurrency(d.data.unobligated)}<br/>
-                % Unobligated: ${d.data.percentageUnobligated.toFixed(1)}%<br/>
-                Accounts: ${d.data.accountCount}
+                <strong>${d.name}</strong><br/>
+                Budget Authority: ${formatCurrency(d.budgetAuthority)}<br/>
+                Obligated: ${formatCurrency(d.budgetAuthority - d.unobligated)}<br/>
+                Unobligated: ${formatCurrency(d.unobligated)}<br/>
+                % Unobligated: ${d.percentageUnobligated.toFixed(1)}%<br/>
+                Accounts: ${d.accountCount}
             `)
                 .style('left', (event.pageX + 10) + 'px')
                 .style('top', (event.pageY - 28) + 'px');
@@ -603,17 +664,17 @@ function initializeTreemap() {
                 .style('opacity', 0);
         })
         .on('click', function(event, d) {
-            const rect = d3.select(this);
-            const bureauName = d.data.name;
+            const bubble = d3.select(this);
+            const bureauName = d.name;
             
             // Toggle selection
-            if (rect.classed('selected')) {
-                rect.classed('selected', false);
+            if (bubble.classed('selected')) {
+                bubble.classed('selected', false);
                 // Clear bureau filter
                 columnFilters.Bureau = null;
             } else {
-                svg.selectAll('.treemap-rect').classed('selected', false);
-                rect.classed('selected', true);
+                g.selectAll('.bubble').classed('selected', false);
+                bubble.classed('selected', true);
                 // Set bureau filter
                 columnFilters.Bureau = [bureauName];
             }
@@ -622,36 +683,24 @@ function initializeTreemap() {
             applyAllFilters();
         });
     
-    // Add text labels
-    cell.append('text')
-        .attr('class', 'treemap-text')
-        .attr('x', d => (d.x1 - d.x0) / 2)
-        .attr('y', d => (d.y1 - d.y0) / 2 - 10)
-        .text(d => {
-            const width = d.x1 - d.x0;
-            const name = d.data.name;
-            if (width > 150) return name;
-            if (width > 100) return name.substring(0, 15) + '...';
-            if (width > 50) return name.substring(0, 8) + '...';
-            return '';
-        })
-        .style('font-size', d => {
-            const width = d.x1 - d.x0;
-            if (width > 150) return '14px';
-            if (width > 100) return '12px';
-            return '10px';
-        });
+    // Add reference lines at 50% and 75%
+    g.append('line')
+        .attr('x1', 0)
+        .attr('x2', width)
+        .attr('y1', yScale(50))
+        .attr('y2', yScale(50))
+        .attr('stroke', '#ff9800')
+        .attr('stroke-dasharray', '3,3')
+        .attr('opacity', 0.5);
     
-    // Add value labels
-    cell.append('text')
-        .attr('class', 'treemap-value')
-        .attr('x', d => (d.x1 - d.x0) / 2)
-        .attr('y', d => (d.y1 - d.y0) / 2 + 10)
-        .text(d => {
-            const width = d.x1 - d.x0;
-            if (width > 80) return formatCurrency(d.data.budgetAuthority);
-            return '';
-        });
+    g.append('line')
+        .attr('x1', 0)
+        .attr('x2', width)
+        .attr('y1', yScale(75))
+        .attr('y2', yScale(75))
+        .attr('stroke', '#f44336')
+        .attr('stroke-dasharray', '3,3')
+        .attr('opacity', 0.5);
 }
 
 // Get filtered bureau data based on current filters
