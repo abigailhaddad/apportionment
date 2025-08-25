@@ -4,6 +4,7 @@ let dataTable;
 let obligationData = [];
 let columnFilters = {};
 let bureauData = [];
+let bureauColorScale;
 
 // Format currency values
 function formatCurrency(value) {
@@ -57,6 +58,12 @@ async function loadData() {
         
         // Calculate bureau-level aggregations
         aggregateBureauData();
+        
+        // Create bureau color scale
+        const bureauNames = [...new Set(obligationData.map(d => d.Bureau))].filter(b => b).sort();
+        bureauColorScale = d3.scaleOrdinal()
+            .domain(bureauNames)
+            .range(d3.schemeTableau10.concat(d3.schemePastel1));
         
         // Calculate summary statistics
         updateSummaryStats();
@@ -242,7 +249,12 @@ function initializeDataTable() {
         columns: [
             { 
                 data: 'Bureau',
-                render: function(data) {
+                render: function(data, type, row) {
+                    if (type === 'display' && data && bureauColorScale) {
+                        const color = bureauColorScale(data);
+                        return `<span style="display: inline-block; width: 12px; height: 12px; 
+                                background-color: ${color}; border-radius: 50%; margin-right: 8px;"></span>${data}`;
+                    }
                     return data || '';
                 }
             },
@@ -585,21 +597,9 @@ function initializeBubbleChart() {
     const width = container.node().getBoundingClientRect().width - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
     
-    // Decide whether to show bureau-level or account-level data
-    let dataToShow;
-    let bubbleLabel;
-    
-    // If any filters are active, show individual accounts
-    if (columnFilters.Bureau || columnFilters.Period_of_Performance || columnFilters.Expiration_Year) {
-        // Show filtered individual accounts
-        dataToShow = getFilteredAccountData();
-        bubbleLabel = d => d.Account || d.Bureau || 'Unknown';
-    } else {
-        // Show bureau-level aggregated data
-        const filteredBureauData = getFilteredBureauData();
-        dataToShow = filteredBureauData.filter(d => d.budgetAuthority > 0);
-        bubbleLabel = d => d.name;
-    }
+    // Always show individual accounts
+    const dataToShow = getFilteredAccountData().filter(d => d.budgetAuthorityValue > 0);
+    const bubbleLabel = d => d.Account || 'Unknown';
     
     // Create scales
     const xScale = d3.scaleLinear()
@@ -676,36 +676,24 @@ function initializeBubbleChart() {
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
         .attr('r', d => sizeScale(d.budgetAuthority || d.budgetAuthorityValue || 0))
-        .attr('fill', '#003366')
+        .attr('fill', d => bureauColorScale(d.Bureau || 'Unknown'))
         .on('mouseover', function(event, d) {
             tooltip.transition()
                 .duration(200)
                 .style('opacity', .9);
             
-            // Different tooltips for bureau vs account level
-            if (d.accountCount !== undefined) {
-                // Bureau-level data
-                tooltip.html(`
-                    <strong>${d.name}</strong><br/>
-                    Budget Authority: ${formatCurrency(d.budgetAuthority)}<br/>
-                    Obligated: ${formatCurrency(d.budgetAuthority - d.unobligated)}<br/>
-                    Unobligated: ${formatCurrency(d.unobligated)}<br/>
-                    % Unobligated: ${d.percentageUnobligated.toFixed(1)}%<br/>
-                    Accounts: ${d.accountCount}
-                `);
-            } else {
-                // Account-level data
-                const budget = d.budgetAuthorityValue || 0;
-                const unobligated = d.unobligatedValue || 0;
-                tooltip.html(`
-                    <strong>${bubbleLabel(d)}</strong><br/>
-                    ${d.Bureau ? `Bureau: ${d.Bureau}<br/>` : ''}
-                    Budget Authority: ${formatCurrency(budget)}<br/>
-                    Obligated: ${formatCurrency(budget - unobligated)}<br/>
-                    Unobligated: ${formatCurrency(unobligated)}<br/>
-                    % Unobligated: ${(d.percentageValue || 0).toFixed(1)}%
-                `);
-            }
+            // Account-level tooltip
+            const budget = d.budgetAuthorityValue || 0;
+            const unobligated = d.unobligatedValue || 0;
+            tooltip.html(`
+                <strong>${bubbleLabel(d)}</strong><br/>
+                Bureau: ${d.Bureau || 'Unknown'}<br/>
+                Budget Authority: ${formatCurrency(budget)}<br/>
+                Obligated: ${formatCurrency(budget - unobligated)}<br/>
+                Unobligated: ${formatCurrency(unobligated)}<br/>
+                % Unobligated: ${(d.percentageValue || 0).toFixed(1)}%<br/>
+                ${d.Expiration_Year ? `Expires: ${d.Expiration_Year}` : ''}
+            `);
             tooltip.style('left', (event.pageX + 10) + 'px')
                 .style('top', (event.pageY - 28) + 'px');
         })
@@ -750,6 +738,38 @@ function initializeBubbleChart() {
         .attr('font-size', '12px')
         .attr('fill', '#f44336')
         .text('75%');
+    
+    // Add size legend
+    const sizeLegend = g.append('g')
+        .attr('transform', `translate(${width - 100}, 20)`);
+    
+    sizeLegend.append('text')
+        .attr('x', 0)
+        .attr('y', -5)
+        .attr('font-size', '11px')
+        .attr('fill', '#666')
+        .text('Budget Authority');
+    
+    const legendSizes = [10, 100, 1000];
+    legendSizes.forEach((size, i) => {
+        const r = sizeScale(size);
+        const y = 20 + i * 35;
+        
+        sizeLegend.append('circle')
+            .attr('cx', 0)
+            .attr('cy', y)
+            .attr('r', r)
+            .attr('fill', 'none')
+            .attr('stroke', '#999')
+            .attr('stroke-dasharray', '2,2');
+        
+        sizeLegend.append('text')
+            .attr('x', 20)
+            .attr('y', y + 4)
+            .attr('font-size', '10px')
+            .attr('fill', '#666')
+            .text('$' + size + 'M');
+    });
 }
 
 // Get filtered account data
