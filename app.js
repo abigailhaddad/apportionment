@@ -531,9 +531,9 @@ function initializeBubbleChart() {
     container.selectAll('*').remove();
     
     // Get dimensions
-    const margin = {top: 40, right: 80, bottom: 60, left: 80};
+    const margin = {top: 20, right: 40, bottom: 60, left: 40};
     const width = container.node().getBoundingClientRect().width - margin.left - margin.right;
-    const height = 500 - margin.top - margin.bottom;
+    const height = 400 - margin.top - margin.bottom;
     
     // Filter bureau data based on current filters
     const filteredBureauData = getFilteredBureauData();
@@ -543,20 +543,23 @@ function initializeBubbleChart() {
     
     // Create scales
     const xScale = d3.scaleLinear()
-        .domain([0, d3.max(validBureauData, d => d.budgetAuthority) * 1.1])
-        .range([0, width]);
-    
-    const yScale = d3.scaleLinear()
         .domain([0, 100])
-        .range([height, 0]);
+        .range([0, width]);
     
     // Size scale for bubbles
     const sizeScale = d3.scaleSqrt()
         .domain([0, d3.max(validBureauData, d => d.budgetAuthority)])
-        .range([5, 50]);
+        .range([8, 60]);
     
-    // Color scale - use a categorical scale for bureaus
-    const colorScale = d3.scaleOrdinal(d3.schemeCategory10);
+    // Create force simulation for jittering
+    const simulation = d3.forceSimulation(validBureauData)
+        .force('x', d3.forceX(d => xScale(d.percentageUnobligated)).strength(1))
+        .force('y', d3.forceY(height / 2).strength(0.1))
+        .force('collide', d3.forceCollide(d => sizeScale(d.budgetAuthority) + 2))
+        .stop();
+    
+    // Run simulation
+    for (let i = 0; i < 120; ++i) simulation.tick();
     
     // Create SVG
     const svg = container
@@ -575,52 +578,19 @@ function initializeBubbleChart() {
             .tickSize(-height)
             .tickFormat(''));
     
-    g.append('g')
-        .attr('class', 'grid')
-        .call(d3.axisLeft(yScale)
-            .tickSize(-width)
-            .tickFormat(''));
-    
-    // Add axes
+    // Add x-axis only
     g.append('g')
         .attr('transform', `translate(0,${height})`)
         .call(d3.axisBottom(xScale)
-            .tickFormat(d => formatCurrency(d)));
+            .tickFormat(d => Math.round(d) + '%'));
     
-    g.append('g')
-        .call(d3.axisLeft(yScale)
-            .tickFormat(d => d + '%'));
-    
-    // Add axis labels
+    // Add axis label
     g.append('text')
         .attr('class', 'axis-label')
         .attr('text-anchor', 'middle')
         .attr('x', width / 2)
         .attr('y', height + 45)
-        .text('Budget Authority →');
-    
-    g.append('text')
-        .attr('class', 'axis-label')
-        .attr('text-anchor', 'middle')
-        .attr('transform', 'rotate(-90)')
-        .attr('y', -50)
-        .attr('x', -height / 2)
-        .text('Percentage Unobligated →');
-    
-    // Add quadrant labels
-    g.append('text')
-        .attr('class', 'quadrant-label')
-        .attr('x', width - 10)
-        .attr('y', 20)
-        .attr('text-anchor', 'end')
-        .text('High Budget, High Unobligated');
-    
-    g.append('text')
-        .attr('class', 'quadrant-label')
-        .attr('x', width - 10)
-        .attr('y', height - 10)
-        .attr('text-anchor', 'end')
-        .text('High Budget, Well Spent');
+        .text('Percentage Unobligated');
     
     // Create tooltip
     const tooltip = d3.select('body').append('div')
@@ -639,10 +609,10 @@ function initializeBubbleChart() {
         .data(validBureauData)
         .enter().append('circle')
         .attr('class', 'bubble')
-        .attr('cx', d => xScale(d.budgetAuthority))
-        .attr('cy', d => yScale(d.percentageUnobligated))
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y)
         .attr('r', d => sizeScale(d.budgetAuthority))
-        .attr('fill', d => colorScale(d.name))
+        .attr('fill', '#003366')
         .on('mouseover', function(event, d) {
             tooltip.transition()
                 .duration(200)
@@ -685,22 +655,39 @@ function initializeBubbleChart() {
     
     // Add reference lines at 50% and 75%
     g.append('line')
-        .attr('x1', 0)
-        .attr('x2', width)
-        .attr('y1', yScale(50))
-        .attr('y2', yScale(50))
+        .attr('x1', xScale(50))
+        .attr('x2', xScale(50))
+        .attr('y1', 0)
+        .attr('y2', height)
         .attr('stroke', '#ff9800')
         .attr('stroke-dasharray', '3,3')
         .attr('opacity', 0.5);
     
     g.append('line')
-        .attr('x1', 0)
-        .attr('x2', width)
-        .attr('y1', yScale(75))
-        .attr('y2', yScale(75))
+        .attr('x1', xScale(75))
+        .attr('x2', xScale(75))
+        .attr('y1', 0)
+        .attr('y2', height)
         .attr('stroke', '#f44336')
         .attr('stroke-dasharray', '3,3')
         .attr('opacity', 0.5);
+    
+    // Add reference line labels
+    g.append('text')
+        .attr('x', xScale(50))
+        .attr('y', 10)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', '#ff9800')
+        .text('50%');
+    
+    g.append('text')
+        .attr('x', xScale(75))
+        .attr('y', 10)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', '12px')
+        .attr('fill', '#f44336')
+        .text('75%');
 }
 
 // Get filtered bureau data based on current filters
