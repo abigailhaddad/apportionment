@@ -5,6 +5,7 @@ let obligationData = [];
 let columnFilters = {};
 let bureauData = [];
 let bureauColorScale;
+let showBureauAggregates = false;
 
 // Format currency values
 function formatCurrency(value) {
@@ -71,11 +72,17 @@ async function loadData() {
         // Populate chart filters
         populateChartFilters();
         
-        // Initialize visualizations
-        initializeBubbleChart();
+        // Set default filter to 2025 expiration BEFORE initializing
+        columnFilters.Expiration_Year = ['2025'];
         
         // Initialize DataTable
         initializeDataTable();
+        
+        // Initialize bubble chart
+        initializeBubbleChart();
+        
+        // Now apply the filter
+        applyAllFilters();
         
     } catch (error) {
         console.error('Error loading data:', error);
@@ -240,6 +247,13 @@ function populateChartFilters() {
         // Apply all filters
         applyAllFilters();
     });
+    
+    // Set up aggregate toggle button
+    $('#aggregateToggle').on('click', function() {
+        showBureauAggregates = !showBureauAggregates;
+        $(this).text(showBureauAggregates ? 'Show Individual Accounts' : 'Show Bureau Totals');
+        initializeBubbleChart();
+    });
 }
 
 // Initialize DataTable
@@ -342,9 +356,6 @@ function initializeDataTable() {
     
     // Set up column click filters
     setupColumnFilters();
-    
-    // Set up percentage dropdown filter
-    setupPercentageFilter();
 }
 
 // Setup column click filters
@@ -597,9 +608,19 @@ function initializeBubbleChart() {
     const width = container.node().getBoundingClientRect().width - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
     
-    // Always show individual accounts
-    const dataToShow = getFilteredAccountData().filter(d => d.budgetAuthorityValue > 0);
-    const bubbleLabel = d => d.Account || 'Unknown';
+    // Show bureau aggregates or individual accounts based on toggle
+    let dataToShow, bubbleLabel;
+    
+    if (showBureauAggregates) {
+        // Show bureau-level aggregated data
+        const filteredBureauData = getFilteredBureauData();
+        dataToShow = filteredBureauData.filter(d => d.budgetAuthority > 0);
+        bubbleLabel = d => d.name;
+    } else {
+        // Show individual accounts
+        dataToShow = getFilteredAccountData().filter(d => d.budgetAuthorityValue > 0);
+        bubbleLabel = d => d.Account || 'Unknown';
+    }
     
     // Create scales
     const xScale = d3.scaleLinear()
@@ -676,24 +697,43 @@ function initializeBubbleChart() {
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
         .attr('r', d => sizeScale(d.budgetAuthority || d.budgetAuthorityValue || 0))
-        .attr('fill', d => bureauColorScale(d.Bureau || 'Unknown'))
+        .attr('fill', d => {
+            if (showBureauAggregates) {
+                return bureauColorScale(d.name);
+            } else {
+                return bureauColorScale(d.Bureau || 'Unknown');
+            }
+        })
         .on('mouseover', function(event, d) {
             tooltip.transition()
                 .duration(200)
                 .style('opacity', .9);
             
-            // Account-level tooltip
-            const budget = d.budgetAuthorityValue || 0;
-            const unobligated = d.unobligatedValue || 0;
-            tooltip.html(`
-                <strong>${bubbleLabel(d)}</strong><br/>
-                Bureau: ${d.Bureau || 'Unknown'}<br/>
-                Budget Authority: ${formatCurrency(budget)}<br/>
-                Obligated: ${formatCurrency(budget - unobligated)}<br/>
-                Unobligated: ${formatCurrency(unobligated)}<br/>
-                % Unobligated: ${(d.percentageValue || 0).toFixed(1)}%<br/>
-                ${d.Expiration_Year ? `Expires: ${d.Expiration_Year}` : ''}
-            `);
+            // Different tooltips for bureau vs account level
+            if (showBureauAggregates) {
+                // Bureau-level data
+                tooltip.html(`
+                    <strong>${d.name}</strong><br/>
+                    Budget Authority: ${formatCurrency(d.budgetAuthority)}<br/>
+                    Obligated: ${formatCurrency(d.budgetAuthority - d.unobligated)}<br/>
+                    Unobligated: ${formatCurrency(d.unobligated)}<br/>
+                    % Unobligated: ${d.percentageUnobligated.toFixed(1)}%<br/>
+                    Accounts: ${d.accountCount}
+                `);
+            } else {
+                // Account-level tooltip
+                const budget = d.budgetAuthorityValue || 0;
+                const unobligated = d.unobligatedValue || 0;
+                tooltip.html(`
+                    <strong>${bubbleLabel(d)}</strong><br/>
+                    Bureau: ${d.Bureau || 'Unknown'}<br/>
+                    Budget Authority: ${formatCurrency(budget)}<br/>
+                    Obligated: ${formatCurrency(budget - unobligated)}<br/>
+                    Unobligated: ${formatCurrency(unobligated)}<br/>
+                    % Unobligated: ${(d.percentageValue || 0).toFixed(1)}%<br/>
+                    ${d.Expiration_Year ? `Expires: ${d.Expiration_Year}` : ''}
+                `);
+            }
             tooltip.style('left', (event.pageX + 10) + 'px')
                 .style('top', (event.pageY - 28) + 'px');
         })

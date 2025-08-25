@@ -287,7 +287,10 @@
         </div>
         
         <div class="treemap-container">
-            <h2 class="treemap-title">Budget Authority vs. Unobligated Balance by Bureau</h2>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2 class="treemap-title" style="margin: 0;">Budget Authority vs. Unobligated Balance by Bureau</h2>
+                <button id="aggregateToggle" class="btn btn-sm btn-outline-primary">Show Bureau Totals</button>
+            </div>
             <div class="filter-container" style="margin-bottom: 20px; display: flex; gap: 15px; flex-wrap: wrap;">
                 <div class="filter-group" style="min-width: 220px;">
                     <label for="chartBureauFilter">Filter by Bureau</label>
@@ -340,6 +343,8 @@
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <!-- D3.js for Treemap -->
     <script src="https://d3js.org/d3.v7.min.js"></script>
+    <!-- jQuery Sparkline -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-sparklines/2.1.2/jquery.sparkline.min.js"></script>
     
     <script src="app.js"></script>
 </body>
