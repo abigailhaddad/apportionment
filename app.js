@@ -6,7 +6,7 @@ let columnFilters = {};
 
 // Format currency values
 function formatCurrency(value) {
-    return '$' + value.toFixed(1) + 'M';
+    return '$' + value.toFixed(1).replace(/\B(?=(\d{3})+(?!\d))/g, ',') + 'M';
 }
 
 // Format percentage with color coding
@@ -97,6 +97,26 @@ function createColumnFilter(columnName, values) {
         html += `<label><input type="checkbox" value="${value}" checked> ${value || '(empty)'}</label>`;
     });
     
+    html += `</div>`;
+    html += `<div class="filter-buttons">`;
+    html += `<button class="clear-all">Clear</button>`;
+    html += `<button class="select-all">Select All</button>`;
+    html += `<button class="apply">Apply</button>`;
+    html += `</div>`;
+    html += `</div>`;
+    
+    return html;
+}
+
+// Create percentage range filter HTML
+function createPercentageRangeFilter() {
+    const filterId = 'filter-percentage-range';
+    let html = `<div class="column-filter-container" id="${filterId}">`;
+    html += `<div class="filter-values">`;
+    html += `<label><input type="checkbox" value="0-25" checked> 0-25%</label>`;
+    html += `<label><input type="checkbox" value="25-50" checked> 25-50%</label>`;
+    html += `<label><input type="checkbox" value="50-75" checked> 50-75%</label>`;
+    html += `<label><input type="checkbox" value="75-100" checked> 75-100%</label>`;
     html += `</div>`;
     html += `<div class="filter-buttons">`;
     html += `<button class="clear-all">Clear</button>`;
@@ -226,7 +246,8 @@ function setupColumnFilters() {
     const filterColumns = [
         { index: 0, name: 'Bureau' },
         { index: 3, name: 'Period_of_Performance' },
-        { index: 4, name: 'Expiration_Year' }
+        { index: 4, name: 'Expiration_Year' },
+        { index: 7, name: 'Percentage_Unobligated' }
     ];
     
     // Add click handlers to specific column headers
@@ -241,26 +262,47 @@ function setupColumnFilters() {
             $('.column-filter-container').remove();
             $('.filtering').removeClass('filtering');
             
-            // Get unique values for this column
-            const columnData = dataTable.column(col.index).data().unique().sort();
-            const uniqueValues = Array.from(columnData).filter(v => v !== null && v !== undefined);
-            
-            // Create and show filter
-            const filterHtml = createColumnFilter(col.name, uniqueValues);
-            const $filter = $(filterHtml);
-            
-            // Position the filter
-            const offset = $(this).offset();
-            $filter.css({
-                top: offset.top + $(this).outerHeight(),
-                left: offset.left
-            });
-            
-            $('body').append($filter);
-            $(this).addClass('filtering');
-            
-            // Initialize filter behavior
-            initializeFilterBehavior($filter, col.index, col.name);
+            // Special handling for percentage column
+            let filterHtml;
+            if (col.name === 'Percentage_Unobligated') {
+                // Create percentage range filter
+                filterHtml = createPercentageRangeFilter();
+                const $filter = $(filterHtml);
+                
+                // Position the filter
+                const offset = $(this).offset();
+                $filter.css({
+                    top: offset.top + $(this).outerHeight(),
+                    left: offset.left
+                });
+                
+                $('body').append($filter);
+                $(this).addClass('filtering');
+                
+                // Initialize percentage filter behavior
+                initializePercentageFilterBehavior($filter);
+            } else {
+                // Get unique values for this column
+                const columnData = dataTable.column(col.index).data().unique().sort();
+                const uniqueValues = Array.from(columnData).filter(v => v !== null && v !== undefined);
+                
+                // Create and show filter
+                filterHtml = createColumnFilter(col.name, uniqueValues);
+                const $filter = $(filterHtml);
+                
+                // Position the filter
+                const offset = $(this).offset();
+                $filter.css({
+                    top: offset.top + $(this).outerHeight(),
+                    left: offset.left
+                });
+                
+                $('body').append($filter);
+                $(this).addClass('filtering');
+                
+                // Initialize filter behavior
+                initializeFilterBehavior($filter, col.index, col.name);
+            }
         });
     });
     
@@ -316,17 +358,36 @@ function initializeFilterBehavior($filter, columnIndex, columnName) {
     });
 }
 
-// Apply all column filters
-function applyColumnFilters() {
-    // Redraw table (filters are applied via custom search function)
-    dataTable.draw();
-    updateFilteredStats();
-}
-
-// Setup percentage dropdown filter
-function setupPercentageFilter() {
-    $('#percentageFilter').on('change', function() {
+// Initialize percentage filter behavior
+function initializePercentageFilterBehavior($filter) {
+    const $checkboxes = $filter.find('input[type="checkbox"]');
+    
+    // Select all button
+    $filter.find('.select-all').on('click', function() {
+        $checkboxes.prop('checked', true);
+    });
+    
+    // Clear all button
+    $filter.find('.clear-all').on('click', function() {
+        $checkboxes.prop('checked', false);
+    });
+    
+    // Apply button
+    $filter.find('.apply').on('click', function() {
+        const selectedRanges = [];
+        $checkboxes.filter(':checked').each(function() {
+            selectedRanges.push($(this).val());
+        });
+        
+        // Store filter state
+        columnFilters.Percentage_Ranges = selectedRanges;
+        
+        // Apply all filters
         applyAllFilters();
+        
+        // Close filter
+        $filter.remove();
+        $('.filtering').removeClass('filtering');
     });
 }
 
@@ -364,14 +425,20 @@ function applyAllFilters() {
         }
         
         // Check percentage range filter
-        if (show) {
-            const percentageRange = $('#percentageFilter').val();
-            if (percentageRange !== '') {
-                const percentage = parseFloat(data[7].replace(/<[^>]*>/g, '').replace('%', ''));
-                const ranges = percentageRange.split('-').map(v => parseFloat(v));
-                if (percentage < ranges[0] || percentage > ranges[1]) {
-                    show = false;
+        if (show && columnFilters.Percentage_Ranges && columnFilters.Percentage_Ranges.length > 0) {
+            const percentage = parseFloat(data[7].replace(/<[^>]*>/g, '').replace('%', ''));
+            let inRange = false;
+            
+            for (const range of columnFilters.Percentage_Ranges) {
+                const [min, max] = range.split('-').map(v => parseFloat(v));
+                if (percentage >= min && percentage <= max) {
+                    inRange = true;
+                    break;
                 }
+            }
+            
+            if (!inRange) {
+                show = false;
             }
         }
         
