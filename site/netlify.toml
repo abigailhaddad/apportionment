@@ -4,7 +4,7 @@
   command = "echo 'Skipping build - static site only'"
   
   # Directory to deploy (contains index.html)
-  publish = "site"
+  publish = "."
 
 [build.environment]
   # Skip Python dependency installation
