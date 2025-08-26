@@ -7,7 +7,7 @@ let agencyData = [];
 let bureauData = [];
 let agencyColorScale;
 let showBureauAggregates = false;
-let aggregationLevel = 'individual'; // 'individual', 'bureau', or 'agency'
+let aggregationLevel = 'bureau'; // 'individual', 'bureau', or 'agency'
 let bureauColorMap = new Map(); // Store consistent bureau colors
 let bureauColorIndex = 0;
 
@@ -177,9 +177,8 @@ async function loadData() {
         // Initialize DataTable
         initializeDataTable();
         
-        // Set default filter to Department of Education and 2025 expiration
-        $('#mainAgencyFilter').val('Department of Education');
-        $('#mainExpirationFilter').val('2025').trigger('change');
+        // Trigger initial filter update to show Department of Education and 2025
+        updateFiltersFromUI();
         
     } catch (error) {
         console.error('Error loading data:', error);
@@ -215,48 +214,6 @@ function parseCSVLine(line) {
     return result;
 }
 
-// Create column filter HTML
-function createColumnFilter(columnName, values) {
-    const filterId = `filter-${columnName.replace(/\s+/g, '-')}`;
-    let html = `<div class="column-filter-container" id="${filterId}">`;
-    html += `<input type="text" class="filter-search" placeholder="Search...">`;
-    html += `<div class="filter-values">`;
-    
-    values.forEach((value, index) => {
-        const checkId = `${filterId}-${index}`;
-        html += `<label><input type="checkbox" value="${value}" checked> ${value || '(empty)'}</label>`;
-    });
-    
-    html += `</div>`;
-    html += `<div class="filter-buttons">`;
-    html += `<button class="clear-all">Clear</button>`;
-    html += `<button class="select-all">Select All</button>`;
-    html += `<button class="apply">Apply</button>`;
-    html += `</div>`;
-    html += `</div>`;
-    
-    return html;
-}
-
-// Create percentage range filter HTML
-function createPercentageRangeFilter() {
-    const filterId = 'filter-percentage-range';
-    let html = `<div class="column-filter-container" id="${filterId}">`;
-    html += `<div class="filter-values">`;
-    html += `<label><input type="checkbox" value="0-25" checked> 0-25%</label>`;
-    html += `<label><input type="checkbox" value="25-50" checked> 25-50%</label>`;
-    html += `<label><input type="checkbox" value="50-75" checked> 50-75%</label>`;
-    html += `<label><input type="checkbox" value="75-100" checked> 75-100%</label>`;
-    html += `</div>`;
-    html += `<div class="filter-buttons">`;
-    html += `<button class="clear-all">Clear</button>`;
-    html += `<button class="select-all">Select All</button>`;
-    html += `<button class="apply">Apply</button>`;
-    html += `</div>`;
-    html += `</div>`;
-    
-    return html;
-}
 
 // Aggregate data by agency
 function aggregateAgencyData() {
@@ -353,6 +310,86 @@ function updateSummaryStats() {
     $('#accountCount').text(obligationData.length);
 }
 
+// Initialize multi-select dropdown functionality
+function initializeMultiSelectDropdown(filterId, options, defaultSelected = []) {
+    const $filter = $(`#${filterId}`);
+    const $button = $filter.find('button');
+    const $menu = $filter.find('.dropdown-menu');
+    const $options = $filter.find('.filter-options');
+    const $search = $filter.find('.filter-search');
+    
+    // Populate options
+    $options.empty();
+    options.forEach(option => {
+        const checked = defaultSelected.length === 0 || defaultSelected.includes(option) ? 'checked' : '';
+        $options.append(`
+            <label class="d-block px-2 py-1 mb-0">
+                <input type="checkbox" value="${option}" ${checked}> ${option}
+            </label>
+        `);
+    });
+    
+    // Toggle dropdown
+    $button.on('click', function(e) {
+        e.stopPropagation();
+        $('.filter-dropdown-menu').not($menu).hide();
+        $menu.toggle();
+    });
+    
+    // Search functionality
+    $search.on('input', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        $options.find('label').each(function() {
+            const text = $(this).text().toLowerCase();
+            $(this).toggle(text.includes(searchTerm));
+        });
+    });
+    
+    // Select all / Clear all
+    $filter.find('.select-all').on('click', function(e) {
+        e.preventDefault();
+        $options.find('input[type="checkbox"]').prop('checked', true);
+        updateButtonText();
+    });
+    
+    $filter.find('.clear-all').on('click', function(e) {
+        e.preventDefault();
+        $options.find('input[type="checkbox"]').prop('checked', false);
+        updateButtonText();
+    });
+    
+    // Update button text based on selection
+    function updateButtonText() {
+        const checked = $options.find('input[type="checkbox"]:checked');
+        const total = $options.find('input[type="checkbox"]').length;
+        
+        if (checked.length === 0) {
+            $button.text('None selected');
+        } else if (checked.length === total) {
+            $button.text($button.text().replace(/\d+ selected|None selected/, '').replace('All ', 'All ').trim());
+        } else if (checked.length === 1) {
+            $button.text(checked.first().parent().text().trim());
+        } else {
+            $button.text(`${checked.length} selected`);
+        }
+    }
+    
+    // Handle checkbox changes
+    $options.on('change', 'input[type="checkbox"]', function() {
+        updateButtonText();
+        updateFiltersFromUI();
+    });
+    
+    // Close dropdown when clicking outside
+    $(document).on('click', function(e) {
+        if (!$(e.target).closest($filter).length) {
+            $menu.hide();
+        }
+    });
+    
+    return updateButtonText;
+}
+
 // Populate main filter dropdowns
 function populateMainFilters() {
     // Get unique values
@@ -361,33 +398,47 @@ function populateMainFilters() {
     const periods = [...new Set(obligationData.map(row => row.Period_of_Performance))].filter(p => p).sort();
     const years = [...new Set(obligationData.map(row => row.Expiration_Year))].filter(y => y).sort();
     
-    // Populate agency filter
-    const agencySelect = $('#mainAgencyFilter');
-    agencies.forEach(agency => {
-        agencySelect.append(`<option value="${agency}">${agency}</option>`);
+    // Initialize multi-select dropdowns
+    initializeMultiSelectDropdown('mainAgencyFilter', agencies, ['Department of Education']);
+    initializeMultiSelectDropdown('mainBureauFilter', bureaus);
+    initializeMultiSelectDropdown('mainPeriodFilter', periods);
+    initializeMultiSelectDropdown('mainExpirationFilter', years, ['2025']);
+    
+    // Set up percentage filter
+    const $percentFilter = $('#mainPercentageFilter');
+    $percentFilter.find('button').on('click', function(e) {
+        e.stopPropagation();
+        $('.filter-dropdown-menu').not($percentFilter.find('.filter-dropdown-menu')).hide();
+        $percentFilter.find('.filter-dropdown-menu').toggle();
     });
     
-    // Populate bureau filter
-    const bureauSelect = $('#mainBureauFilter');
-    bureaus.forEach(bureau => {
-        bureauSelect.append(`<option value="${bureau}">${bureau}</option>`);
-    });
-    
-    // Populate period filter
-    const periodSelect = $('#mainPeriodFilter');
-    periods.forEach(period => {
-        periodSelect.append(`<option value="${period}">${period}</option>`);
-    });
-    
-    // Populate expiration year filter
-    const yearSelect = $('#mainExpirationFilter');
-    years.forEach(year => {
-        yearSelect.append(`<option value="${year}">${year}</option>`);
-    });
-    
-    // Set up event handlers for all main filters
-    $('#mainAgencyFilter, #mainBureauFilter, #mainPeriodFilter, #mainExpirationFilter, #mainPercentageFilter').on('change', function() {
+    $percentFilter.find('.filter-dropdown-menu').on('change', 'input[type="checkbox"]', function() {
+        // Update button text for percentage filter
+        const checked = $percentFilter.find('.filter-options input[type="checkbox"]:checked');
+        const $button = $percentFilter.find('button');
+        
+        if (checked.length === 0) {
+            $button.text('None selected');
+        } else if (checked.length === 4) {
+            $button.text('All Ranges');
+        } else if (checked.length === 1) {
+            $button.text(checked.first().parent().text().trim());
+        } else {
+            $button.text(`${checked.length} ranges`);
+        }
+        
         updateFiltersFromUI();
+    });
+    
+    // Select all / Clear all for percentage filter
+    $percentFilter.find('.select-all').on('click', function(e) {
+        e.preventDefault();
+        $percentFilter.find('input[type="checkbox"]').prop('checked', true).trigger('change');
+    });
+    
+    $percentFilter.find('.clear-all').on('click', function(e) {
+        e.preventDefault();
+        $percentFilter.find('input[type="checkbox"]').prop('checked', false).trigger('change');
     });
     
     // Set up aggregation level change handler
@@ -403,90 +454,64 @@ function populateMainFilters() {
             showDetailedTable();
         }
         initializeBubbleChart();
-        // Stats are now updated within showAggregatedTable and showDetailedTable
     });
 }
 
 // Update filters from UI and display active filter badges
 function updateFiltersFromUI() {
-    const agency = $('#mainAgencyFilter').val();
-    const bureau = $('#mainBureauFilter').val();
-    const period = $('#mainPeriodFilter').val();
-    const year = $('#mainExpirationFilter').val();
-    const percentage = $('#mainPercentageFilter').val();
+    // Get selected values from multi-select dropdowns
+    const getSelectedValues = (filterId) => {
+        const values = [];
+        $(`#${filterId}`).find('.filter-options input[type="checkbox"]:checked').each(function() {
+            values.push($(this).val());
+        });
+        return values;
+    };
+    
+    const agencies = getSelectedValues('mainAgencyFilter');
+    const bureaus = getSelectedValues('mainBureauFilter');
+    const periods = getSelectedValues('mainPeriodFilter');
+    const years = getSelectedValues('mainExpirationFilter');
+    const percentRanges = getSelectedValues('mainPercentageFilter');
     
     // Update column filters
-    columnFilters.Agency = agency ? [agency] : null;
-    columnFilters.Bureau = bureau ? [bureau] : null;
-    columnFilters.Period_of_Performance = period ? [period] : null;
-    columnFilters.Expiration_Year = year ? [year] : null;
-    columnFilters.Percentage_Ranges = percentage ? [percentage] : null;
+    columnFilters.Agency = agencies.length > 0 ? agencies : null;
+    columnFilters.Bureau = bureaus.length > 0 ? bureaus : null;
+    columnFilters.Period_of_Performance = periods.length > 0 ? periods : null;
+    columnFilters.Expiration_Year = years.length > 0 ? years : null;
+    columnFilters.Percentage_Ranges = percentRanges.length > 0 ? percentRanges : null;
     
     // Helper function to get filtered data based on all current filters
     const getFilteredData = (includeAgency, includeBureau, includePeriod, includeYear) => {
         let filtered = obligationData;
         
-        if (includeAgency && agency) {
-            filtered = filtered.filter(row => row.Agency === agency);
+        if (includeAgency && agencies.length > 0) {
+            filtered = filtered.filter(row => agencies.includes(row.Agency));
         }
-        if (includeBureau && bureau) {
-            filtered = filtered.filter(row => row.Bureau === bureau);
+        if (includeBureau && bureaus.length > 0) {
+            filtered = filtered.filter(row => bureaus.includes(row.Bureau));
         }
-        if (includePeriod && period) {
-            filtered = filtered.filter(row => row.Period_of_Performance === period);
+        if (includePeriod && periods.length > 0) {
+            filtered = filtered.filter(row => periods.includes(row.Period_of_Performance));
         }
-        if (includeYear && year) {
-            filtered = filtered.filter(row => row.Expiration_Year === year);
+        if (includeYear && years.length > 0) {
+            filtered = filtered.filter(row => years.includes(row.Expiration_Year));
         }
-        if (percentage) {
-            const [min, max] = percentage.split('-').map(v => parseFloat(v));
-            filtered = filtered.filter(row => row.percentageValue >= min && row.percentageValue <= max);
+        if (percentRanges.length > 0) {
+            filtered = filtered.filter(row => {
+                return percentRanges.some(range => {
+                    const [min, max] = range.split('-').map(v => parseFloat(v));
+                    return row.percentageValue >= min && row.percentageValue <= max;
+                });
+            });
         }
         
         return filtered;
     };
     
-    // Update bureau options - filter by agency and other active filters
-    const bureauSelect = $('#mainBureauFilter');
-    const currentBureau = bureauSelect.val();
-    const bureauFiltered = getFilteredData(true, false, true, true); // Include agency, period, year filters
-    const availableBureaus = [...new Set(bureauFiltered.map(row => row.Bureau).filter(b => b))].sort();
-    bureauSelect.empty();
-    bureauSelect.append('<option value="">All Bureaus</option>');
-    availableBureaus.forEach(b => {
-        bureauSelect.append(`<option value="${b}">${b}</option>`);
-    });
-    if (availableBureaus.includes(currentBureau)) {
-        bureauSelect.val(currentBureau);
-    }
-    
-    // Update period options - filter by agency, bureau, and year
-    const periodSelect = $('#mainPeriodFilter');
-    const currentPeriod = periodSelect.val();
-    const periodFiltered = getFilteredData(true, true, false, true); // Include agency, bureau, year filters
-    const availablePeriods = [...new Set(periodFiltered.map(row => row.Period_of_Performance).filter(p => p))].sort();
-    periodSelect.empty();
-    periodSelect.append('<option value="">All Periods</option>');
-    availablePeriods.forEach(p => {
-        periodSelect.append(`<option value="${p}">${p}</option>`);
-    });
-    if (availablePeriods.includes(currentPeriod)) {
-        periodSelect.val(currentPeriod);
-    }
-    
-    // Update expiration year options - filter by agency, bureau, and period
-    const yearSelect = $('#mainExpirationFilter');
-    const currentYear = yearSelect.val();
-    const yearFiltered = getFilteredData(true, true, true, false); // Include agency, bureau, period filters
-    const availableYears = [...new Set(yearFiltered.map(row => row.Expiration_Year).filter(y => y))].sort();
-    yearSelect.empty();
-    yearSelect.append('<option value="">All Years</option>');
-    availableYears.forEach(y => {
-        yearSelect.append(`<option value="${y}">${y}</option>`);
-    });
-    if (availableYears.includes(currentYear)) {
-        yearSelect.val(currentYear);
-    }
+    // Note: Dynamic filtering of dropdown options is disabled for now to fix dropdown functionality
+    // The Bureau, Period, and Expiration Year dropdowns will show all available options
+    // regardless of other filter selections
     
     // Update active filter badges
     updateActiveFilterBadges();
@@ -502,44 +527,77 @@ function updateActiveFilterBadges() {
     
     const filters = [];
     
-    if ($('#mainAgencyFilter').val()) {
-        filters.push({
-            type: 'Agency',
-            value: $('#mainAgencyFilter').val(),
-            id: 'mainAgencyFilter'
+    // Helper to get selected values
+    const getSelectedValues = (filterId) => {
+        const values = [];
+        $(`#${filterId}`).find('.filter-options input[type="checkbox"]:checked').each(function() {
+            values.push($(this).val());
+        });
+        return values;
+    };
+    
+    // Add filter badges for each type
+    const agencies = getSelectedValues('mainAgencyFilter');
+    const allAgencies = $('#mainAgencyFilter').find('.filter-options input[type="checkbox"]').length;
+    if (agencies.length > 0 && agencies.length < allAgencies) {
+        agencies.forEach(agency => {
+            filters.push({
+                type: 'Agency',
+                value: agency,
+                id: 'mainAgencyFilter',
+                filterValue: agency
+            });
         });
     }
     
-    if ($('#mainBureauFilter').val()) {
-        filters.push({
-            type: 'Bureau',
-            value: $('#mainBureauFilter').val(),
-            id: 'mainBureauFilter'
+    const bureaus = getSelectedValues('mainBureauFilter');
+    const allBureaus = $('#mainBureauFilter').find('.filter-options input[type="checkbox"]').length;
+    if (bureaus.length > 0 && bureaus.length < allBureaus) {
+        bureaus.forEach(bureau => {
+            filters.push({
+                type: 'Bureau',
+                value: bureau,
+                id: 'mainBureauFilter',
+                filterValue: bureau
+            });
         });
     }
     
-    if ($('#mainPeriodFilter').val()) {
-        filters.push({
-            type: 'Period',
-            value: $('#mainPeriodFilter').val(),
-            id: 'mainPeriodFilter'
+    const periods = getSelectedValues('mainPeriodFilter');
+    const allPeriods = $('#mainPeriodFilter').find('.filter-options input[type="checkbox"]').length;
+    if (periods.length > 0 && periods.length < allPeriods) {
+        periods.forEach(period => {
+            filters.push({
+                type: 'Period',
+                value: period,
+                id: 'mainPeriodFilter',
+                filterValue: period
+            });
         });
     }
     
-    if ($('#mainExpirationFilter').val()) {
-        filters.push({
-            type: 'Expiration Year',
-            value: $('#mainExpirationFilter').val(),
-            id: 'mainExpirationFilter'
+    const years = getSelectedValues('mainExpirationFilter');
+    const allYears = $('#mainExpirationFilter').find('.filter-options input[type="checkbox"]').length;
+    if (years.length > 0 && years.length < allYears) {
+        years.forEach(year => {
+            filters.push({
+                type: 'Year',
+                value: year,
+                id: 'mainExpirationFilter',
+                filterValue: year
+            });
         });
     }
     
-    if ($('#mainPercentageFilter').val()) {
-        const range = $('#mainPercentageFilter').val();
-        filters.push({
-            type: 'Unobligated %',
-            value: range.replace('-', '-') + '%',
-            id: 'mainPercentageFilter'
+    const percentRanges = getSelectedValues('mainPercentageFilter');
+    if (percentRanges.length > 0 && percentRanges.length < 4) {
+        percentRanges.forEach(range => {
+            filters.push({
+                type: '% Range',
+                value: range + '%',
+                id: 'mainPercentageFilter',
+                filterValue: range
+            });
         });
     }
     
@@ -549,7 +607,7 @@ function updateActiveFilterBadges() {
         filters.forEach(filter => {
             const $badge = $(`<span class="filter-badge">
                 ${filter.type}: ${filter.value}
-                <span class="remove-filter" data-filter-id="${filter.id}">×</span>
+                <span class="remove-filter" data-filter-id="${filter.id}" data-filter-value="${filter.filterValue || ''}">×</span>
             </span>`);
             $activeFilters.append($badge);
         });
@@ -557,7 +615,28 @@ function updateActiveFilterBadges() {
         // Set up remove filter handlers
         $('.remove-filter').on('click', function() {
             const filterId = $(this).data('filter-id');
-            $(`#${filterId}`).val('').trigger('change');
+            const filterValue = $(this).data('filter-value');
+            
+            // Uncheck the specific value in the multi-select
+            $(`#${filterId}`).find(`input[type="checkbox"][value="${filterValue}"]`).prop('checked', false);
+            
+            // Update button text
+            const $filter = $(`#${filterId}`);
+            const checked = $filter.find('.filter-options input[type="checkbox"]:checked');
+            const total = $filter.find('.filter-options input[type="checkbox"]').length;
+            const $button = $filter.find('button');
+            
+            if (checked.length === 0) {
+                $button.text('None selected');
+            } else if (checked.length === total) {
+                $button.text($button.text().replace(/\d+ selected|None selected/, '').replace('All ', 'All ').trim());
+            } else if (checked.length === 1) {
+                $button.text(checked.first().parent().text().trim());
+            } else {
+                $button.text(`${checked.length} selected`);
+            }
+            
+            updateFiltersFromUI();
         });
     }
 }
@@ -670,162 +749,10 @@ function initializeDataTable() {
             }
         },
     });
-    
-    // Set up column click filters
-    setupColumnFilters();
 }
 
-// Setup column click filters
-function setupColumnFilters() {
-    // Define which columns should have filters
-    const filterColumns = [
-        { index: 0, name: 'Agency' },
-        { index: 1, name: 'Bureau' },
-        { index: 4, name: 'Period_of_Performance' },
-        { index: 5, name: 'Expiration_Year' },
-        { index: 8, name: 'Percentage_Unobligated' }
-    ];
-    
-    // Add click handlers to specific column headers
-    filterColumns.forEach(col => {
-        const th = $(`#obligationTable thead th:eq(${col.index})`);
-        th.addClass('has-filter');
-        
-        th.on('click', function(e) {
-            e.stopPropagation();
-            
-            // Close any open filters
-            $('.column-filter-container').remove();
-            $('.filtering').removeClass('filtering');
-            
-            // Special handling for percentage column
-            let filterHtml;
-            if (col.name === 'Percentage_Unobligated') {
-                // Create percentage range filter
-                filterHtml = createPercentageRangeFilter();
-                const $filter = $(filterHtml);
-                
-                // Position the filter
-                const offset = $(this).offset();
-                $filter.css({
-                    top: offset.top + $(this).outerHeight(),
-                    left: offset.left
-                });
-                
-                $('body').append($filter);
-                $(this).addClass('filtering');
-                
-                // Initialize percentage filter behavior
-                initializePercentageFilterBehavior($filter);
-            } else {
-                // Get unique values for this column
-                const columnData = dataTable.column(col.index).data().unique().sort();
-                const uniqueValues = Array.from(columnData).filter(v => v !== null && v !== undefined);
-                
-                // Create and show filter
-                filterHtml = createColumnFilter(col.name, uniqueValues);
-                const $filter = $(filterHtml);
-                
-                // Position the filter
-                const offset = $(this).offset();
-                $filter.css({
-                    top: offset.top + $(this).outerHeight(),
-                    left: offset.left
-                });
-                
-                $('body').append($filter);
-                $(this).addClass('filtering');
-                
-                // Initialize filter behavior
-                initializeFilterBehavior($filter, col.index, col.name);
-            }
-        });
-    });
-    
-    // Close filter when clicking outside
-    $(document).on('click', function(e) {
-        if (!$(e.target).closest('.column-filter-container, .has-filter').length) {
-            $('.column-filter-container').remove();
-            $('.filtering').removeClass('filtering');
-        }
-    });
-}
+// Column filters removed - all filtering now done through top filter section
 
-// Initialize filter behavior
-function initializeFilterBehavior($filter, columnIndex, columnName) {
-    const $searchInput = $filter.find('.filter-search');
-    const $checkboxes = $filter.find('input[type="checkbox"]');
-    
-    // Search functionality
-    $searchInput.on('input', function() {
-        const searchTerm = $(this).val().toLowerCase();
-        $filter.find('label').each(function() {
-            const text = $(this).text().toLowerCase();
-            $(this).toggle(text.includes(searchTerm));
-        });
-    });
-    
-    // Select all button
-    $filter.find('.select-all').on('click', function() {
-        $checkboxes.prop('checked', true);
-    });
-    
-    // Clear all button
-    $filter.find('.clear-all').on('click', function() {
-        $checkboxes.prop('checked', false);
-    });
-    
-    // Apply button
-    $filter.find('.apply').on('click', function() {
-        const selectedValues = [];
-        $checkboxes.filter(':checked').each(function() {
-            selectedValues.push($(this).val());
-        });
-        
-        // Store filter state
-        columnFilters[columnName] = selectedValues;
-        
-        // Apply all filters (column + percentage)
-        applyAllFilters();
-        
-        // Close filter
-        $filter.remove();
-        $('.filtering').removeClass('filtering');
-    });
-}
-
-// Initialize percentage filter behavior
-function initializePercentageFilterBehavior($filter) {
-    const $checkboxes = $filter.find('input[type="checkbox"]');
-    
-    // Select all button
-    $filter.find('.select-all').on('click', function() {
-        $checkboxes.prop('checked', true);
-    });
-    
-    // Clear all button
-    $filter.find('.clear-all').on('click', function() {
-        $checkboxes.prop('checked', false);
-    });
-    
-    // Apply button
-    $filter.find('.apply').on('click', function() {
-        const selectedRanges = [];
-        $checkboxes.filter(':checked').each(function() {
-            selectedRanges.push($(this).val());
-        });
-        
-        // Store filter state
-        columnFilters.Percentage_Ranges = selectedRanges;
-        
-        // Apply all filters
-        applyAllFilters();
-        
-        // Close filter
-        $filter.remove();
-        $('.filtering').removeClass('filtering');
-    });
-}
 
 // Apply all filters (column filters + percentage filter)
 function applyAllFilters() {
@@ -910,15 +837,25 @@ function applyAllFilters() {
 
 // Update statistics based on filtered data
 function updateFilteredStats() {
-    const filteredData = dataTable.rows({ filter: 'applied' }).data();
+    // For aggregated views, use all data in the table (no filter applied)
+    const dataToUse = (aggregationLevel === 'agency' || aggregationLevel === 'bureau') 
+        ? dataTable.rows().data() 
+        : dataTable.rows({ filter: 'applied' }).data();
+    
     let totalBudget = 0;
     let totalUnobligated = 0;
     let count = 0;
+    const uniqueAgencies = new Set();
+    const uniqueBureaus = new Set();
     
-    filteredData.each(function(row) {
+    dataToUse.each(function(row) {
         totalBudget += row.budgetAuthorityValue;
         totalUnobligated += row.unobligatedValue;
         count++;
+        
+        // Track unique agencies and bureaus
+        if (row.Agency) uniqueAgencies.add(row.Agency);
+        if (row.Bureau) uniqueBureaus.add(row.Bureau);
     });
     
     const overallPercentage = totalBudget > 0 ? (totalUnobligated / totalBudget * 100) : 0;
@@ -927,7 +864,15 @@ function updateFilteredStats() {
     $('#totalBudget').text(formatCurrency(totalBudget));
     $('#totalUnobligated').text(formatCurrency(totalUnobligated));
     $('#overallPercentage').text(overallPercentage.toFixed(1) + '%');
-    $('#accountCount').text(count);
+    
+    // For aggregated views, show the count of unique entities
+    if (aggregationLevel === 'agency') {
+        $('#accountCount').text(uniqueAgencies.size + (uniqueAgencies.size === 1 ? ' agency' : ' agencies'));
+    } else if (aggregationLevel === 'bureau') {
+        $('#accountCount').text(uniqueBureaus.size + (uniqueBureaus.size === 1 ? ' bureau' : ' bureaus'));
+    } else {
+        $('#accountCount').text(count);
+    }
 }
 
 // Initialize bubble chart

@@ -306,6 +306,46 @@
             color: #ff6b6b;
         }
         
+        /* Multi-select dropdown styles */
+        .filter-dropdown {
+            position: relative;
+        }
+        
+        .filter-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 10px;
+            margin-top: 2px;
+        }
+        
+        .filter-dropdown-menu label {
+            cursor: pointer;
+        }
+        
+        .filter-dropdown-menu label:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .filter-dropdown-menu .filter-search {
+            margin-bottom: 5px;
+        }
+        
+        .filter-dropdown-menu .filter-options label {
+            padding: 3px 8px;
+            margin: 0;
+            display: block;
+        }
+        
+        .filter-dropdown-menu input[type="checkbox"] {
+            margin-right: 8px;
+        }
         
     </style>
 </head>
@@ -341,44 +381,115 @@
             <div class="filter-controls">
                 <div class="row mb-3">
                     <div class="col-md-2">
-                        <label for="mainAgencyFilter">Agency</label>
-                        <select id="mainAgencyFilter" class="form-control form-control-sm">
-                            <option value="">All Agencies</option>
-                        </select>
+                        <label>Agency</label>
+                        <div class="filter-dropdown" id="mainAgencyFilter">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button">
+                                All Agencies
+                            </button>
+                            <div class="dropdown-menu filter-dropdown-menu" style="display: none;">
+                                <input type="text" class="form-control form-control-sm filter-search mb-2" placeholder="Search...">
+                                <div class="filter-options" style="max-height: 200px; overflow-y: auto;">
+                                    <!-- Options will be populated by JS -->
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="px-2 py-1">
+                                    <button class="btn btn-sm btn-link select-all">Select All</button>
+                                    <button class="btn btn-sm btn-link clear-all">Clear All</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-2">
-                        <label for="mainBureauFilter">Bureau</label>
-                        <select id="mainBureauFilter" class="form-control form-control-sm">
-                            <option value="">All Bureaus</option>
-                        </select>
+                        <label>Bureau</label>
+                        <div class="filter-dropdown" id="mainBureauFilter">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button">
+                                All Bureaus
+                            </button>
+                            <div class="dropdown-menu filter-dropdown-menu" style="display: none;">
+                                <input type="text" class="form-control form-control-sm filter-search mb-2" placeholder="Search...">
+                                <div class="filter-options" style="max-height: 200px; overflow-y: auto;">
+                                    <!-- Options will be populated by JS -->
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="px-2 py-1">
+                                    <button class="btn btn-sm btn-link select-all">Select All</button>
+                                    <button class="btn btn-sm btn-link clear-all">Clear All</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-2">
-                        <label for="mainPeriodFilter">Period</label>
-                        <select id="mainPeriodFilter" class="form-control form-control-sm">
-                            <option value="">All Periods</option>
-                        </select>
+                        <label>Period</label>
+                        <div class="filter-dropdown" id="mainPeriodFilter">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button">
+                                All Periods
+                            </button>
+                            <div class="dropdown-menu filter-dropdown-menu" style="display: none;">
+                                <input type="text" class="form-control form-control-sm filter-search mb-2" placeholder="Search...">
+                                <div class="filter-options" style="max-height: 200px; overflow-y: auto;">
+                                    <!-- Options will be populated by JS -->
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="px-2 py-1">
+                                    <button class="btn btn-sm btn-link select-all">Select All</button>
+                                    <button class="btn btn-sm btn-link clear-all">Clear All</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-2">
-                        <label for="mainExpirationFilter">Expiration Year</label>
-                        <select id="mainExpirationFilter" class="form-control form-control-sm">
-                            <option value="">All Years</option>
-                        </select>
+                        <label>Expiration Year</label>
+                        <div class="filter-dropdown" id="mainExpirationFilter">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button">
+                                All Years
+                            </button>
+                            <div class="dropdown-menu filter-dropdown-menu" style="display: none;">
+                                <input type="text" class="form-control form-control-sm filter-search mb-2" placeholder="Search...">
+                                <div class="filter-options" style="max-height: 200px; overflow-y: auto;">
+                                    <!-- Options will be populated by JS -->
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="px-2 py-1">
+                                    <button class="btn btn-sm btn-link select-all">Select All</button>
+                                    <button class="btn btn-sm btn-link clear-all">Clear All</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-1">
-                        <label for="mainPercentageFilter">% Unobligated</label>
-                        <select id="mainPercentageFilter" class="form-control form-control-sm">
-                            <option value="">All</option>
-                            <option value="0-25">0-25%</option>
-                            <option value="25-50">25-50%</option>
-                            <option value="50-75">50-75%</option>
-                            <option value="75-100">75-100%</option>
-                        </select>
+                    <div class="col-md-2">
+                        <label>% Unobligated</label>
+                        <div class="filter-dropdown" id="mainPercentageFilter">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button">
+                                All Ranges
+                            </button>
+                            <div class="dropdown-menu filter-dropdown-menu" style="display: none;">
+                                <div class="filter-options">
+                                    <label class="d-block px-2 py-1 mb-0">
+                                        <input type="checkbox" value="0-25" checked> 0-25%
+                                    </label>
+                                    <label class="d-block px-2 py-1 mb-0">
+                                        <input type="checkbox" value="25-50" checked> 25-50%
+                                    </label>
+                                    <label class="d-block px-2 py-1 mb-0">
+                                        <input type="checkbox" value="50-75" checked> 50-75%
+                                    </label>
+                                    <label class="d-block px-2 py-1 mb-0">
+                                        <input type="checkbox" value="75-100" checked> 75-100%
+                                    </label>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="px-2 py-1">
+                                    <button class="btn btn-sm btn-link select-all">Select All</button>
+                                    <button class="btn btn-sm btn-link clear-all">Clear All</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-1">
+                    <div class="col-md-2">
                         <label for="aggregationLevel">View By</label>
                         <select id="aggregationLevel" class="form-control form-control-sm">
                             <option value="individual">Individual Accounts</option>
-                            <option value="bureau">Bureau Totals</option>
+                            <option value="bureau" selected>Bureau Totals</option>
                             <option value="agency">Agency Totals</option>
                         </select>
                     </div>
