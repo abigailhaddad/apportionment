@@ -182,7 +182,7 @@ async function loadData() {
         
     } catch (error) {
         console.error('Error loading data:', error);
-        console.error('Failed to load: data/education_obligation_summary_enhanced.csv');
+        console.error('Failed to load: data/all_agencies_obligation_summary.csv');
         console.error('Make sure you are running the server with ./serve.py or python3 serve.py');
         alert('Error loading data. Please ensure you are running the server with ./serve.py and not just opening the HTML file directly.');
     }
@@ -390,19 +390,94 @@ function initializeMultiSelectDropdown(filterId, options, defaultSelected = []) 
     return updateButtonText;
 }
 
+// Update dependent filter dropdowns based on current selections
+function updateDependentFilters() {
+    const selectedAgency = $('#mainAgencyFilter').val();
+    const selectedBureau = $('#mainBureauFilter').val();
+    const selectedPeriod = $('#mainPeriodFilter').val();
+    
+    // Filter data based on current selections
+    let filteredData = obligationData;
+    
+    if (selectedAgency) {
+        filteredData = filteredData.filter(row => row.Agency === selectedAgency);
+    }
+    
+    if (selectedBureau) {
+        filteredData = filteredData.filter(row => row.Bureau === selectedBureau);
+    }
+    
+    if (selectedPeriod) {
+        filteredData = filteredData.filter(row => row.Period_of_Performance === selectedPeriod);
+    }
+    
+    // Update Bureau dropdown
+    const bureaus = [...new Set(filteredData.map(row => row.Bureau))].filter(b => b).sort();
+    const $bureauFilter = $('#mainBureauFilter');
+    const currentBureau = $bureauFilter.val();
+    $bureauFilter.empty().append('<option value="">All Bureaus</option>');
+    bureaus.forEach(bureau => {
+        $bureauFilter.append(`<option value="${bureau}">${bureau}</option>`);
+    });
+    if (bureaus.includes(currentBureau)) {
+        $bureauFilter.val(currentBureau);
+    }
+    
+    // Update Period dropdown
+    const periods = [...new Set(filteredData.map(row => row.Period_of_Performance))].filter(p => p).sort();
+    const $periodFilter = $('#mainPeriodFilter');
+    const currentPeriod = $periodFilter.val();
+    $periodFilter.empty().append('<option value="">All Periods</option>');
+    periods.forEach(period => {
+        $periodFilter.append(`<option value="${period}">${period}</option>`);
+    });
+    if (periods.includes(currentPeriod)) {
+        $periodFilter.val(currentPeriod);
+    }
+    
+    // Update Year dropdown
+    const years = [...new Set(filteredData.map(row => row.Expiration_Year))].filter(y => y).sort();
+    const $yearFilter = $('#mainExpirationFilter');
+    const currentYear = $yearFilter.val();
+    $yearFilter.empty().append('<option value="">All Years</option>');
+    years.forEach(year => {
+        $yearFilter.append(`<option value="${year}">${year}</option>`);
+    });
+    if (years.includes(currentYear)) {
+        $yearFilter.val(currentYear);
+    }
+    
+    // Default to 2025 if available
+    if (!currentYear && years.includes('2025')) {
+        $yearFilter.val('2025');
+    }
+}
+
 // Populate main filter dropdowns
 function populateMainFilters() {
     // Get unique values
     const agencies = [...new Set(obligationData.map(row => row.Agency))].filter(a => a).sort();
-    const bureaus = [...new Set(obligationData.map(row => row.Bureau))].filter(b => b).sort();
-    const periods = [...new Set(obligationData.map(row => row.Period_of_Performance))].filter(p => p).sort();
-    const years = [...new Set(obligationData.map(row => row.Expiration_Year))].filter(y => y).sort();
     
-    // Initialize multi-select dropdowns
-    initializeMultiSelectDropdown('mainAgencyFilter', agencies, ['Department of Education']);
-    initializeMultiSelectDropdown('mainBureauFilter', bureaus);
-    initializeMultiSelectDropdown('mainPeriodFilter', periods);
-    initializeMultiSelectDropdown('mainExpirationFilter', years, ['2025']);
+    // Populate agency dropdown
+    const $agencyFilter = $('#mainAgencyFilter');
+    agencies.forEach(agency => {
+        $agencyFilter.append(`<option value="${agency}">${agency}</option>`);
+    });
+    
+    // Set default agency
+    $agencyFilter.val('Department of Education');
+    
+    // Populate other dropdowns based on selected agency
+    updateDependentFilters();
+    
+    // Set up change handlers
+    $('#mainAgencyFilter, #mainBureauFilter, #mainPeriodFilter, #mainExpirationFilter').on('change', function() {
+        updateDependentFilters();
+        updateFiltersFromUI();
+    });
+    
+    // Ensure year 2025 is selected by default (updateDependentFilters should have set it)
+    // Don't trigger filter update here - DataTable isn't initialized yet
     
     // Set up percentage filter
     const $percentFilter = $('#mainPercentageFilter');
@@ -459,20 +534,17 @@ function populateMainFilters() {
 
 // Update filters from UI and display active filter badges
 function updateFiltersFromUI() {
-    // Get selected values from multi-select dropdowns
-    const getSelectedValues = (filterId) => {
-        const values = [];
-        $(`#${filterId}`).find('.filter-options input[type="checkbox"]:checked').each(function() {
-            values.push($(this).val());
-        });
-        return values;
-    };
+    // Get selected values from single-select dropdowns
+    const agencies = $('#mainAgencyFilter').val() ? [$('#mainAgencyFilter').val()] : [];
+    const bureaus = $('#mainBureauFilter').val() ? [$('#mainBureauFilter').val()] : [];
+    const periods = $('#mainPeriodFilter').val() ? [$('#mainPeriodFilter').val()] : [];
+    const years = $('#mainExpirationFilter').val() ? [$('#mainExpirationFilter').val()] : [];
     
-    const agencies = getSelectedValues('mainAgencyFilter');
-    const bureaus = getSelectedValues('mainBureauFilter');
-    const periods = getSelectedValues('mainPeriodFilter');
-    const years = getSelectedValues('mainExpirationFilter');
-    const percentRanges = getSelectedValues('mainPercentageFilter');
+    // Get percentage ranges from checkboxes
+    const percentRanges = [];
+    $('#mainPercentageFilter').find('.filter-options input[type="checkbox"]:checked').each(function() {
+        percentRanges.push($(this).val());
+    });
     
     // Update column filters
     columnFilters.Agency = agencies.length > 0 ? agencies : null;
@@ -513,8 +585,6 @@ function updateFiltersFromUI() {
     // The Bureau, Period, and Expiration Year dropdowns will show all available options
     // regardless of other filter selections
     
-    // Update active filter badges
-    updateActiveFilterBadges();
     
     // Apply all filters
     applyAllFilters();
@@ -527,18 +597,15 @@ function updateActiveFilterBadges() {
     
     const filters = [];
     
-    // Helper to get selected values
-    const getSelectedValues = (filterId) => {
-        const values = [];
-        $(`#${filterId}`).find('.filter-options input[type="checkbox"]:checked').each(function() {
-            values.push($(this).val());
-        });
-        return values;
-    };
+    // Get selected values from dropdowns
+    const selectedAgency = $('#mainAgencyFilter').val();
+    const selectedBureau = $('#mainBureauFilter').val();
+    const selectedPeriod = $('#mainPeriodFilter').val();
+    const selectedYear = $('#mainExpirationFilter').val();
     
     // Add filter badges for each type
-    const agencies = getSelectedValues('mainAgencyFilter');
-    const allAgencies = $('#mainAgencyFilter').find('.filter-options input[type="checkbox"]').length;
+    const agencies = selectedAgency ? [selectedAgency] : [];
+    const allAgencies = $('#mainAgencyFilter').find('option').length - 1; // -1 for "All Agencies" option
     if (agencies.length > 0 && agencies.length < allAgencies) {
         agencies.forEach(agency => {
             filters.push({
@@ -550,9 +617,8 @@ function updateActiveFilterBadges() {
         });
     }
     
-    const bureaus = getSelectedValues('mainBureauFilter');
-    const allBureaus = $('#mainBureauFilter').find('.filter-options input[type="checkbox"]').length;
-    if (bureaus.length > 0 && bureaus.length < allBureaus) {
+    const bureaus = selectedBureau ? [selectedBureau] : [];
+    if (bureaus.length > 0) {
         bureaus.forEach(bureau => {
             filters.push({
                 type: 'Bureau',
@@ -563,9 +629,8 @@ function updateActiveFilterBadges() {
         });
     }
     
-    const periods = getSelectedValues('mainPeriodFilter');
-    const allPeriods = $('#mainPeriodFilter').find('.filter-options input[type="checkbox"]').length;
-    if (periods.length > 0 && periods.length < allPeriods) {
+    const periods = selectedPeriod ? [selectedPeriod] : [];
+    if (periods.length > 0) {
         periods.forEach(period => {
             filters.push({
                 type: 'Period',
@@ -576,9 +641,8 @@ function updateActiveFilterBadges() {
         });
     }
     
-    const years = getSelectedValues('mainExpirationFilter');
-    const allYears = $('#mainExpirationFilter').find('.filter-options input[type="checkbox"]').length;
-    if (years.length > 0 && years.length < allYears) {
+    const years = selectedYear ? [selectedYear] : [];
+    if (years.length > 0) {
         years.forEach(year => {
             filters.push({
                 type: 'Year',
@@ -589,7 +653,10 @@ function updateActiveFilterBadges() {
         });
     }
     
-    const percentRanges = getSelectedValues('mainPercentageFilter');
+    const percentRanges = [];
+    $('#mainPercentageFilter').find('.filter-options input[type="checkbox"]:checked').each(function() {
+        percentRanges.push($(this).val());
+    });
     if (percentRanges.length > 0 && percentRanges.length < 4) {
         percentRanges.forEach(range => {
             filters.push({
@@ -617,7 +684,14 @@ function updateActiveFilterBadges() {
             const filterId = $(this).data('filter-id');
             const filterValue = $(this).data('filter-value');
             
-            // Uncheck the specific value in the multi-select
+            // For single-select dropdowns, just clear the value
+            if (filterId === 'mainAgencyFilter' || filterId === 'mainBureauFilter' || 
+                filterId === 'mainPeriodFilter' || filterId === 'mainExpirationFilter') {
+                $(`#${filterId}`).val('').trigger('change');
+                return; // Exit early for single selects
+            }
+            
+            // For percentage filter (still uses checkboxes)
             $(`#${filterId}`).find(`input[type="checkbox"][value="${filterValue}"]`).prop('checked', false);
             
             // Update button text

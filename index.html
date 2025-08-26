@@ -382,79 +382,27 @@
                 <div class="row mb-3">
                     <div class="col-md-2">
                         <label>Agency</label>
-                        <div class="filter-dropdown" id="mainAgencyFilter">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button">
-                                All Agencies
-                            </button>
-                            <div class="dropdown-menu filter-dropdown-menu" style="display: none;">
-                                <input type="text" class="form-control form-control-sm filter-search mb-2" placeholder="Search...">
-                                <div class="filter-options" style="max-height: 200px; overflow-y: auto;">
-                                    <!-- Options will be populated by JS -->
-                                </div>
-                                <div class="dropdown-divider"></div>
-                                <div class="px-2 py-1">
-                                    <button class="btn btn-sm btn-link select-all">Select All</button>
-                                    <button class="btn btn-sm btn-link clear-all">Clear All</button>
-                                </div>
-                            </div>
-                        </div>
+                        <select class="form-control form-control-sm" id="mainAgencyFilter">
+                            <option value="">All Agencies</option>
+                        </select>
                     </div>
                     <div class="col-md-2">
                         <label>Bureau</label>
-                        <div class="filter-dropdown" id="mainBureauFilter">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button">
-                                All Bureaus
-                            </button>
-                            <div class="dropdown-menu filter-dropdown-menu" style="display: none;">
-                                <input type="text" class="form-control form-control-sm filter-search mb-2" placeholder="Search...">
-                                <div class="filter-options" style="max-height: 200px; overflow-y: auto;">
-                                    <!-- Options will be populated by JS -->
-                                </div>
-                                <div class="dropdown-divider"></div>
-                                <div class="px-2 py-1">
-                                    <button class="btn btn-sm btn-link select-all">Select All</button>
-                                    <button class="btn btn-sm btn-link clear-all">Clear All</button>
-                                </div>
-                            </div>
-                        </div>
+                        <select class="form-control form-control-sm" id="mainBureauFilter">
+                            <option value="">All Bureaus</option>
+                        </select>
                     </div>
                     <div class="col-md-2">
                         <label>Period</label>
-                        <div class="filter-dropdown" id="mainPeriodFilter">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button">
-                                All Periods
-                            </button>
-                            <div class="dropdown-menu filter-dropdown-menu" style="display: none;">
-                                <input type="text" class="form-control form-control-sm filter-search mb-2" placeholder="Search...">
-                                <div class="filter-options" style="max-height: 200px; overflow-y: auto;">
-                                    <!-- Options will be populated by JS -->
-                                </div>
-                                <div class="dropdown-divider"></div>
-                                <div class="px-2 py-1">
-                                    <button class="btn btn-sm btn-link select-all">Select All</button>
-                                    <button class="btn btn-sm btn-link clear-all">Clear All</button>
-                                </div>
-                            </div>
-                        </div>
+                        <select class="form-control form-control-sm" id="mainPeriodFilter">
+                            <option value="">All Periods</option>
+                        </select>
                     </div>
                     <div class="col-md-2">
                         <label>Expiration Year</label>
-                        <div class="filter-dropdown" id="mainExpirationFilter">
-                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button">
-                                All Years
-                            </button>
-                            <div class="dropdown-menu filter-dropdown-menu" style="display: none;">
-                                <input type="text" class="form-control form-control-sm filter-search mb-2" placeholder="Search...">
-                                <div class="filter-options" style="max-height: 200px; overflow-y: auto;">
-                                    <!-- Options will be populated by JS -->
-                                </div>
-                                <div class="dropdown-divider"></div>
-                                <div class="px-2 py-1">
-                                    <button class="btn btn-sm btn-link select-all">Select All</button>
-                                    <button class="btn btn-sm btn-link clear-all">Clear All</button>
-                                </div>
-                            </div>
-                        </div>
+                        <select class="form-control form-control-sm" id="mainExpirationFilter">
+                            <option value="">All Years</option>
+                        </select>
                     </div>
                     <div class="col-md-2">
                         <label>% Unobligated</label>
@@ -493,9 +441,6 @@
                             <option value="agency">Agency Totals</option>
                         </select>
                     </div>
-                </div>
-                <div class="active-filters" id="activeFilters">
-                    <!-- Active filter badges will appear here -->
                 </div>
             </div>
         </div>
