@@ -443,13 +443,18 @@ function updateDependentFilters() {
     years.forEach(year => {
         $yearFilter.append(`<option value="${year}">${year}</option>`);
     });
-    if (years.includes(currentYear)) {
-        $yearFilter.val(currentYear);
-    }
     
-    // Default to 2025 if available
-    if (!currentYear && years.includes('2025')) {
-        $yearFilter.val('2025');
+    // Preserve current selection if it exists in the new list
+    if (currentYear !== null && currentYear !== undefined) {
+        // User has made a selection (including "All Years" which is empty string)
+        if (currentYear === '' || years.includes(currentYear)) {
+            $yearFilter.val(currentYear);
+        }
+    } else {
+        // No selection yet, default to 2025 if available
+        if (years.includes('2025')) {
+            $yearFilter.val('2025');
+        }
     }
 }
 
@@ -470,13 +475,17 @@ function populateMainFilters() {
     // Populate other dropdowns based on selected agency
     updateDependentFilters();
     
+    // Ensure year 2025 is selected by default on initial load
+    if ($('#mainExpirationFilter').val() === null || $('#mainExpirationFilter').val() === '') {
+        $('#mainExpirationFilter').val('2025');
+    }
+    
     // Set up change handlers
     $('#mainAgencyFilter, #mainBureauFilter, #mainPeriodFilter, #mainExpirationFilter').on('change', function() {
         updateDependentFilters();
         updateFiltersFromUI();
     });
     
-    // Ensure year 2025 is selected by default (updateDependentFilters should have set it)
     // Don't trigger filter update here - DataTable isn't initialized yet
     
     // Set up percentage filter
@@ -535,10 +544,16 @@ function populateMainFilters() {
 // Update filters from UI and display active filter badges
 function updateFiltersFromUI() {
     // Get selected values from single-select dropdowns
-    const agencies = $('#mainAgencyFilter').val() ? [$('#mainAgencyFilter').val()] : [];
-    const bureaus = $('#mainBureauFilter').val() ? [$('#mainBureauFilter').val()] : [];
-    const periods = $('#mainPeriodFilter').val() ? [$('#mainPeriodFilter').val()] : [];
-    const years = $('#mainExpirationFilter').val() ? [$('#mainExpirationFilter').val()] : [];
+    // Treat empty string ("All") as no filter, not as a filter value
+    const agencyVal = $('#mainAgencyFilter').val();
+    const bureauVal = $('#mainBureauFilter').val();
+    const periodVal = $('#mainPeriodFilter').val();
+    const yearVal = $('#mainExpirationFilter').val();
+    
+    const agencies = agencyVal && agencyVal !== '' ? [agencyVal] : [];
+    const bureaus = bureauVal && bureauVal !== '' ? [bureauVal] : [];
+    const periods = periodVal && periodVal !== '' ? [periodVal] : [];
+    const years = yearVal && yearVal !== '' ? [yearVal] : [];
     
     // Get percentage ranges from checkboxes
     const percentRanges = [];
@@ -1371,10 +1386,14 @@ function getFilteredAgencyData(forBubbleChart = false) {
         const key = forBubbleChart ? agency : `${agency}|${period}|${expiration}`;
         
         if (!aggregateMap.has(key)) {
+            // Check if filters are applied
+            const periodFilter = columnFilters.Period_of_Performance;
+            const yearFilter = columnFilters.Expiration_Year;
+            
             aggregateMap.set(key, {
                 name: agency,
-                period: forBubbleChart ? 'All' : period,
-                expiration: forBubbleChart ? 'All' : expiration,
+                period: forBubbleChart ? (periodFilter ? periodFilter.join(', ') : 'All') : period,
+                expiration: forBubbleChart ? (yearFilter ? yearFilter.join(', ') : 'All') : expiration,
                 budgetAuthority: 0,
                 unobligated: 0,
                 accountCount: 0,
@@ -1464,11 +1483,15 @@ function getFilteredBureauData(forBubbleChart = false) {
         const key = forBubbleChart ? `${agency}|${bureau}` : `${agency}|${bureau}|${period}|${expiration}`;
         
         if (!aggregateMap.has(key)) {
+            // Check if filters are applied
+            const periodFilter = columnFilters.Period_of_Performance;
+            const yearFilter = columnFilters.Expiration_Year;
+            
             aggregateMap.set(key, {
                 agency: agency,
                 name: bureau,
-                period: forBubbleChart ? 'All' : period,
-                expiration: forBubbleChart ? 'All' : expiration,
+                period: forBubbleChart ? (periodFilter ? periodFilter.join(', ') : 'All') : period,
+                expiration: forBubbleChart ? (yearFilter ? yearFilter.join(', ') : 'All') : expiration,
                 budgetAuthority: 0,
                 unobligated: 0,
                 accountCount: 0
