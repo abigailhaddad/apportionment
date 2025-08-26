@@ -12,13 +12,25 @@ def generate_all_agencies_summary():
     """Create a summary with all agencies from the combined SF 133 data."""
     
     # Read the combined structured data
-    df = pd.read_csv('data/selected_agencies_sf133_structured.csv')
+    df = pd.read_csv('data/selected_agencies_sf133_structured.csv', low_memory=False)
+    
+    # Convert Line No to numeric since it's stored as string
+    df['Line No'] = pd.to_numeric(df['Line No'], errors='coerce')
     
     # Filter for lines we need
     # Line 2490: Unobligated Balance end of year
     # Line 2500: Budget Authority
     line_2490 = df[df['Line No'] == 2490.0].copy()
     line_2500 = df[df['Line No'] == 2500.0].copy()
+    
+    # Special handling for Other Independent Agencies - use Col_9 for line numbers and Col_19 for June values
+    oia_2490 = df[(df['Agency'] == 'Other Independent Agencies') & (df['Col_9'] == '2490')].copy()
+    oia_2500 = df[(df['Agency'] == 'Other Independent Agencies') & (df['Col_9'] == '2500')].copy()
+    
+    # Add OIA data if found
+    if len(oia_2490) > 0 and len(oia_2500) > 0:
+        line_2490 = pd.concat([line_2490[line_2490['Agency'] != 'Other Independent Agencies'], oia_2490])
+        line_2500 = pd.concat([line_2500[line_2500['Agency'] != 'Other Independent Agencies'], oia_2500])
     
     # Month columns in order
     month_cols = ['Nov', 'Dec (1Q)', 'Jan', 'Feb', 'Mar (2Q)', 'Apr', 'May', 'Jun (3Q)', 'Jul', 'Aug', 'Sep (4Q)']
@@ -44,12 +56,44 @@ def generate_all_agencies_summary():
     
     # Merge the two lines on TAFS (Col_4 typically contains TAFS)
     # Also keep Agency, Bureau (Col_0), and Account (Col_1)
-    merged = pd.merge(
-        line_2490[['Agency', 'Col_0', 'Col_1', 'Col_4', june_col]],
-        line_2500[['Col_4', june_col]], 
+    
+    # For Other Independent Agencies, use Col_19 instead of June column
+    oia_mask_2490 = line_2490['Agency'] == 'Other Independent Agencies'
+    oia_mask_2500 = line_2500['Agency'] == 'Other Independent Agencies'
+    
+    # Regular agencies - use June column
+    regular_2490 = line_2490[~oia_mask_2490][['Agency', 'Col_0', 'Col_1', 'Col_4', june_col]]
+    regular_2500 = line_2500[~oia_mask_2500][['Col_4', june_col]]
+    
+    # OIA - use Col_19 as the value column
+    oia_2490 = line_2490[oia_mask_2490][['Agency', 'Col_0', 'Col_1', 'Col_4', 'Col_19']].copy()
+    oia_2500 = line_2500[oia_mask_2500][['Col_4', 'Col_19']].copy()
+    
+    # Rename Col_19 to match June column name for consistency
+    if len(oia_2490) > 0:
+        oia_2490 = oia_2490.rename(columns={'Col_19': june_col})
+        oia_2500 = oia_2500.rename(columns={'Col_19': june_col})
+    
+    # Merge regular agencies
+    merged_regular = pd.merge(
+        regular_2490,
+        regular_2500, 
         on='Col_4', 
         suffixes=('_2490', '_2500')
     )
+    
+    # Merge OIA separately if it exists
+    if len(oia_2490) > 0 and len(oia_2500) > 0:
+        merged_oia = pd.merge(
+            oia_2490,
+            oia_2500,
+            on='Col_4',
+            suffixes=('_2490', '_2500')
+        )
+        # Combine both merges
+        merged = pd.concat([merged_regular, merged_oia], ignore_index=True)
+    else:
+        merged = merged_regular
     
     # Create summary data
     summary_data = []
@@ -57,6 +101,10 @@ def generate_all_agencies_summary():
         try:
             unob = float(row[f'{june_col}_2490'])
             ba = float(row[f'{june_col}_2500'])
+            
+            # Convert to millions - all values are in dollars
+            unob = unob / 1_000_000
+            ba = ba / 1_000_000
             
             if ba > 0:
                 pct = (unob / ba * 100)
@@ -131,8 +179,8 @@ def generate_all_agencies_summary():
                     'Period_of_Performance': period_of_perf,
                     'Expiration_Year': expiration_year,
                     'TAFS': row['Col_4'],
-                    'Unobligated_Balance_M': round(unob / 1_000_000, 1),
-                    'Budget_Authority_M': round(ba / 1_000_000, 1),
+                    'Unobligated_Balance_M': round(unob, 1),
+                    'Budget_Authority_M': round(ba, 1),
                     'Percentage_Unobligated': round(pct, 1)
                 })
         except:
