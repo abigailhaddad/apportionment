@@ -1,13 +1,10 @@
 [build]
-  # Build command that Netlify runs
-  command = "python3 -m pip install -r requirements.txt && python3 main.py"
+  # No build command - this is a static site
+  # Data should be generated locally and committed to the repo
+  command = ""
   
   # Directory to deploy (contains index.html)
   publish = "."
-
-[build.environment]
-  # Use Python 3.9
-  PYTHON_VERSION = "3.9"
 
 # Headers for better performance
 [[headers]]
