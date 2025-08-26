@@ -8,7 +8,8 @@
 
 [build.environment]
   # Skip Python dependency installation
-  PYTHON_VERSION = ""
+  SKIP_PYTHON_DEPENDENCIES = "true"
+  NETLIFY_SKIP_PYTHON_DEPENDENCIES = "true"
 
 # Headers for better performance
 [[headers]]
