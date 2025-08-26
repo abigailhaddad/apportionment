@@ -3,234 +3,484 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DHS Budget Tools</title>
+    <title>Federal Agency SF 133 Obligation Summary</title>
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
         }
         
         .container {
-            max-width: 1000px;
+            max-width: 1400px;
             margin: 0 auto;
-        }
-        
-        .header {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            text-align: center;
-            margin-bottom: 30px;
+            padding: 20px;
         }
         
         h1 {
-            margin: 0 0 10px 0;
-            color: #333;
-            font-size: 36px;
+            color: #003366;
+            font-weight: 600;
+            margin-bottom: 10px;
         }
         
         .subtitle {
             color: #666;
-            font-size: 18px;
-            margin: 0;
-        }
-        
-        .tools-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
+            font-size: 1.1rem;
             margin-bottom: 30px;
         }
         
-        .tool-card {
+        .summary-stats {
             background: white;
-            padding: 30px;
+            padding: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: transform 0.2s, box-shadow 0.2s;
+            margin-bottom: 30px;
         }
         
-        .tool-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
-        
-        .tool-card h2 {
-            margin: 0 0 15px 0;
-            color: #333;
-            font-size: 24px;
-        }
-        
-        .tool-card p {
-            color: #666;
-            line-height: 1.6;
-            margin: 0 0 20px 0;
-        }
-        
-        .tool-link {
-            display: inline-block;
-            padding: 12px 24px;
-            background: #007bff;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: 500;
-            transition: background 0.2s;
-        }
-        
-        .tool-link:hover {
-            background: #0056b3;
-        }
-        
-        .lifecycle-link {
-            background: #28a745;
-        }
-        
-        .lifecycle-link:hover {
-            background: #218838;
-        }
-        
-        .trends-link {
-            background: #6f42c1;
-        }
-        
-        .trends-link:hover {
-            background: #5a32a3;
-        }
-        
-        .vendor-link {
-            background: #fd7e14;
-        }
-        
-        .vendor-link:hover {
-            background: #e96b00;
-        }
-        
-        .notice {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            color: #856404;
-        }
-        
-        @media (max-width: 768px) {
-            .tools-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            h1 {
-                font-size: 28px;
-            }
-            
-            .subtitle {
-                font-size: 16px;
-            }
-        }
-        
-        .data-warning {
-            background: #dc3545;
-            color: white;
-            padding: 15px;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            font-weight: 500;
+        .stat-box {
             text-align: center;
+            padding: 15px;
+            border-right: 1px solid #e9ecef;
         }
+        
+        .stat-box:last-child {
+            border-right: none;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #003366;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+        
+        .table-container {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .dataTables_wrapper .dataTables_filter input {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px 10px;
+            margin-left: 10px;
+        }
+        
+        .dataTables_wrapper .dataTables_length select {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px;
+        }
+        
+        table.dataTable {
+            border-collapse: collapse !important;
+        }
+        
+        table.dataTable thead th {
+            background-color: #003366;
+            color: white;
+            font-weight: 600;
+            border-bottom: none !important;
+            white-space: nowrap;
+            position: relative;
+            cursor: pointer;
+        }
+        
+        table.dataTable thead th.filtering {
+            background-color: #00508f;
+        }
+        
+        table.dataTable tbody tr:hover {
+            background-color: #f0f8ff;
+        }
+        
+        table.dataTable tbody td {
+            padding: 12px;
+            vertical-align: middle;
+        }
+        
+        .percentage-cell {
+            font-weight: 600;
+        }
+        
+        .high-percentage {
+            color: #d32f2f;
+        }
+        
+        .medium-percentage {
+            color: #f57c00;
+        }
+        
+        .low-percentage {
+            color: #388e3c;
+        }
+        
+        .expiring-soon {
+            background-color: #fff3cd;
+        }
+        
+        .no-year {
+            background-color: #e8f4f8;
+        }
+        
+        /* Column filter styles */
+        .column-filter-container {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 10px;
+            z-index: 1000;
+            min-width: 200px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .column-filter-container input[type="text"] {
+            width: 100%;
+            padding: 5px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        
+        .column-filter-container label {
+            display: block;
+            padding: 3px 0;
+            cursor: pointer;
+        }
+        
+        .column-filter-container label:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .column-filter-container input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        
+        .filter-buttons {
+            margin-top: 10px;
+            text-align: right;
+        }
+        
+        .filter-buttons button {
+            margin-left: 5px;
+            padding: 3px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        
+        .filter-buttons button.apply {
+            background: #003366;
+            color: white;
+        }
+        
+        .filter-buttons button:hover {
+            opacity: 0.8;
+        }
+        
+        th.has-filter::after {
+            content: " ▼";
+            font-size: 0.8em;
+            opacity: 0.5;
+        }
+        
+        /* Bubble chart styles */
+        .treemap-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .treemap-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #003366;
+            margin-bottom: 15px;
+        }
+        
+        #bubble-chart {
+            width: 100%;
+            height: 460px;
+            position: relative;
+        }
+        
+        .bubble {
+            cursor: pointer;
+            opacity: 0.8;
+            transition: all 0.3s;
+        }
+        
+        .bubble:hover {
+            opacity: 1;
+            stroke: #003366;
+            stroke-width: 3;
+        }
+        
+        .axis-label {
+            font-size: 14px;
+            font-weight: 600;
+            fill: #333;
+        }
+        
+        .grid line {
+            stroke: #e0e0e0;
+            stroke-opacity: 0.7;
+            shape-rendering: crispEdges;
+        }
+        
+        .grid path {
+            stroke-width: 0;
+        }
+        
+        .quadrant-label {
+            fill: #666;
+            font-size: 12px;
+            font-style: italic;
+            opacity: 0.7;
+        }
+        
+        /* Filter section styles */
+        .filter-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        .filter-section h3 {
+            color: #003366;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+        
+        .filter-controls label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .active-filters {
+            margin-top: 15px;
+            min-height: 30px;
+        }
+        
+        .filter-badge {
+            display: inline-block;
+            background: #003366;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            margin-right: 10px;
+            margin-bottom: 5px;
+            font-size: 0.85rem;
+        }
+        
+        .filter-badge .remove-filter {
+            margin-left: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .filter-badge .remove-filter:hover {
+            color: #ff6b6b;
+        }
+        
+        /* Multi-select dropdown styles */
+        .filter-dropdown {
+            position: relative;
+        }
+        
+        .filter-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 10px;
+            margin-top: 2px;
+        }
+        
+        .filter-dropdown-menu label {
+            cursor: pointer;
+        }
+        
+        .filter-dropdown-menu label:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .filter-dropdown-menu .filter-search {
+            margin-bottom: 5px;
+        }
+        
+        .filter-dropdown-menu .filter-options label {
+            padding: 3px 8px;
+            margin: 0;
+            display: block;
+        }
+        
+        .filter-dropdown-menu input[type="checkbox"] {
+            margin-right: 8px;
+        }
+        
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>DHS Budget Analysis Tools</h1>
-            <p class="subtitle">Explore Department of Homeland Security budget data</p>
-            <div style="background-color: #ffebee; border: 2px solid #f44336; border-radius: 8px; padding: 15px; margin-top: 20px; text-align: left;">
-                <p style="color: #d32f2f; margin: 0; font-weight: 600; font-size: 16px;">
-                    ⚠️ IMPORTANT: This tool is still in development. Please contact me before using it for any analysis.
-                </p>
+        <h1>Federal Agency SF 133 Obligation Summary</h1>
+        <p class="subtitle">Budget Execution Report - June 2025</p>
+        
+        <div class="summary-stats">
+            <div class="row">
+                <div class="col-md-3 stat-box">
+                    <div class="stat-value" id="totalBudget">Loading...</div>
+                    <div class="stat-label">Total Budget Authority</div>
+                </div>
+                <div class="col-md-3 stat-box">
+                    <div class="stat-value" id="totalUnobligated">Loading...</div>
+                    <div class="stat-label">Total Unobligated</div>
+                </div>
+                <div class="col-md-3 stat-box">
+                    <div class="stat-value" id="overallPercentage">Loading...</div>
+                    <div class="stat-label">Percent Unobligated</div>
+                </div>
+                <div class="col-md-3 stat-box">
+                    <div class="stat-value" id="accountCount">Loading...</div>
+                    <div class="stat-label">Total Accounts</div>
+                </div>
             </div>
         </div>
         
-        <div class="notice">
-            <strong>Note:</strong> This site provides analysis tools for DHS budget data. Data is sourced from USAspending.gov and congressional appropriations.
-            <div style="margin-top: 10px; font-size: 14px; color: #666;">
-                <strong>Data Currency:</strong>
-                <ul style="margin: 5px 0 0 20px;">
-                    <li>Apportionment data: <span id="apportionmentDataSummary">Loading...</span></li>
-                    <li>USAspending data: <span id="usaspendingDataSummary">Loading...</span></li>
-                </ul>
+        <!-- Unified Filter Section -->
+        <div class="filter-section">
+            <h3>Filters & Display Options</h3>
+            <div class="filter-controls">
+                <div class="row mb-3">
+                    <div class="col-md-2">
+                        <label>Agency</label>
+                        <select class="form-control form-control-sm" id="mainAgencyFilter">
+                            <option value="">All Agencies</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Bureau</label>
+                        <select class="form-control form-control-sm" id="mainBureauFilter">
+                            <option value="">All Bureaus</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Period</label>
+                        <select class="form-control form-control-sm" id="mainPeriodFilter">
+                            <option value="">All Periods</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>Expiration Year</label>
+                        <select class="form-control form-control-sm" id="mainExpirationFilter">
+                            <option value="">All Years</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label>% Unobligated</label>
+                        <div class="filter-dropdown" id="mainPercentageFilter">
+                            <button class="btn btn-sm btn-outline-secondary dropdown-toggle w-100" type="button">
+                                All Ranges
+                            </button>
+                            <div class="dropdown-menu filter-dropdown-menu" style="display: none;">
+                                <div class="filter-options">
+                                    <label class="d-block px-2 py-1 mb-0">
+                                        <input type="checkbox" value="0-25" checked> 0-25%
+                                    </label>
+                                    <label class="d-block px-2 py-1 mb-0">
+                                        <input type="checkbox" value="25-50" checked> 25-50%
+                                    </label>
+                                    <label class="d-block px-2 py-1 mb-0">
+                                        <input type="checkbox" value="50-75" checked> 50-75%
+                                    </label>
+                                    <label class="d-block px-2 py-1 mb-0">
+                                        <input type="checkbox" value="75-100" checked> 75-100%
+                                    </label>
+                                </div>
+                                <div class="dropdown-divider"></div>
+                                <div class="px-2 py-1">
+                                    <button class="btn btn-sm btn-link select-all">Select All</button>
+                                    <button class="btn btn-sm btn-link clear-all">Clear All</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label for="aggregationLevel">View By</label>
+                        <select id="aggregationLevel" class="form-control form-control-sm">
+                            <option value="individual">Individual Accounts</option>
+                            <option value="bureau" selected>Bureau Totals</option>
+                            <option value="agency">Agency Totals</option>
+                        </select>
+                    </div>
+                </div>
             </div>
         </div>
         
-        <div class="tools-grid">
-            <div class="tool-card" style="grid-column: 1 / -1;">
-                <h2>📊 DHS Budget Dashboard</h2>
-                <p style="font-size: 18px; margin: 20px 0;">
-                    A unified view of DHS appropriations and spending. See recent apportionments, 
-                    spending trends by component and category, top vendors, and year-over-year changes 
-                    all in one place.
-                </p>
-                <a href="dashboard.html" class="tool-link" style="font-size: 18px; padding: 15px 30px;">Open Dashboard →</a>
-            </div>
+        <div class="treemap-container">
+            <h2 class="treemap-title">Budget Authority vs. Unobligated Balance</h2>
+            <div id="bubble-chart"></div>
         </div>
         
-        <div style="margin-top: 40px; padding: 20px; background: #e9ecef; border-radius: 8px;">
-            <h3 style="margin-bottom: 15px;">Additional Tools</h3>
-            <p style="margin-bottom: 10px;">For detailed analysis and data exploration:</p>
-            <ul style="list-style: none; padding: 0;">
-                <li style="margin-bottom: 8px;">
-                    <a href="appropriations_detail.html" style="color: #007bff;">
-                        📄 Appropriations Detail Browser
-                    </a> - Search line-level apportionment data
-                </li>
-                <li style="margin-bottom: 8px;">
-                    <a href="explorer.html" style="color: #007bff;">
-                        🔍 Budget Explorer
-                    </a> - Interactive treemap visualization
-                </li>
-                <li style="margin-bottom: 8px;">
-                    <a href="spending_lifecycle.html" style="color: #007bff;">
-                        🔄 Spending Lifecycle
-                    </a> - Track funds from appropriation to outlay
-                </li>
-                <li style="margin-bottom: 8px;">
-                    <a href="vendor_analysis.html" style="color: #007bff;">
-                        🏢 Vendor Analysis
-                    </a> - Detailed contractor and grantee data
-                </li>
-            </ul>
+        <div class="table-container">
+            <table id="obligationTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Agency</th>
+                        <th>Bureau</th>
+                        <th>Account</th>
+                        <th>Account Number</th>
+                        <th>Period</th>
+                        <th>Expiration</th>
+                        <th>Unobligated (2490)</th>
+                        <th>Budget Authority (2500)</th>
+                        <th>% Unobligated</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
         </div>
     </div>
     
-    <script src="js/data_availability.js"></script>
-    <script src="js/apportionment_info.js"></script>
-    <script>
-        // Update data availability on page load
-        document.addEventListener('DOMContentLoaded', async function() {
-            // Update USAspending data summary
-            try {
-                const availability = await getUSAspendingDataAvailability();
-                const summary = getUSAspendingDataSummary(availability);
-                document.getElementById('usaspendingDataSummary').textContent = summary;
-            } catch (error) {
-                // Fallback to known information
-                document.getElementById('usaspendingDataSummary').textContent = 
-                    'FY2025 through June (Q3), FY2022-2024 complete';
-            }
-            
-            // Update apportionment data summary
-            try {
-                const apportionmentInfo = await getApportionmentInfo();
-                document.getElementById('apportionmentDataSummary').textContent = apportionmentInfo;
-            } catch (error) {
-                document.getElementById('apportionmentDataSummary').textContent = 
-                    'Data current as of last update';
-            }
-        });
-    </script>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- DataTables JS -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <!-- D3.js for Treemap -->
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <script src="app.js"></script>
 </body>
 </html>
