@@ -350,9 +350,31 @@
     </style>
 </head>
 <body>
+    <!-- Work in Progress Banner -->
+    <div class="alert alert-warning mb-0" role="alert">
+        <div class="container">
+            <strong>🚧 Active Development:</strong> I am still working on this tool. 
+            Use at your own risk, or talk to me! To see the code, please visit the 
+            <a href="https://github.com/abigailhaddad/apportionment" target="_blank" class="alert-link">GitHub repository</a>.
+        </div>
+    </div>
+
     <div class="container">
         <h1>Federal Agency SF 133 Obligation Summary</h1>
         <p class="subtitle">Budget Execution Report - June 2025</p>
+        
+        <!-- Data Source Attribution -->
+        <div class="text-center text-muted mb-4">
+            <small>
+                Data source: <a href="https://portal.max.gov/portal/document/SF133/Budget/FY%202025%20-%20SF%20133%20Reports%20on%20Budget%20Execution%20and%20Budgetary%20Resources.html" target="_blank" class="text-decoration-none">
+                    MAX.gov FY 2025 - SF 133 Reports on Budget Execution and Budgetary Resources
+                </a>
+                <br>
+                View code and report issues: <a href="https://github.com/abigailhaddad/apportionment" target="_blank" class="text-decoration-none">
+                    github.com/abigailhaddad/apportionment
+                </a>
+            </small>
+        </div>
         
         <div class="summary-stats">
             <div class="row">
@@ -370,7 +392,7 @@
                 </div>
                 <div class="col-md-3 stat-box">
                     <div class="stat-value" id="accountCount">Loading...</div>
-                    <div class="stat-label">Total Accounts</div>
+                    <div class="stat-label">Count</div>
                 </div>
             </div>
         </div>
