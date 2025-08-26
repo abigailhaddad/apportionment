@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Department of Education - Obligation Summary</title>
+    <title>Federal Agency SF 133 Obligation Summary</title>
     
     <!-- DataTables CSS -->
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
@@ -311,7 +311,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Department of Education - SF 133 Obligation Summary</h1>
+        <h1>Federal Agency SF 133 Obligation Summary</h1>
         <p class="subtitle">Budget Execution Report - June 2025</p>
         
         <div class="summary-stats">
@@ -341,6 +341,12 @@
             <div class="filter-controls">
                 <div class="row mb-3">
                     <div class="col-md-2">
+                        <label for="mainAgencyFilter">Agency</label>
+                        <select id="mainAgencyFilter" class="form-control form-control-sm">
+                            <option value="">All Agencies</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
                         <label for="mainBureauFilter">Bureau</label>
                         <select id="mainBureauFilter" class="form-control form-control-sm">
                             <option value="">All Bureaus</option>
@@ -358,19 +364,23 @@
                             <option value="">All Years</option>
                         </select>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-1">
                         <label for="mainPercentageFilter">% Unobligated</label>
                         <select id="mainPercentageFilter" class="form-control form-control-sm">
-                            <option value="">All Ranges</option>
+                            <option value="">All</option>
                             <option value="0-25">0-25%</option>
                             <option value="25-50">25-50%</option>
                             <option value="50-75">50-75%</option>
                             <option value="75-100">75-100%</option>
                         </select>
                     </div>
-                    <div class="col-md-2">
-                        <label>&nbsp;</label>
-                        <button id="mainAggregateToggle" class="btn btn-sm btn-primary w-100">Show Bureau Totals</button>
+                    <div class="col-md-1">
+                        <label for="aggregationLevel">View By</label>
+                        <select id="aggregationLevel" class="form-control form-control-sm">
+                            <option value="individual">Individual Accounts</option>
+                            <option value="bureau">Bureau Totals</option>
+                            <option value="agency">Agency Totals</option>
+                        </select>
                     </div>
                 </div>
                 <div class="active-filters" id="activeFilters">
@@ -388,6 +398,7 @@
             <table id="obligationTable" class="table table-striped">
                 <thead>
                     <tr>
+                        <th>Agency</th>
                         <th>Bureau</th>
                         <th>Account</th>
                         <th>Account Number</th>

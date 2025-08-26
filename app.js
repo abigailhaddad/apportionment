@@ -1,11 +1,117 @@
-// Department of Education Obligation Summary - DataTables Implementation
+// Federal Agency Obligation Summary - DataTables Implementation
 
 let dataTable;
 let obligationData = [];
 let columnFilters = {};
+let agencyData = [];
 let bureauData = [];
-let bureauColorScale;
+let agencyColorScale;
 let showBureauAggregates = false;
+let aggregationLevel = 'individual'; // 'individual', 'bureau', or 'agency'
+let bureauColorMap = new Map(); // Store consistent bureau colors
+let bureauColorIndex = 0;
+
+// Tableau 20 colors for consistent bureau coloring
+const tableau20 = [
+    '#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c',
+    '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5',
+    '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f',
+    '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5'
+];
+
+// Define agency colors - using d3 color schemes
+const AGENCY_COLORS = {
+    "Legislative Branch": "#1f77b4",
+    "Judicial Branch": "#ff7f0e", 
+    "Department of Agriculture": "#2ca02c",
+    "Department of Commerce": "#d62728",
+    "Department of Defense-Military": "#9467bd",
+    "Department of Education": "#8c564b",
+    "Department of Energy": "#e377c2",
+    "Department of Health and Human Services": "#7f7f7f",
+    "Department of Homeland Security": "#bcbd22",
+    "Department of Housing and Urban Development": "#17becf",
+    "Department of the Interior": "#aec7e8",
+    "Department of Justice": "#ffbb78",
+    "Department of Labor": "#98df8a",
+    "Department of State": "#ff9896",
+    "Department of Transportation": "#c5b0d5",
+    "Department of the Treasury": "#c49c94",
+    "Department of Veterans Affairs": "#f7b6d2",
+    "Corps of Engineers-Civil Works": "#c7c7c7",
+    "Other Defense Civil Programs": "#dbdb8d",
+    "Environmental Protection Agency": "#9edae5",
+    "Executive Office of the President": "#393b79",
+    "General Services Administration": "#5254a3",
+    "International Assistance Programs": "#6b6ecf",
+    "National Aeronautics and Space Administration": "#9c9ede",
+    "National Science Foundation": "#637939",
+    "Office of Personnel Management": "#8ca252",
+    "Small Business Administration": "#b5cf6b",
+    "Social Security Administration": "#cedb9c",
+    "Other Independent Agencies": "#e7cb94"
+};
+
+// Get color for bureau based on parent agency
+function getBureauColor(bureau, agency) {
+    const baseColor = AGENCY_COLORS[agency] || '#999999';
+    const color = d3.color(baseColor);
+    
+    // Create more distinct variations using both saturation and lightness
+    const bureauHash = bureau.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    
+    // Create 7 distinct variations
+    const variationIndex = bureauHash % 7;
+    
+    switch(variationIndex) {
+        case 0: // Original color
+            return baseColor;
+        case 1: // Lighter
+            return color.brighter(0.6).toString();
+        case 2: // Darker
+            return color.darker(0.6).toString();
+        case 3: // More saturated
+            if (color.s) {
+                const hsl = d3.hsl(color);
+                hsl.s = Math.min(1, hsl.s * 1.3);
+                return hsl.toString();
+            }
+            return color.brighter(0.3).toString();
+        case 4: // Less saturated
+            if (color.s) {
+                const hsl = d3.hsl(color);
+                hsl.s = hsl.s * 0.7;
+                return hsl.toString();
+            }
+            return color.darker(0.3).toString();
+        case 5: // Lighter + more saturated
+            if (color.s) {
+                const hsl = d3.hsl(color);
+                hsl.s = Math.min(1, hsl.s * 1.2);
+                hsl.l = Math.min(0.9, hsl.l * 1.2);
+                return hsl.toString();
+            }
+            return color.brighter(0.8).toString();
+        case 6: // Darker + less saturated
+            if (color.s) {
+                const hsl = d3.hsl(color);
+                hsl.s = hsl.s * 0.8;
+                hsl.l = hsl.l * 0.8;
+                return hsl.toString();
+            }
+            return color.darker(0.5).toString();
+    }
+}
+
+// Get consistent bureau color
+function getConsistentBureauColor(bureau) {
+    // If we haven't assigned a color to this bureau yet, assign one
+    if (!bureauColorMap.has(bureau)) {
+        bureauColorMap.set(bureau, tableau20[bureauColorIndex % tableau20.length]);
+        bureauColorIndex++;
+    }
+    return bureauColorMap.get(bureau);
+}
 
 // Format currency values
 function formatCurrency(value) {
@@ -23,7 +129,7 @@ function formatPercentage(value) {
 async function loadData() {
     try {
         console.log('Starting to load CSV data...');
-        const response = await fetch('data/education_obligation_summary_enhanced.csv');
+        const response = await fetch('data/all_agencies_obligation_summary.csv');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
@@ -58,14 +164,9 @@ async function loadData() {
             obligationData.push(row);
         }
         
-        // Calculate bureau-level aggregations
+        // Calculate agency and bureau-level aggregations
+        aggregateAgencyData();
         aggregateBureauData();
-        
-        // Create bureau color scale
-        const bureauNames = [...new Set(obligationData.map(d => d.Bureau))].filter(b => b).sort();
-        bureauColorScale = d3.scaleOrdinal()
-            .domain(bureauNames)
-            .range(d3.schemeTableau10.concat(d3.schemePastel1));
         
         // Calculate summary statistics
         updateSummaryStats();
@@ -76,7 +177,8 @@ async function loadData() {
         // Initialize DataTable
         initializeDataTable();
         
-        // Set default filter to 2025 expiration
+        // Set default filter to Department of Education and 2025 expiration
+        $('#mainAgencyFilter').val('Department of Education');
         $('#mainExpirationFilter').val('2025').trigger('change');
         
     } catch (error) {
@@ -156,27 +258,76 @@ function createPercentageRangeFilter() {
     return html;
 }
 
-// Aggregate data by bureau
+// Aggregate data by agency
+function aggregateAgencyData() {
+    const agencyMap = new Map();
+    
+    obligationData.forEach(row => {
+        const agency = row.Agency || 'Other';
+        const period = row.Period_of_Performance || 'Unknown';
+        const expiration = row.Expiration_Year || 'Unknown';
+        const key = `${agency}|${period}|${expiration}`;
+        
+        if (!agencyMap.has(key)) {
+            agencyMap.set(key, {
+                name: agency,
+                period: period,
+                expiration: expiration,
+                budgetAuthority: 0,
+                unobligated: 0,
+                accountCount: 0,
+                bureaus: new Set()
+            });
+        }
+        
+        const agencyInfo = agencyMap.get(key);
+        agencyInfo.budgetAuthority += row.budgetAuthorityValue;
+        agencyInfo.unobligated += row.unobligatedValue;
+        agencyInfo.accountCount += 1;
+        if (row.Bureau) {
+            agencyInfo.bureaus.add(row.Bureau);
+        }
+    });
+    
+    // Convert to array and calculate percentages
+    agencyData = Array.from(agencyMap.values()).map(agency => ({
+        ...agency,
+        bureauCount: agency.bureaus.size,
+        percentageUnobligated: agency.budgetAuthority > 0 ? 
+            (agency.unobligated / agency.budgetAuthority * 100) : 0
+    }));
+    
+    // Sort by budget authority descending
+    agencyData.sort((a, b) => b.budgetAuthority - a.budgetAuthority);
+}
+
+// Aggregate data by bureau/period/expiration
 function aggregateBureauData() {
     const bureauMap = new Map();
     
     obligationData.forEach(row => {
+        const agency = row.Agency || 'Other';
         const bureau = row.Bureau || 'Other';
-        if (!bureauMap.has(bureau)) {
-            bureauMap.set(bureau, {
+        const period = row.Period_of_Performance || 'Unknown';
+        const expiration = row.Expiration_Year || 'Unknown';
+        const key = `${agency}|${bureau}|${period}|${expiration}`;
+        
+        if (!bureauMap.has(key)) {
+            bureauMap.set(key, {
+                agency: agency,
                 name: bureau,
+                period: period,
+                expiration: expiration,
                 budgetAuthority: 0,
                 unobligated: 0,
-                accountCount: 0,
-                accounts: []
+                accountCount: 0
             });
         }
         
-        const bureauInfo = bureauMap.get(bureau);
+        const bureauInfo = bureauMap.get(key);
         bureauInfo.budgetAuthority += row.budgetAuthorityValue;
         bureauInfo.unobligated += row.unobligatedValue;
         bureauInfo.accountCount += 1;
-        bureauInfo.accounts.push(row);
     });
     
     // Convert to array and calculate percentages
@@ -205,9 +356,16 @@ function updateSummaryStats() {
 // Populate main filter dropdowns
 function populateMainFilters() {
     // Get unique values
+    const agencies = [...new Set(obligationData.map(row => row.Agency))].filter(a => a).sort();
     const bureaus = [...new Set(obligationData.map(row => row.Bureau))].filter(b => b).sort();
     const periods = [...new Set(obligationData.map(row => row.Period_of_Performance))].filter(p => p).sort();
     const years = [...new Set(obligationData.map(row => row.Expiration_Year))].filter(y => y).sort();
+    
+    // Populate agency filter
+    const agencySelect = $('#mainAgencyFilter');
+    agencies.forEach(agency => {
+        agencySelect.append(`<option value="${agency}">${agency}</option>`);
+    });
     
     // Populate bureau filter
     const bureauSelect = $('#mainBureauFilter');
@@ -228,37 +386,107 @@ function populateMainFilters() {
     });
     
     // Set up event handlers for all main filters
-    $('#mainBureauFilter, #mainPeriodFilter, #mainExpirationFilter, #mainPercentageFilter').on('change', function() {
+    $('#mainAgencyFilter, #mainBureauFilter, #mainPeriodFilter, #mainExpirationFilter, #mainPercentageFilter').on('change', function() {
         updateFiltersFromUI();
     });
     
-    // Set up aggregate toggle button
-    $('#mainAggregateToggle').on('click', function() {
-        showBureauAggregates = !showBureauAggregates;
-        $(this).text(showBureauAggregates ? 'Show Individual Accounts' : 'Show Bureau Totals');
+    // Set up aggregation level change handler
+    $('#aggregationLevel').on('change', function() {
+        aggregationLevel = $(this).val();
         
         // Update both table and chart
-        if (showBureauAggregates) {
-            showAggregatedTable();
+        if (aggregationLevel === 'agency') {
+            showAggregatedTable('agency');
+        } else if (aggregationLevel === 'bureau') {
+            showAggregatedTable('bureau');
         } else {
             showDetailedTable();
         }
         initializeBubbleChart();
+        // Stats are now updated within showAggregatedTable and showDetailedTable
     });
 }
 
 // Update filters from UI and display active filter badges
 function updateFiltersFromUI() {
+    const agency = $('#mainAgencyFilter').val();
     const bureau = $('#mainBureauFilter').val();
     const period = $('#mainPeriodFilter').val();
     const year = $('#mainExpirationFilter').val();
     const percentage = $('#mainPercentageFilter').val();
     
     // Update column filters
+    columnFilters.Agency = agency ? [agency] : null;
     columnFilters.Bureau = bureau ? [bureau] : null;
     columnFilters.Period_of_Performance = period ? [period] : null;
     columnFilters.Expiration_Year = year ? [year] : null;
     columnFilters.Percentage_Ranges = percentage ? [percentage] : null;
+    
+    // Helper function to get filtered data based on all current filters
+    const getFilteredData = (includeAgency, includeBureau, includePeriod, includeYear) => {
+        let filtered = obligationData;
+        
+        if (includeAgency && agency) {
+            filtered = filtered.filter(row => row.Agency === agency);
+        }
+        if (includeBureau && bureau) {
+            filtered = filtered.filter(row => row.Bureau === bureau);
+        }
+        if (includePeriod && period) {
+            filtered = filtered.filter(row => row.Period_of_Performance === period);
+        }
+        if (includeYear && year) {
+            filtered = filtered.filter(row => row.Expiration_Year === year);
+        }
+        if (percentage) {
+            const [min, max] = percentage.split('-').map(v => parseFloat(v));
+            filtered = filtered.filter(row => row.percentageValue >= min && row.percentageValue <= max);
+        }
+        
+        return filtered;
+    };
+    
+    // Update bureau options - filter by agency and other active filters
+    const bureauSelect = $('#mainBureauFilter');
+    const currentBureau = bureauSelect.val();
+    const bureauFiltered = getFilteredData(true, false, true, true); // Include agency, period, year filters
+    const availableBureaus = [...new Set(bureauFiltered.map(row => row.Bureau).filter(b => b))].sort();
+    bureauSelect.empty();
+    bureauSelect.append('<option value="">All Bureaus</option>');
+    availableBureaus.forEach(b => {
+        bureauSelect.append(`<option value="${b}">${b}</option>`);
+    });
+    if (availableBureaus.includes(currentBureau)) {
+        bureauSelect.val(currentBureau);
+    }
+    
+    // Update period options - filter by agency, bureau, and year
+    const periodSelect = $('#mainPeriodFilter');
+    const currentPeriod = periodSelect.val();
+    const periodFiltered = getFilteredData(true, true, false, true); // Include agency, bureau, year filters
+    const availablePeriods = [...new Set(periodFiltered.map(row => row.Period_of_Performance).filter(p => p))].sort();
+    periodSelect.empty();
+    periodSelect.append('<option value="">All Periods</option>');
+    availablePeriods.forEach(p => {
+        periodSelect.append(`<option value="${p}">${p}</option>`);
+    });
+    if (availablePeriods.includes(currentPeriod)) {
+        periodSelect.val(currentPeriod);
+    }
+    
+    // Update expiration year options - filter by agency, bureau, and period
+    const yearSelect = $('#mainExpirationFilter');
+    const currentYear = yearSelect.val();
+    const yearFiltered = getFilteredData(true, true, true, false); // Include agency, bureau, period filters
+    const availableYears = [...new Set(yearFiltered.map(row => row.Expiration_Year).filter(y => y))].sort();
+    yearSelect.empty();
+    yearSelect.append('<option value="">All Years</option>');
+    availableYears.forEach(y => {
+        yearSelect.append(`<option value="${y}">${y}</option>`);
+    });
+    if (availableYears.includes(currentYear)) {
+        yearSelect.val(currentYear);
+    }
     
     // Update active filter badges
     updateActiveFilterBadges();
@@ -273,6 +501,14 @@ function updateActiveFilterBadges() {
     $activeFilters.empty();
     
     const filters = [];
+    
+    if ($('#mainAgencyFilter').val()) {
+        filters.push({
+            type: 'Agency',
+            value: $('#mainAgencyFilter').val(),
+            id: 'mainAgencyFilter'
+        });
+    }
     
     if ($('#mainBureauFilter').val()) {
         filters.push({
@@ -332,12 +568,23 @@ function initializeDataTable() {
         data: obligationData,
         columns: [
             { 
-                data: 'Bureau',
+                data: 'Agency',
                 render: function(data, type, row) {
-                    if (type === 'display' && data && bureauColorScale) {
-                        const color = bureauColorScale(data);
+                    if (type === 'display' && data) {
+                        const color = AGENCY_COLORS[data] || '#999';
                         return `<span style="display: inline-block; width: 12px; height: 12px; 
                                 background-color: ${color}; border-radius: 50%; margin-right: 8px;"></span>${data}`;
+                    }
+                    return data || '';
+                }
+            },
+            { 
+                data: 'Bureau',
+                render: function(data, type, row) {
+                    if (type === 'display' && data) {
+                        const color = getConsistentBureauColor(data);
+                        return `<span style="display: inline-block; width: 10px; height: 10px; 
+                                background-color: ${color}; border-radius: 50%; margin-right: 6px;"></span>${data}`;
                     }
                     return data || '';
                 }
@@ -406,7 +653,7 @@ function initializeDataTable() {
         ],
         pageLength: 25,
         lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-        order: [[6, 'desc']], // Sort by Budget Authority descending
+        order: [[7, 'desc']], // Sort by Budget Authority descending
         language: {
             search: "Search accounts:",
             lengthMenu: "Show _MENU_ accounts per page",
@@ -432,10 +679,11 @@ function initializeDataTable() {
 function setupColumnFilters() {
     // Define which columns should have filters
     const filterColumns = [
-        { index: 0, name: 'Bureau' },
-        { index: 3, name: 'Period_of_Performance' },
-        { index: 4, name: 'Expiration_Year' },
-        { index: 7, name: 'Percentage_Unobligated' }
+        { index: 0, name: 'Agency' },
+        { index: 1, name: 'Bureau' },
+        { index: 4, name: 'Period_of_Performance' },
+        { index: 5, name: 'Expiration_Year' },
+        { index: 8, name: 'Percentage_Unobligated' }
     ];
     
     // Add click handlers to specific column headers
@@ -588,9 +836,17 @@ function applyAllFilters() {
     $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
         let show = true;
         
+        // Check Agency filter
+        if (columnFilters.Agency && columnFilters.Agency.length > 0) {
+            const agencyValue = data[0];
+            if (!columnFilters.Agency.includes(agencyValue)) {
+                show = false;
+            }
+        }
+        
         // Check Bureau filter
-        if (columnFilters.Bureau && columnFilters.Bureau.length > 0) {
-            const bureauValue = data[0];
+        if (show && columnFilters.Bureau && columnFilters.Bureau.length > 0) {
+            const bureauValue = data[1];
             if (!columnFilters.Bureau.includes(bureauValue)) {
                 show = false;
             }
@@ -598,7 +854,7 @@ function applyAllFilters() {
         
         // Check Period filter
         if (show && columnFilters.Period_of_Performance && columnFilters.Period_of_Performance.length > 0) {
-            const periodValue = data[3];
+            const periodValue = data[4];
             if (!columnFilters.Period_of_Performance.includes(periodValue)) {
                 show = false;
             }
@@ -606,7 +862,7 @@ function applyAllFilters() {
         
         // Check Expiration Year filter
         if (show && columnFilters.Expiration_Year && columnFilters.Expiration_Year.length > 0) {
-            const yearValue = data[4];
+            const yearValue = data[5];
             if (!columnFilters.Expiration_Year.includes(yearValue)) {
                 show = false;
             }
@@ -614,7 +870,7 @@ function applyAllFilters() {
         
         // Check percentage range filter
         if (show && columnFilters.Percentage_Ranges && columnFilters.Percentage_Ranges.length > 0) {
-            const percentage = parseFloat(data[7].replace(/<[^>]*>/g, '').replace('%', ''));
+            const percentage = parseFloat(data[8].replace(/<[^>]*>/g, '').replace('%', ''));
             let inRange = false;
             
             for (const range of columnFilters.Percentage_Ranges) {
@@ -633,15 +889,20 @@ function applyAllFilters() {
         return show;
     });
     
-    // Redraw table or show aggregated view
-    if (showBureauAggregates) {
+    // Redraw table based on current aggregation level
+    if (aggregationLevel === 'agency') {
         // Remove the custom filter temporarily for aggregated view
         $.fn.dataTable.ext.search = [];
-        showAggregatedTable();
+        showAggregatedTable('agency');
+    } else if (aggregationLevel === 'bureau') {
+        // Remove the custom filter temporarily for aggregated view
+        $.fn.dataTable.ext.search = [];
+        showAggregatedTable('bureau');
     } else {
+        // Individual accounts - apply the filter and draw
         dataTable.draw();
+        updateFilteredStats();
     }
-    updateFilteredStats();
     
     // Update bubble chart
     initializeBubbleChart();
@@ -679,17 +940,22 @@ function initializeBubbleChart() {
     const width = container.node().getBoundingClientRect().width - margin.left - margin.right;
     const height = 400 - margin.top - margin.bottom;
     
-    // Show bureau aggregates or individual accounts based on toggle
+    // Show data based on aggregation level
     let dataToShow, bubbleLabel;
     
-    if (showBureauAggregates) {
+    if (aggregationLevel === 'agency') {
+        // Show agency-level aggregated data
+        const filteredAgencyData = getFilteredAgencyData(true); // true for bubble chart
+        dataToShow = filteredAgencyData.filter(d => d.budgetAuthority > 0);
+        bubbleLabel = d => d.name;
+    } else if (aggregationLevel === 'bureau') {
         // Show bureau-level aggregated data
-        const filteredBureauData = getFilteredBureauData();
+        const filteredBureauData = getFilteredBureauData(true); // true for bubble chart
         dataToShow = filteredBureauData.filter(d => d.budgetAuthority > 0);
         bubbleLabel = d => d.name;
     } else {
         // Show individual accounts
-        dataToShow = getFilteredAccountData().filter(d => d.budgetAuthorityValue > 0);
+        dataToShow = getFilteredAccountData(true).filter(d => d.budgetAuthorityValue > 0); // true for bubble chart
         bubbleLabel = d => d.Account || 'Unknown';
     }
     
@@ -760,36 +1026,79 @@ function initializeBubbleChart() {
         .style('font-size', '12px')
         .style('pointer-events', 'none');
     
-    // Add bubbles
-    const bubbles = g.selectAll('.bubble')
+    // Add bubble groups for two-color design
+    const bubbleGroups = g.selectAll('.bubble-group')
         .data(dataToShow)
-        .enter().append('circle')
-        .attr('class', 'bubble')
+        .enter().append('g')
+        .attr('class', 'bubble-group');
+    
+    // Add outer circles (agency color)
+    bubbleGroups.append('circle')
+        .attr('class', 'bubble bubble-outer')
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
         .attr('r', d => sizeScale(d.budgetAuthority || d.budgetAuthorityValue || 0))
         .attr('fill', d => {
-            if (showBureauAggregates) {
-                return bureauColorScale(d.name);
+            if (aggregationLevel === 'agency') {
+                return AGENCY_COLORS[d.name] || '#999999';
+            } else if (aggregationLevel === 'bureau') {
+                return AGENCY_COLORS[d.agency] || '#999999';
             } else {
-                return bureauColorScale(d.Bureau || 'Unknown');
+                return AGENCY_COLORS[d.Agency] || '#999999';
             }
-        })
+        });
+    
+    // Add inner circles (variation color) for bureau and account views
+    if (aggregationLevel !== 'agency') {
+        bubbleGroups.append('circle')
+            .attr('class', 'bubble bubble-inner')
+            .attr('cx', d => d.x)
+            .attr('cy', d => d.y)
+            .attr('r', d => sizeScale(d.budgetAuthority || d.budgetAuthorityValue || 0) * 0.7) // 70% of outer radius
+            .attr('fill', d => {
+                if (aggregationLevel === 'bureau') {
+                    // Use consistent bureau colors
+                    return getConsistentBureauColor(d.name);
+                } else {
+                    // For accounts, use the same color as their bureau
+                    return getConsistentBureauColor(d.Bureau || 'Unknown');
+                }
+            });
+    }
+    
+    // Add hover handlers to bubble groups
+    bubbleGroups
         .on('mouseover', function(event, d) {
             tooltip.transition()
                 .duration(200)
                 .style('opacity', .9);
             
-            // Different tooltips for bureau vs account level
-            if (showBureauAggregates) {
-                // Bureau-level data
+            // Different tooltips based on aggregation level
+            if (aggregationLevel === 'agency') {
+                // Agency-level data
                 tooltip.html(`
                     <strong>${d.name}</strong><br/>
                     Budget Authority: ${formatCurrency(d.budgetAuthority)}<br/>
                     Obligated: ${formatCurrency(d.budgetAuthority - d.unobligated)}<br/>
                     Unobligated: ${formatCurrency(d.unobligated)}<br/>
                     % Unobligated: ${d.percentageUnobligated.toFixed(1)}%<br/>
-                    Accounts: ${d.accountCount}
+                    Bureaus: ${d.bureauCount}<br/>
+                    Accounts: ${d.accountCount}<br/>
+                    Period: ${d.period}<br/>
+                    Expires: ${d.expiration}
+                `);
+            } else if (aggregationLevel === 'bureau') {
+                // Bureau-level data
+                tooltip.html(`
+                    <strong>${d.name}</strong><br/>
+                    Agency: ${d.agency}<br/>
+                    Budget Authority: ${formatCurrency(d.budgetAuthority)}<br/>
+                    Obligated: ${formatCurrency(d.budgetAuthority - d.unobligated)}<br/>
+                    Unobligated: ${formatCurrency(d.unobligated)}<br/>
+                    % Unobligated: ${d.percentageUnobligated.toFixed(1)}%<br/>
+                    Accounts: ${d.accountCount}<br/>
+                    Period: ${d.period}<br/>
+                    Expires: ${d.expiration}
                 `);
             } else {
                 // Account-level tooltip
@@ -797,11 +1106,13 @@ function initializeBubbleChart() {
                 const unobligated = d.unobligatedValue || 0;
                 tooltip.html(`
                     <strong>${bubbleLabel(d)}</strong><br/>
+                    Agency: ${d.Agency || 'Unknown'}<br/>
                     Bureau: ${d.Bureau || 'Unknown'}<br/>
                     Budget Authority: ${formatCurrency(budget)}<br/>
                     Obligated: ${formatCurrency(budget - unobligated)}<br/>
                     Unobligated: ${formatCurrency(unobligated)}<br/>
                     % Unobligated: ${(d.percentageValue || 0).toFixed(1)}%<br/>
+                    Period: ${d.Period_of_Performance || 'Unknown'}<br/>
                     ${d.Expiration_Year ? `Expires: ${d.Expiration_Year}` : ''}
                 `);
             }
@@ -884,54 +1195,16 @@ function initializeBubbleChart() {
 }
 
 // Get filtered account data
-function getFilteredAccountData() {
+function getFilteredAccountData(forBubbleChart = false) {
     // Filter the raw account data based on current filters
-    return obligationData.filter(row => {
-        // Check Bureau filter
-        if (columnFilters.Bureau && 
-            columnFilters.Bureau.length > 0 &&
-            !columnFilters.Bureau.includes(row.Bureau)) {
+    const filteredData = obligationData.filter(row => {
+        // Check Agency filter
+        if (columnFilters.Agency && 
+            columnFilters.Agency.length > 0 &&
+            !columnFilters.Agency.includes(row.Agency)) {
             return false;
         }
         
-        // Check Period filter
-        if (columnFilters.Period_of_Performance && 
-            columnFilters.Period_of_Performance.length > 0 &&
-            !columnFilters.Period_of_Performance.includes(row.Period_of_Performance)) {
-            return false;
-        }
-        
-        // Check Expiration Year filter
-        if (columnFilters.Expiration_Year && 
-            columnFilters.Expiration_Year.length > 0 &&
-            !columnFilters.Expiration_Year.includes(row.Expiration_Year)) {
-            return false;
-        }
-        
-        // Check percentage range filter
-        if (columnFilters.Percentage_Ranges && columnFilters.Percentage_Ranges.length > 0) {
-            const percentage = row.percentageValue;
-            let inRange = false;
-            
-            for (const range of columnFilters.Percentage_Ranges) {
-                const [min, max] = range.split('-').map(v => parseFloat(v));
-                if (percentage >= min && percentage <= max) {
-                    inRange = true;
-                    break;
-                }
-            }
-            
-            if (!inRange) return false;
-        }
-        
-        return true;
-    });
-}
-
-// Get filtered bureau data based on current filters
-function getFilteredBureauData() {
-    // Filter the raw data first
-    const filteredAccounts = obligationData.filter(row => {
         // Check Bureau filter
         if (columnFilters.Bureau && 
             columnFilters.Bureau.length > 0 &&
@@ -972,20 +1245,211 @@ function getFilteredBureauData() {
         return true;
     });
     
-    // Re-aggregate by bureau/period/expiration combination
+    // For bubble chart, aggregate accounts by agency/bureau/account (no period/expiration)
+    if (forBubbleChart) {
+        const accountMap = new Map();
+        
+        filteredData.forEach(row => {
+            const key = `${row.Agency}|${row.Bureau}|${row.Account}`;
+            
+            if (!accountMap.has(key)) {
+                accountMap.set(key, {
+                    Agency: row.Agency,
+                    Bureau: row.Bureau,
+                    Account: row.Account,
+                    Account_Number: row.Account_Number,
+                    Period_of_Performance: 'All',
+                    Expiration_Year: 'All',
+                    TAFS: row.TAFS,
+                    budgetAuthorityValue: 0,
+                    unobligatedValue: 0,
+                    'Unobligated Balance (Line 2490)': '',
+                    'Budget Authority (Line 2500)': '',
+                    'Percentage Unobligated': '',
+                    percentageValue: 0
+                });
+            }
+            
+            const account = accountMap.get(key);
+            account.budgetAuthorityValue += row.budgetAuthorityValue;
+            account.unobligatedValue += row.unobligatedValue;
+        });
+        
+        // Calculate percentages and format values
+        return Array.from(accountMap.values()).map(account => {
+            account.percentageValue = account.budgetAuthorityValue > 0 ? 
+                (account.unobligatedValue / account.budgetAuthorityValue * 100) : 0;
+            account['Unobligated Balance (Line 2490)'] = formatCurrency(account.unobligatedValue);
+            account['Budget Authority (Line 2500)'] = formatCurrency(account.budgetAuthorityValue);
+            account['Percentage Unobligated'] = account.percentageValue.toFixed(1) + '%';
+            return account;
+        });
+    }
+    
+    return filteredData;
+}
+
+// Get filtered agency data based on current filters
+function getFilteredAgencyData(forBubbleChart = false) {
+    // Filter the raw data first
+    const filteredAccounts = obligationData.filter(row => {
+        // Check Agency filter
+        if (columnFilters.Agency && 
+            columnFilters.Agency.length > 0 &&
+            !columnFilters.Agency.includes(row.Agency)) {
+            return false;
+        }
+        
+        // Check Bureau filter
+        if (columnFilters.Bureau && 
+            columnFilters.Bureau.length > 0 &&
+            !columnFilters.Bureau.includes(row.Bureau)) {
+            return false;
+        }
+        
+        // Check Period filter
+        if (columnFilters.Period_of_Performance && 
+            columnFilters.Period_of_Performance.length > 0 &&
+            !columnFilters.Period_of_Performance.includes(row.Period_of_Performance)) {
+            return false;
+        }
+        
+        // Check Expiration Year filter
+        if (columnFilters.Expiration_Year && 
+            columnFilters.Expiration_Year.length > 0 &&
+            !columnFilters.Expiration_Year.includes(row.Expiration_Year)) {
+            return false;
+        }
+        
+        // Check percentage range filter
+        if (columnFilters.Percentage_Ranges && columnFilters.Percentage_Ranges.length > 0) {
+            const percentage = row.percentageValue;
+            let inRange = false;
+            
+            for (const range of columnFilters.Percentage_Ranges) {
+                const [min, max] = range.split('-').map(v => parseFloat(v));
+                if (percentage >= min && percentage <= max) {
+                    inRange = true;
+                    break;
+                }
+            }
+            
+            if (!inRange) return false;
+        }
+        
+        return true;
+    });
+    
+    // Re-aggregate by agency (without period/expiration for bubble chart)
     const aggregateMap = new Map();
     
     filteredAccounts.forEach(row => {
-        const bureau = row.Bureau || 'Other';
+        const agency = row.Agency || 'Other';
         const period = row.Period_of_Performance || 'Unknown';
         const expiration = row.Expiration_Year || 'Unknown';
-        const key = `${bureau}|${period}|${expiration}`;
+        
+        // For bubble chart, aggregate only by agency. For table, include period/expiration
+        const key = forBubbleChart ? agency : `${agency}|${period}|${expiration}`;
         
         if (!aggregateMap.has(key)) {
             aggregateMap.set(key, {
+                name: agency,
+                period: forBubbleChart ? 'All' : period,
+                expiration: forBubbleChart ? 'All' : expiration,
+                budgetAuthority: 0,
+                unobligated: 0,
+                accountCount: 0,
+                bureauCount: new Set()
+            });
+        }
+        
+        const aggregateInfo = aggregateMap.get(key);
+        aggregateInfo.budgetAuthority += row.budgetAuthorityValue;
+        aggregateInfo.unobligated += row.unobligatedValue;
+        aggregateInfo.accountCount += 1;
+        if (row.Bureau) {
+            aggregateInfo.bureauCount.add(row.Bureau);
+        }
+    });
+    
+    // Convert to array and calculate percentages
+    return Array.from(aggregateMap.values()).map(aggregate => ({
+        ...aggregate,
+        bureauCount: aggregate.bureauCount.size,
+        percentageUnobligated: aggregate.budgetAuthority > 0 ? 
+            (aggregate.unobligated / aggregate.budgetAuthority * 100) : 0
+    }));
+}
+
+// Get filtered bureau data based on current filters
+function getFilteredBureauData(forBubbleChart = false) {
+    // Filter the raw data first
+    const filteredAccounts = obligationData.filter(row => {
+        // Check Agency filter
+        if (columnFilters.Agency && 
+            columnFilters.Agency.length > 0 &&
+            !columnFilters.Agency.includes(row.Agency)) {
+            return false;
+        }
+        
+        // Check Bureau filter
+        if (columnFilters.Bureau && 
+            columnFilters.Bureau.length > 0 &&
+            !columnFilters.Bureau.includes(row.Bureau)) {
+            return false;
+        }
+        
+        // Check Period filter
+        if (columnFilters.Period_of_Performance && 
+            columnFilters.Period_of_Performance.length > 0 &&
+            !columnFilters.Period_of_Performance.includes(row.Period_of_Performance)) {
+            return false;
+        }
+        
+        // Check Expiration Year filter
+        if (columnFilters.Expiration_Year && 
+            columnFilters.Expiration_Year.length > 0 &&
+            !columnFilters.Expiration_Year.includes(row.Expiration_Year)) {
+            return false;
+        }
+        
+        // Check percentage range filter
+        if (columnFilters.Percentage_Ranges && columnFilters.Percentage_Ranges.length > 0) {
+            const percentage = row.percentageValue;
+            let inRange = false;
+            
+            for (const range of columnFilters.Percentage_Ranges) {
+                const [min, max] = range.split('-').map(v => parseFloat(v));
+                if (percentage >= min && percentage <= max) {
+                    inRange = true;
+                    break;
+                }
+            }
+            
+            if (!inRange) return false;
+        }
+        
+        return true;
+    });
+    
+    // Re-aggregate by agency/bureau (without period/expiration for bubble chart)
+    const aggregateMap = new Map();
+    
+    filteredAccounts.forEach(row => {
+        const agency = row.Agency || 'Other';
+        const bureau = row.Bureau || 'Other';
+        const period = row.Period_of_Performance || 'Unknown';
+        const expiration = row.Expiration_Year || 'Unknown';
+        
+        // For bubble chart, aggregate only by agency/bureau. For table, include period/expiration
+        const key = forBubbleChart ? `${agency}|${bureau}` : `${agency}|${bureau}|${period}|${expiration}`;
+        
+        if (!aggregateMap.has(key)) {
+            aggregateMap.set(key, {
+                agency: agency,
                 name: bureau,
-                period: period,
-                expiration: expiration,
+                period: forBubbleChart ? 'All' : period,
+                expiration: forBubbleChart ? 'All' : expiration,
                 budgetAuthority: 0,
                 unobligated: 0,
                 accountCount: 0
@@ -1007,32 +1471,59 @@ function getFilteredBureauData() {
 }
 
 
-// Show aggregated table (bureau totals)
-function showAggregatedTable() {
-    // Get filtered bureau data (now aggregated by bureau/period/expiration)
-    const filteredBureauData = getFilteredBureauData();
+// Show aggregated table (agency or bureau totals)
+function showAggregatedTable(level) {
+    let aggregatedRows;
     
-    // Transform bureau data to match table structure
-    const aggregatedRows = filteredBureauData.map(aggregate => ({
-        Bureau: aggregate.name,
-        Account: `${aggregate.accountCount} accounts`,
-        Account_Number: '',
-        Period_of_Performance: aggregate.period,
-        Expiration_Year: aggregate.expiration,
-        Department: 'Department of Education',
-        'Unobligated Balance (Line 2490)': formatCurrency(aggregate.unobligated),
-        'Budget Authority (Line 2500)': formatCurrency(aggregate.budgetAuthority),
-        'Percentage Unobligated': aggregate.percentageUnobligated.toFixed(1) + '%',
-        unobligatedValue: aggregate.unobligated,
-        budgetAuthorityValue: aggregate.budgetAuthority,
-        percentageValue: aggregate.percentageUnobligated,
-        TAFS: ''
-    }));
+    if (level === 'agency') {
+        // Get filtered agency data (aggregated by agency/period/expiration)
+        const filteredAgencyData = getFilteredAgencyData();
+        
+        // Transform agency data to match table structure
+        aggregatedRows = filteredAgencyData.map(aggregate => ({
+            Agency: aggregate.name,
+            Bureau: `${aggregate.bureauCount} bureaus`,
+            Account: `${aggregate.accountCount} accounts`,
+            Account_Number: '',
+            Period_of_Performance: aggregate.period,
+            Expiration_Year: aggregate.expiration,
+            'Unobligated Balance (Line 2490)': formatCurrency(aggregate.unobligated),
+            'Budget Authority (Line 2500)': formatCurrency(aggregate.budgetAuthority),
+            'Percentage Unobligated': aggregate.percentageUnobligated.toFixed(1) + '%',
+            unobligatedValue: aggregate.unobligated,
+            budgetAuthorityValue: aggregate.budgetAuthority,
+            percentageValue: aggregate.percentageUnobligated,
+            TAFS: ''
+        }));
+    } else {
+        // Get filtered bureau data (aggregated by bureau/period/expiration)
+        const filteredBureauData = getFilteredBureauData();
+        
+        // Transform bureau data to match table structure
+        aggregatedRows = filteredBureauData.map(aggregate => ({
+            Agency: aggregate.agency,
+            Bureau: aggregate.name,
+            Account: `${aggregate.accountCount} accounts`,
+            Account_Number: '',
+            Period_of_Performance: aggregate.period,
+            Expiration_Year: aggregate.expiration,
+            'Unobligated Balance (Line 2490)': formatCurrency(aggregate.unobligated),
+            'Budget Authority (Line 2500)': formatCurrency(aggregate.budgetAuthority),
+            'Percentage Unobligated': aggregate.percentageUnobligated.toFixed(1) + '%',
+            unobligatedValue: aggregate.unobligated,
+            budgetAuthorityValue: aggregate.budgetAuthority,
+            percentageValue: aggregate.percentageUnobligated,
+            TAFS: ''
+        }));
+    }
     
     // Clear existing data and add new data
     dataTable.clear();
     dataTable.rows.add(aggregatedRows);
     dataTable.draw();
+    
+    // Update statistics after table is redrawn
+    updateFilteredStats();
 }
 
 // Show detailed table (individual accounts)
@@ -1044,6 +1535,9 @@ function showDetailedTable() {
     dataTable.clear();
     dataTable.rows.add(filteredData);
     dataTable.draw();
+    
+    // Update statistics after table is redrawn
+    updateFilteredStats();
 }
 
 // Initialize on page load
