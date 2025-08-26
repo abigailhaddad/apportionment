@@ -15,8 +15,9 @@ data/*.csv
 *.csv
 *.xlsx
 raw_data/
-# Keep the generated JSON file for GitHub Pages
-!data/dhs_budget_flat.json
+# Keep the generated JSON files for the web app
+!data/all_agencies_summary.json
+!data/all_agencies_obligation_summary.csv
 
 # OS
 .DS_Store

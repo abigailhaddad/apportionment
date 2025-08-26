@@ -1,0 +1,26 @@
+[build]
+  # Build command that Netlify runs
+  command = "python3 -m pip install -r requirements.txt && python3 main.py"
+  
+  # Directory to deploy (contains index.html)
+  publish = "."
+
+[build.environment]
+  # Use Python 3.9
+  PYTHON_VERSION = "3.9"
+
+# Headers for better performance
+[[headers]]
+  for = "/*.json"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
