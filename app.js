@@ -396,19 +396,12 @@ function updateDependentFilters() {
     const selectedBureau = $('#mainBureauFilter').val();
     const selectedPeriod = $('#mainPeriodFilter').val();
     
-    // Filter data based on current selections
+    // Filter data based ONLY on agency selection for dropdown population
+    // This allows switching between bureaus/periods without getting stuck
     let filteredData = obligationData;
     
     if (selectedAgency) {
         filteredData = filteredData.filter(row => row.Agency === selectedAgency);
-    }
-    
-    if (selectedBureau) {
-        filteredData = filteredData.filter(row => row.Bureau === selectedBureau);
-    }
-    
-    if (selectedPeriod) {
-        filteredData = filteredData.filter(row => row.Period_of_Performance === selectedPeriod);
     }
     
     // Update Bureau dropdown
