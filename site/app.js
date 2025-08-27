@@ -603,6 +603,59 @@ function updateFiltersFromUI() {
     
     // Apply all filters
     applyAllFilters();
+    
+    // Update the filter display
+    updateActiveFiltersDisplay();
+}
+
+// Update the active filters display under the title
+function updateActiveFiltersDisplay() {
+    const $display = $('#activeFiltersDisplay');
+    const filterTexts = [];
+    
+    // Get selected values
+    const agency = $('#mainAgencyFilter').val();
+    const bureau = $('#mainBureauFilter').val();
+    const period = $('#mainPeriodFilter').val();
+    const year = $('#mainExpirationFilter').val();
+    
+    // Add filter texts
+    if (agency) {
+        filterTexts.push(agency);
+    } else {
+        filterTexts.push('All Agencies');
+    }
+    
+    if (bureau) {
+        filterTexts.push(bureau);
+    } else {
+        filterTexts.push('All Bureaus');
+    }
+    
+    if (period) {
+        filterTexts.push(period);
+    } else {
+        filterTexts.push('All Periods');
+    }
+    
+    if (year) {
+        filterTexts.push(`Expiration Year ${year}`);
+    } else {
+        filterTexts.push('All Expiration Years');
+    }
+    
+    // Check percentage filters
+    const percentChecked = $('#mainPercentageFilter').find('.filter-options input[type="checkbox"]:checked');
+    if (percentChecked.length > 0 && percentChecked.length < 4) {
+        const ranges = [];
+        percentChecked.each(function() {
+            ranges.push($(this).val() + '%');
+        });
+        filterTexts.push('Unobligated: ' + ranges.join(', '));
+    }
+    
+    // Update display
+    $display.text(filterTexts.join(' • '));
 }
 
 // Update active filter badges display
