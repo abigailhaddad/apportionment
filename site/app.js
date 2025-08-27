@@ -8,16 +8,6 @@ let bureauData = [];
 let agencyColorScale;
 let showBureauAggregates = false;
 let aggregationLevel = 'bureau'; // 'individual', 'bureau', or 'agency'
-let bureauColorMap = new Map(); // Store consistent bureau colors
-let bureauColorIndex = 0;
-
-// Tableau 20 colors for consistent bureau coloring
-const tableau20 = [
-    '#1f77b4', '#aec7e8', '#ff7f0e', '#ffbb78', '#2ca02c',
-    '#98df8a', '#d62728', '#ff9896', '#9467bd', '#c5b0d5',
-    '#8c564b', '#c49c94', '#e377c2', '#f7b6d2', '#7f7f7f',
-    '#c7c7c7', '#bcbd22', '#dbdb8d', '#17becf', '#9edae5'
-];
 
 // Define agency colors - using d3 color schemes
 const AGENCY_COLORS = {
@@ -52,66 +42,6 @@ const AGENCY_COLORS = {
     "Other Independent Agencies": "#e7cb94"
 };
 
-// Get color for bureau based on parent agency
-function getBureauColor(bureau, agency) {
-    const baseColor = AGENCY_COLORS[agency] || '#999999';
-    const color = d3.color(baseColor);
-    
-    // Create more distinct variations using both saturation and lightness
-    const bureauHash = bureau.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    
-    // Create 7 distinct variations
-    const variationIndex = bureauHash % 7;
-    
-    switch(variationIndex) {
-        case 0: // Original color
-            return baseColor;
-        case 1: // Lighter
-            return color.brighter(0.6).toString();
-        case 2: // Darker
-            return color.darker(0.6).toString();
-        case 3: // More saturated
-            if (color.s) {
-                const hsl = d3.hsl(color);
-                hsl.s = Math.min(1, hsl.s * 1.3);
-                return hsl.toString();
-            }
-            return color.brighter(0.3).toString();
-        case 4: // Less saturated
-            if (color.s) {
-                const hsl = d3.hsl(color);
-                hsl.s = hsl.s * 0.7;
-                return hsl.toString();
-            }
-            return color.darker(0.3).toString();
-        case 5: // Lighter + more saturated
-            if (color.s) {
-                const hsl = d3.hsl(color);
-                hsl.s = Math.min(1, hsl.s * 1.2);
-                hsl.l = Math.min(0.9, hsl.l * 1.2);
-                return hsl.toString();
-            }
-            return color.brighter(0.8).toString();
-        case 6: // Darker + less saturated
-            if (color.s) {
-                const hsl = d3.hsl(color);
-                hsl.s = hsl.s * 0.8;
-                hsl.l = hsl.l * 0.8;
-                return hsl.toString();
-            }
-            return color.darker(0.5).toString();
-    }
-}
-
-// Get consistent bureau color
-function getConsistentBureauColor(bureau) {
-    // If we haven't assigned a color to this bureau yet, assign one
-    if (!bureauColorMap.has(bureau)) {
-        bureauColorMap.set(bureau, tableau20[bureauColorIndex % tableau20.length]);
-        bureauColorIndex++;
-    }
-    return bureauColorMap.get(bureau);
-}
 
 // Format currency values
 function formatCurrency(value) {
@@ -794,12 +724,7 @@ function initializeDataTable() {
             },
             { 
                 data: 'Bureau',
-                render: function(data, type, row) {
-                    if (type === 'display' && data) {
-                        const color = getConsistentBureauColor(data);
-                        return `<span style="display: inline-block; width: 10px; height: 10px; 
-                                background-color: ${color}; border-radius: 50%; margin-right: 6px;"></span>${data}`;
-                    }
+                render: function(data) {
                     return data || '';
                 }
             },
@@ -1128,23 +1053,6 @@ function initializeBubbleChart() {
             }
         });
     
-    // Add inner circles (variation color) for bureau and account views
-    if (aggregationLevel !== 'agency') {
-        bubbleGroups.append('circle')
-            .attr('class', 'bubble bubble-inner')
-            .attr('cx', d => d.x)
-            .attr('cy', d => d.y)
-            .attr('r', d => sizeScale(d.budgetAuthority || d.budgetAuthorityValue || 0) * 0.7) // 70% of outer radius
-            .attr('fill', d => {
-                if (aggregationLevel === 'bureau') {
-                    // Use consistent bureau colors
-                    return getConsistentBureauColor(d.name);
-                } else {
-                    // For accounts, use the same color as their bureau
-                    return getConsistentBureauColor(d.Bureau || 'Unknown');
-                }
-            });
-    }
     
     // Add hover handlers to bubble groups
     bubbleGroups
