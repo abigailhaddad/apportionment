@@ -24,20 +24,43 @@ class CORSRequestHandler(SimpleHTTPRequestHandler):
         self.end_headers()
 
 def main():
-    PORT = 8000
+    # Try different ports if default is taken
+    PORTS = [8000, 8001, 8080, 8888, 3000, 3001, 5000, 5001]
     
-    # Change to the script's directory
-    os.chdir(os.path.dirname(os.path.abspath(__file__)))
+    # Change to the site directory
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    site_dir = os.path.join(script_dir, 'site')
+    os.chdir(site_dir)
     
-    with socketserver.TCPServer(("", PORT), CORSRequestHandler) as httpd:
-        print(f"Server running at http://localhost:{PORT}/")
-        print(f"View the dashboard at: http://localhost:{PORT}/index.html")
-        print("Press Ctrl+C to stop the server")
-        
+    httpd = None
+    PORT = None
+    
+    # Try each port until we find an available one
+    for port in PORTS:
         try:
-            httpd.serve_forever()
-        except KeyboardInterrupt:
-            print("\nServer stopped.")
+            httpd = socketserver.TCPServer(("", port), CORSRequestHandler)
+            PORT = port
+            break
+        except OSError as e:
+            if e.errno == 48:  # Address already in use
+                continue
+            else:
+                raise
+    
+    if httpd is None:
+        print("Error: Could not find an available port. Tried:", PORTS)
+        return
+    
+    print(f"Server running at http://localhost:{PORT}/")
+    print(f"View the dashboard at: http://localhost:{PORT}/index.html")
+    print("Press Ctrl+C to stop the server")
+    
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print("\nServer stopped.")
+    finally:
+        httpd.server_close()
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Processing Methodology - Federal Agency SF 133</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #003366;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        
+        .methodology-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #003366;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #003366;
+            font-size: 1.2rem;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        
+        .code-block {
+            background: #f8f9fa;
+            border-left: 4px solid #003366;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .field-mapping {
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .field-mapping h4 {
+            color: #003366;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .field-mapping ul {
+            margin: 10px 0;
+        }
+        
+        .field-mapping li {
+            margin: 5px 0;
+        }
+        
+        .field-mapping code {
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #d32f2f;
+        }
+        
+        .nav-links {
+            margin-bottom: 30px;
+        }
+        
+        .nav-links a {
+            color: #003366;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-links">
+            <a href="index.html">← Back to Main Dashboard</a>
+        </div>
+        
+        <h1>Data Processing Methodology</h1>
+        
+        <div class="methodology-section">
+            <h2>Data Source</h2>
+            <p>All data is sourced from the <a href="https://portal.max.gov/portal/document/SF133/Budget/FY%202025%20-%20SF%20133%20Reports%20on%20Budget%20Execution%20and%20Budgetary%20Resources.html" target="_blank">MAX.gov FY 2025 - SF 133 Reports on Budget Execution and Budgetary Resources</a>.</p>
+            <p>The SF 133 report contains monthly budget execution data for all federal agencies. We process the July 2025 data files.</p>
+        </div>
+        
+        <div class="methodology-section">
+            <h2>Excel File Structure</h2>
+            <p>Each agency has one Excel file containing multiple sheets. We extract data from the <strong>TAFS detail</strong> sheet.</p>
+            
+            <h3>Finding the Header Row</h3>
+            <p>We search for a row containing "Line No" or "Lineno" within the first 30 rows of the TAFS detail sheet.</p>
+        </div>
+        
+        <div class="methodology-section">
+            <h2>Data Extraction - Standard Agencies</h2>
+            <p>For all agencies except "Other Independent Agencies":</p>
+            
+            <div class="field-mapping">
+                <h4>Column Mappings</h4>
+                <ul>
+                    <li><code>Col_0</code> = Bureau</li>
+                    <li><code>Col_1</code> = Account Name</li>
+                    <li><code>Col_4</code> = TAFS (Treasury Account Fund Symbol)</li>
+                    <li><code>Line No</code> = Line number column</li>
+                    <li><code>Jul</code> = July data column (contains budget values)</li>
+                </ul>
+            </div>
+            
+            <h3>Specific Lines Extracted</h3>
+            <ul>
+                <li><strong>Line 2490</strong>: Unobligated Balance</li>
+                <li><strong>Line 2500</strong>: Budget Authority</li>
+            </ul>
+            
+            <h3>Processing Steps</h3>
+            <ol>
+                <li>Forward fill Bureau (Col_0), Account (Col_1), and TAFS (Col_4) values down the spreadsheet</li>
+                <li>Filter to only rows where Line No = 2490.0 or 2500.0</li>
+                <li>Extract July column values</li>
+                <li>Merge Line 2490 and Line 2500 data on matching Agency + TAFS combinations</li>
+                <li>Convert values from dollars to millions</li>
+                <li>Calculate percentage: (Unobligated Balance / Budget Authority) × 100</li>
+            </ol>
+        </div>
+        
+        <div class="methodology-section">
+            <h2>Data Extraction - Other Independent Agencies</h2>
+            <p>The "Other Independent Agencies" file has a different structure:</p>
+            
+            <div class="field-mapping">
+                <h4>Column Mappings</h4>
+                <ul>
+                    <li><code>Col_2</code> = Account info (format: "247-00-5721   400 Years of African-American History Commission")</li>
+                    <li><code>Col_6</code> = TAFS (format: "95-2300 /25 - Salaries and Expenses")</li>
+                    <li><code>Col_9</code> = Line number (stored as string)</li>
+                    <li><code>Jul AMT</code> = July data column (contains budget values)</li>
+                </ul>
+            </div>
+            
+            <h3>Processing Steps</h3>
+            <ol>
+                <li>Forward fill Col_2 and Col_6 values</li>
+                <li>Convert Col_9 to numeric and filter for lines 2490.0 and 2500.0</li>
+                <li>Extract Jul AMT values</li>
+                <li>Merge Line 2490 and Line 2500 data on matching Col_6 (TAFS) values</li>
+                <li>Extract bureau name from Col_2 (text after account number)</li>
+                <li>Extract account name from Col_6 (text after " - ")</li>
+            </ol>
+        </div>
+        
+        <div class="methodology-section">
+            <h2>TAFS Parsing</h2>
+            <p>The Treasury Account Fund Symbol (TAFS) contains account and year information:</p>
+            
+            <h3>Standard Agency TAFS Format</h3>
+            <div class="code-block">
+                018-45-0243 /25 - Federal Direct Student Loan Program Account
+            </div>
+            <ul>
+                <li><strong>018-45-0243</strong>: Account number (agency-bureau-account)</li>
+                <li><strong>/25</strong>: Expiration year (2025)</li>
+                <li><strong>Federal Direct Student Loan Program Account</strong>: Account name</li>
+            </ul>
+            
+            <h3>Other Independent Agencies TAFS Format</h3>
+            <div class="code-block">
+                95-2300 24/25 - Salaries and Expenses
+            </div>
+            <ul>
+                <li><strong>95-2300</strong>: Account number</li>
+                <li><strong>24/25</strong>: Multi-year (FY2024-FY2025)</li>
+                <li><strong>Salaries and Expenses</strong>: Account name</li>
+            </ul>
+            
+            <h3>Special Cases</h3>
+            <ul>
+                <li><code>/X</code> = No year accounts</li>
+                <li><code>21/25</code> = Multi-year accounts (FY2021-FY2025)</li>
+            </ul>
+        </div>
+        
+        <div class="methodology-section">
+            <h2>Data Quality Checks</h2>
+            <ul>
+                <li>Only include accounts where both Line 2490 and Line 2500 exist</li>
+                <li>Handle division by zero: If Budget Authority = 0 and Unobligated = 0, then Percentage = 0</li>
+                <li>Handle division by zero: If Budget Authority = 0 and Unobligated > 0, then Percentage = 100</li>
+                <li>Round values: Budget amounts to 1 decimal place, percentages to 1 decimal place</li>
+            </ul>
+        </div>
+        
+        <div class="methodology-section">
+            <h2>Output Files</h2>
+            <p>The processed data is saved as:</p>
+            <ul>
+                <li><a href="https://github.com/abigailhaddad/apportionment/blob/main/site/data/sf133_master_table.csv" target="_blank"><code>site/data/sf133_master_table.csv</code></a> - Raw extracted data from all Excel files</li>
+                <li><a href="https://github.com/abigailhaddad/apportionment/blob/main/site/data/all_agencies_obligation_summary.csv" target="_blank"><code>site/data/all_agencies_obligation_summary.csv</code></a> - Final processed data with calculations</li>
+                <li><a href="https://github.com/abigailhaddad/apportionment/blob/main/site/data/all_agencies_summary.json" target="_blank"><code>site/data/all_agencies_summary.json</code></a> - JSON format for web application</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

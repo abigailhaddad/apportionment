@@ -115,54 +115,61 @@ def generate_obligation_summary(master_table_path):
         line_2490 = standard_agencies[standard_agencies['Line No'] == 2490.0].copy()
         line_2500 = standard_agencies[standard_agencies['Line No'] == 2500.0].copy()
         
-        # Find June column
-        june_col = None
+        # Find July column
+        july_col = None
         for col in standard_agencies.columns:
-            if 'Jun' in col or '3Q' in col:
-                june_col = col
+            if 'Jul' in col:
+                july_col = col
                 break
         
-        if june_col:
+        if july_col:
             # Merge on TAFS (Col_4)
             merged = pd.merge(
-                line_2490[['Agency', 'Col_0', 'Col_1', 'Col_4', june_col]],
-                line_2500[['Agency', 'Col_4', june_col]], 
+                line_2490[['Agency', 'Col_0', 'Col_1', 'Col_4', july_col]],
+                line_2500[['Agency', 'Col_4', july_col]], 
                 on=['Agency', 'Col_4'], 
                 suffixes=('_2490', '_2500')
             )
             
+            print(f"  Standard agencies - Line 2490: {len(line_2490)} accounts")
+            print(f"  Standard agencies - Line 2500: {len(line_2500)} accounts")
+            print(f"  After merge: {len(merged)} accounts")
+            
             # Process each row
             for _, row in merged.iterrows():
                 try:
-                    unob = float(row[f'{june_col}_2490']) / 1_000_000
-                    ba = float(row[f'{june_col}_2500']) / 1_000_000
+                    unob = float(row[f'{july_col}_2490']) / 1_000_000
+                    ba = float(row[f'{july_col}_2500']) / 1_000_000
                     
-                    if ba > 0:
+                    if ba == 0:
+                        pct = 0.0 if unob == 0 else 100.0
+                    else:
                         pct = (unob / ba * 100)
-                        
-                        # Parse TAFS components
-                        account_num, period_of_perf, expiration_year = parse_tafs_components(
-                            row['Col_4'], row['Agency']
-                        )
-                        
-                        # Extract account name
-                        account_name = row['Col_1'] if pd.notna(row['Col_1']) else ''
-                        if not account_name and ' - ' in str(row['Col_4']):
-                            account_name = str(row['Col_4']).split(' - ', 1)[1]
-                        
-                        summary_data.append({
-                            'Agency': row['Agency'],
-                            'Bureau': row['Col_0'] if pd.notna(row['Col_0']) else '',
-                            'Account': account_name,
-                            'Account_Number': account_num,
-                            'Period_of_Performance': period_of_perf,
-                            'Expiration_Year': expiration_year,
-                            'TAFS': row['Col_4'],
-                            'Unobligated_Balance_M': round(unob, 1),
-                            'Budget_Authority_M': round(ba, 1),
-                            'Percentage_Unobligated': round(pct, 1)
-                        })
+                    
+                    # Parse TAFS components
+                    account_num, period_of_perf, expiration_year = parse_tafs_components(
+                        row['Col_4'], row['Agency']
+                    )
+                    
+                    # Extract account name
+                    account_name = row['Col_1'] if pd.notna(row['Col_1']) else ''
+                    if not account_name and ' - ' in str(row['Col_4']):
+                        account_name = str(row['Col_4']).split(' - ', 1)[1]
+                    
+                    summary_data.append({
+                        'Agency': row['Agency'],
+                        'Bureau': row['Col_0'] if pd.notna(row['Col_0']) else '',
+                        'Account': account_name,
+                        'Account_Number': account_num,
+                        'Period_of_Performance': period_of_perf,
+                        'Expiration_Year': expiration_year,
+                        'TAFS': row['Col_4'],
+                        'Unobligated_Balance_M': round(unob, 1),
+                        'Budget_Authority_M': round(ba, 1),
+                        'Percentage_Unobligated': round(pct, 1)
+                    })
                 except Exception as e:
+                    print(f"    ERROR processing {row['Agency']} - {row['Col_4']}: {e}")
                     continue
     
     # Process Other Independent Agencies separately
@@ -184,66 +191,69 @@ def generate_obligation_summary(master_table_path):
         # Merge on Col_6 (TAFS)
         if len(line_2490) > 0 and len(line_2500) > 0:
             merged_oia = pd.merge(
-                line_2490[['Agency', 'Col_0', 'Col_1', 'Col_2', 'Col_4', 'Col_6', 'Col_19']],
-                line_2500[['Col_6', 'Col_19']], 
+                line_2490[['Agency', 'Col_0', 'Col_1', 'Col_2', 'Col_4', 'Col_6', 'Jul AMT']],
+                line_2500[['Col_6', 'Jul AMT']], 
                 on='Col_6', 
                 suffixes=('_2490', '_2500')
             )
             
-            print(f"  OIA Merged: {len(merged_oia)} accounts")
+            print(f"  OIA After merge: {len(merged_oia)} accounts")
             
             # Process each OIA row
             for _, row in merged_oia.iterrows():
                 try:
                     # Values are in dollars, convert to millions
-                    unob = float(row['Col_19_2490']) / 1_000_000
-                    ba = float(row['Col_19_2500']) / 1_000_000
+                    unob = float(row['Jul AMT_2490']) / 1_000_000
+                    ba = float(row['Jul AMT_2500']) / 1_000_000
                     
-                    if ba > 0:
+                    if ba == 0:
+                        pct = 0.0 if unob == 0 else 100.0
+                    else:
                         pct = (unob / ba * 100)
-                        
-                        # Parse TAFS and get account info
-                        tafs_full = row['Col_6']  # e.g., "95-2300 /25 - Salaries and Expenses"
-                        
-                        # Extract account name
-                        account_name = ''
-                        if ' - ' in str(tafs_full):
-                            account_name = str(tafs_full).split(' - ', 1)[1]
-                        
-                        # Parse TAFS components
-                        account_num, period_of_perf, expiration_year = parse_tafs_components(
-                            tafs_full, 'Other Independent Agencies'
-                        )
-                        
-                        # Get bureau/agency name
-                        bureau = ''
-                        
-                        # For OIA, bureau info might be in Col_2 after the account number
-                        if pd.notna(row['Col_2']):
-                            # Format: "247-00-5721   400 Years of African-American History Commission"
-                            col2_str = str(row['Col_2']).strip()
-                            parts = col2_str.split(None, 1)  # Split on first whitespace
-                            if len(parts) > 1:
-                                bureau = parts[1].strip()
-                        
-                        # If still no bureau and we have account name from TAFS, use that
-                        if not bureau and account_name:
-                            # The account name might be the bureau for OIA
-                            bureau = account_name
-                        
-                        summary_data.append({
-                            'Agency': 'Other Independent Agencies',
-                            'Bureau': bureau,
-                            'Account': account_name,
-                            'Account_Number': account_num,
-                            'Period_of_Performance': period_of_perf,
-                            'Expiration_Year': expiration_year,
-                            'TAFS': tafs_full,
-                            'Unobligated_Balance_M': round(unob, 1),
-                            'Budget_Authority_M': round(ba, 1),
-                            'Percentage_Unobligated': round(pct, 1)
-                        })
+                    
+                    # Parse TAFS and get account info
+                    tafs_full = row['Col_6']  # e.g., "95-2300 /25 - Salaries and Expenses"
+                    
+                    # Extract account name
+                    account_name = ''
+                    if ' - ' in str(tafs_full):
+                        account_name = str(tafs_full).split(' - ', 1)[1]
+                    
+                    # Parse TAFS components
+                    account_num, period_of_perf, expiration_year = parse_tafs_components(
+                        tafs_full, 'Other Independent Agencies'
+                    )
+                    
+                    # Get bureau/agency name
+                    bureau = ''
+                    
+                    # For OIA, bureau info might be in Col_2 after the account number
+                    if pd.notna(row['Col_2']):
+                        # Format: "247-00-5721   400 Years of African-American History Commission"
+                        col2_str = str(row['Col_2']).strip()
+                        parts = col2_str.split(None, 1)  # Split on first whitespace
+                        if len(parts) > 1:
+                            bureau = parts[1].strip()
+                    
+                    # If still no bureau and we have account name from TAFS, use that
+                    if not bureau and account_name:
+                        # The account name might be the bureau for OIA
+                        bureau = account_name
+                    
+                    summary_data.append({
+                        'Agency': 'Other Independent Agencies',
+                        'Bureau': bureau,
+                        'Account': account_name,
+                        'Account_Number': account_num,
+                        'Period_of_Performance': period_of_perf,
+                        'Expiration_Year': expiration_year,
+                        'TAFS': tafs_full,
+                        'Unobligated_Balance_M': round(unob, 1),
+                        'Budget_Authority_M': round(ba, 1),
+                        'Percentage_Unobligated': round(pct, 1)
+                    })
                 except Exception as e:
+                    print(f"    ERROR processing {row['Agency']} - {row['Col_4']}: {e}")
                     continue
     
     # Create final summary DataFrame
@@ -267,8 +277,9 @@ def generate_obligation_summary(master_table_path):
                          'Unobligated Balance (Line 2490)', 
                          'Budget Authority (Line 2500)', 'Percentage Unobligated']]
     
-    # Save CSV output
-    output_path = Path('data/all_agencies_obligation_summary.csv')
+    # Save CSV output to site/data directory
+    output_path = Path('site/data/all_agencies_obligation_summary.csv')
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     final_df.to_csv(output_path, index=False)
     print(f"\nSaved summary CSV to: {output_path}")
     
@@ -284,10 +295,25 @@ def generate_obligation_summary(master_table_path):
     json_data['BA_TimeSeries'] = '[]'
     json_data['Unob_TimeSeries'] = '[]'
     
-    # Save JSON
-    json_path = Path('data/all_agencies_summary.json')
+    # Save JSON to site/data directory
+    json_path = Path('site/data/all_agencies_summary.json')
+    json_path.parent.mkdir(parents=True, exist_ok=True)
     json_data.to_json(json_path, orient='records')
     print(f"Saved JSON for web app to: {json_path}")
+    
+    # Report on filtering/drops
+    print(f"\n=== FILTERING SUMMARY ===")
+    
+    # Check what was dropped
+    all_2490 = len(df[df['Line No'] == 2490.0]) if 'Line No' in df.columns else 0
+    oia_2490 = len(df[(df['Agency'] == 'Other Independent Agencies') & 
+                      (pd.to_numeric(df['Col_9'], errors='coerce') == 2490.0)]) if 'Col_9' in df.columns else 0
+    total_2490 = all_2490 + oia_2490
+    
+    print(f"Total line 2490 accounts in master table: ~{total_2490}")
+    print(f"Total accounts in final summary: {len(summary_df)}")
+    print(f"Accounts dropped: ~{total_2490 - len(summary_df)}")
+    print(f"  (Due to merge requirements, zero budget authority, or processing errors)")
     
     # Print summary statistics
     print(f"\n=== FINAL SUMMARY ===")
@@ -328,7 +354,7 @@ def generate_obligation_summary(master_table_path):
 
 if __name__ == "__main__":
     # Look for master table
-    master_table = Path('data/sf133_master_table.csv')
+    master_table = Path('site/data/sf133_master_table.csv')
     if master_table.exists():
         generate_obligation_summary(master_table)
     else:

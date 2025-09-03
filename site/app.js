@@ -42,6 +42,36 @@ const AGENCY_COLORS = {
     "Other Independent Agencies": "#e7cb94"
 };
 
+// Define patterns for accessibility
+const PATTERN_DEFINITIONS = [
+    { id: 'dots', path: 'M 0,4 l 4,0 M 2,0 l 0,4', strokeWidth: 1 },
+    { id: 'stripes', path: 'M 0,4 l 8,0', strokeWidth: 1 },
+    { id: 'diagonals', path: 'M 0,8 l 8,-8 M 0,0 l 8,-8 M 0,16 l 8,-8', strokeWidth: 1 },
+    { id: 'crosshatch', path: 'M 0,4 l 8,0 M 4,0 l 0,8', strokeWidth: 1 },
+    { id: 'waves', path: 'M 0,4 Q 2,2 4,4 T 8,4', strokeWidth: 1.5 },
+    { id: 'circles', path: 'M 4,4 m -2,0 a 2,2 0 1,0 4,0 a 2,2 0 1,0 -4,0', strokeWidth: 0.5, fill: true },
+    { id: 'zigzag', path: 'M 0,4 L 2,0 L 4,4 L 6,0 L 8,4', strokeWidth: 1 },
+    { id: 'dashes', path: 'M 0,4 l 3,0 M 5,4 l 3,0', strokeWidth: 1.5 },
+    { id: 'vertical-stripes', path: 'M 4,0 l 0,8', strokeWidth: 1 },
+    { id: 'diagonal-stripes-reverse', path: 'M 8,8 l -8,-8 M 8,0 l -8,-8 M 8,16 l -8,-8', strokeWidth: 1 },
+    { id: 'squares', path: 'M 1,1 l 2,0 l 0,2 l -2,0 Z M 5,5 l 2,0 l 0,2 l -2,0 Z', strokeWidth: 0.5, fill: true },
+    { id: 'triangles', path: 'M 2,6 L 4,2 L 6,6 Z', strokeWidth: 0.5, fill: true },
+    { id: 'diamonds', path: 'M 4,1 L 7,4 L 4,7 L 1,4 Z', strokeWidth: 1 },
+    { id: 'hexagons', path: 'M 2,4 L 2,2 L 4,1 L 6,2 L 6,4 L 4,5 Z', strokeWidth: 1 },
+    { id: 'plus', path: 'M 4,2 l 0,4 M 2,4 l 4,0', strokeWidth: 1.5 },
+    { id: 'x-marks', path: 'M 2,2 l 4,4 M 6,2 l -4,4', strokeWidth: 1 },
+    { id: 'dots-large', path: 'M 4,4 m -1.5,0 a 1.5,1.5 0 1,0 3,0 a 1.5,1.5 0 1,0 -3,0', strokeWidth: 0.5, fill: true }
+];
+
+// Create a mapping of unique colors to patterns
+const COLOR_TO_PATTERN = {};
+const uniqueColors = [...new Set(Object.values(AGENCY_COLORS))];
+uniqueColors.forEach((color, index) => {
+    if (index < PATTERN_DEFINITIONS.length) {
+        COLOR_TO_PATTERN[color] = PATTERN_DEFINITIONS[index].id;
+    }
+});
+
 
 // Format currency values
 function formatCurrency(value) {
@@ -106,6 +136,14 @@ async function loadData() {
         
         // Initialize DataTable
         initializeDataTable();
+        
+        // Initialize bubble chart
+        initializeBubbleChart();
+        
+        // Add event listener for download button after DataTable is initialized
+        $('#downloadCSV').on('click', function() {
+            downloadCSV();
+        });
         
         // Trigger initial filter update to show Department of Education and 2025
         updateFiltersFromUI();
@@ -404,49 +442,12 @@ function populateMainFilters() {
     }
     
     // Set up change handlers
-    $('#mainAgencyFilter, #mainBureauFilter, #mainPeriodFilter, #mainExpirationFilter').on('change', function() {
+    $('#mainAgencyFilter, #mainBureauFilter, #mainPeriodFilter, #mainExpirationFilter, #mainPercentageFilter').on('change', function() {
         updateDependentFilters();
         updateFiltersFromUI();
     });
     
     // Don't trigger filter update here - DataTable isn't initialized yet
-    
-    // Set up percentage filter
-    const $percentFilter = $('#mainPercentageFilter');
-    $percentFilter.find('button').on('click', function(e) {
-        e.stopPropagation();
-        $('.filter-dropdown-menu').not($percentFilter.find('.filter-dropdown-menu')).hide();
-        $percentFilter.find('.filter-dropdown-menu').toggle();
-    });
-    
-    $percentFilter.find('.filter-dropdown-menu').on('change', 'input[type="checkbox"]', function() {
-        // Update button text for percentage filter
-        const checked = $percentFilter.find('.filter-options input[type="checkbox"]:checked');
-        const $button = $percentFilter.find('button');
-        
-        if (checked.length === 0) {
-            $button.text('None selected');
-        } else if (checked.length === 4) {
-            $button.text('All Ranges');
-        } else if (checked.length === 1) {
-            $button.text(checked.first().parent().text().trim());
-        } else {
-            $button.text(`${checked.length} ranges`);
-        }
-        
-        updateFiltersFromUI();
-    });
-    
-    // Select all / Clear all for percentage filter
-    $percentFilter.find('.select-all').on('click', function(e) {
-        e.preventDefault();
-        $percentFilter.find('input[type="checkbox"]').prop('checked', true).trigger('change');
-    });
-    
-    $percentFilter.find('.clear-all').on('click', function(e) {
-        e.preventDefault();
-        $percentFilter.find('input[type="checkbox"]').prop('checked', false).trigger('change');
-    });
     
     // Set up aggregation level change handler
     $('#aggregationLevel').on('change', function() {
@@ -478,18 +479,16 @@ function updateFiltersFromUI() {
     const periods = periodVal && periodVal !== '' ? [periodVal] : [];
     const years = yearVal && yearVal !== '' ? [yearVal] : [];
     
-    // Get percentage ranges from checkboxes
-    const percentRanges = [];
-    $('#mainPercentageFilter').find('.filter-options input[type="checkbox"]:checked').each(function() {
-        percentRanges.push($(this).val());
-    });
+    // Get percentage range
+    const percentVal = $('#mainPercentageFilter').val();
+    const percentRange = percentVal && percentVal !== '' ? percentVal : null;
     
     // Update column filters
     columnFilters.Agency = agencies.length > 0 ? agencies : null;
     columnFilters.Bureau = bureaus.length > 0 ? bureaus : null;
     columnFilters.Period_of_Performance = periods.length > 0 ? periods : null;
     columnFilters.Expiration_Year = years.length > 0 ? years : null;
-    columnFilters.Percentage_Ranges = percentRanges.length > 0 ? percentRanges : null;
+    columnFilters.Percentage_Range = percentRange;
     
     // Helper function to get filtered data based on all current filters
     const getFilteredData = (includeAgency, includeBureau, includePeriod, includeYear) => {
@@ -507,12 +506,10 @@ function updateFiltersFromUI() {
         if (includeYear && years.length > 0) {
             filtered = filtered.filter(row => years.includes(row.Expiration_Year));
         }
-        if (percentRanges.length > 0) {
+        if (percentRange) {
             filtered = filtered.filter(row => {
-                return percentRanges.some(range => {
-                    const [min, max] = range.split('-').map(v => parseFloat(v));
-                    return row.percentageValue >= min && row.percentageValue <= max;
-                });
+                const [min, max] = percentRange.split('-').map(v => parseFloat(v));
+                return row.percentageValue >= min && row.percentageValue <= max;
             });
         }
         
@@ -567,14 +564,11 @@ function updateActiveFiltersDisplay() {
         filterTexts.push('All Expiration Years');
     }
     
-    // Check percentage filters
-    const percentChecked = $('#mainPercentageFilter').find('.filter-options input[type="checkbox"]:checked');
-    if (percentChecked.length > 0 && percentChecked.length < 4) {
-        const ranges = [];
-        percentChecked.each(function() {
-            ranges.push($(this).val() + '%');
-        });
-        filterTexts.push('Unobligated: ' + ranges.join(', '));
+    // Check percentage filter
+    const percentRange = $('#mainPercentageFilter').val();
+    if (percentRange) {
+        const displayText = $('#mainPercentageFilter option:selected').text();
+        filterTexts.push('Unobligated: ' + displayText);
     }
     
     // Update display
@@ -644,18 +638,13 @@ function updateActiveFilterBadges() {
         });
     }
     
-    const percentRanges = [];
-    $('#mainPercentageFilter').find('.filter-options input[type="checkbox"]:checked').each(function() {
-        percentRanges.push($(this).val());
-    });
-    if (percentRanges.length > 0 && percentRanges.length < 4) {
-        percentRanges.forEach(range => {
-            filters.push({
-                type: '% Range',
-                value: range + '%',
-                id: 'mainPercentageFilter',
-                filterValue: range
-            });
+    const percentRange = $('#mainPercentageFilter').val();
+    if (percentRange) {
+        filters.push({
+            type: '% Range',
+            value: $('#mainPercentageFilter option:selected').text(),
+            id: 'mainPercentageFilter',
+            filterValue: ''
         });
     }
     
@@ -694,11 +683,11 @@ function updateActiveFilterBadges() {
             if (checked.length === 0) {
                 $button.text('None selected');
             } else if (checked.length === total) {
-                $button.text($button.text().replace(/\d+ selected|None selected/, '').replace('All ', 'All ').trim());
+                $button.text('All Ranges');
             } else if (checked.length === 1) {
                 $button.text(checked.first().parent().text().trim());
             } else {
-                $button.text(`${checked.length} selected`);
+                $button.text(`${checked.length} ranges`);
             }
             
             updateFiltersFromUI();
@@ -736,7 +725,24 @@ function initializeDataTable() {
             },
             { 
                 data: 'Account_Number',
-                render: function(data) {
+                render: function(data, type) {
+                    if (type === 'display' && data) {
+                        // Format account number for USASpending URL
+                        // Examples: "96-3122" becomes "096-3122", "020-0500" stays "020-0500"
+                        const parts = data.split('-');
+                        if (parts.length === 2) {
+                            let formattedAccount = data;
+                            // Add leading zero to first part if it's 2 digits
+                            if (parts[0].length === 2) {
+                                formattedAccount = '0' + parts[0] + '-' + parts[1];
+                            }
+                            const url = `https://www.usaspending.gov/federal_account/${formattedAccount}`;
+                            return `<a href="${url}" target="_blank" rel="noopener noreferrer" 
+                                     title="View on USASpending.gov" style="color: #0066cc; text-decoration: underline;">${data}</a>`;
+                        }
+                        // Return without link if format doesn't match expected pattern
+                        return data;
+                    }
                     return data || '';
                 }
             },
@@ -856,19 +862,11 @@ function applyAllFilters() {
         }
         
         // Check percentage range filter
-        if (show && columnFilters.Percentage_Ranges && columnFilters.Percentage_Ranges.length > 0) {
+        if (show && columnFilters.Percentage_Range) {
             const percentage = parseFloat(data[8].replace(/<[^>]*>/g, '').replace('%', ''));
-            let inRange = false;
+            const [min, max] = columnFilters.Percentage_Range.split('-').map(v => parseFloat(v));
             
-            for (const range of columnFilters.Percentage_Ranges) {
-                const [min, max] = range.split('-').map(v => parseFloat(v));
-                if (percentage >= min && percentage <= max) {
-                    inRange = true;
-                    break;
-                }
-            }
-            
-            if (!inRange) {
+            if (!(percentage >= min && percentage <= max)) {
                 show = false;
             }
         }
@@ -926,19 +924,51 @@ function updateFilteredStats() {
     $('#overallPercentage').text(overallPercentage.toFixed(1) + '%');
     
     // For aggregated views, show the count of unique entities
+    let entityType, entityCount;
     if (aggregationLevel === 'agency') {
-        $('#accountCount').text(uniqueAgencies.size + (uniqueAgencies.size === 1 ? ' agency' : ' agencies'));
+        entityCount = uniqueAgencies.size;
+        entityType = entityCount === 1 ? 'agency' : 'agencies';
+        $('#accountCount').text(entityCount + ' ' + entityType);
     } else if (aggregationLevel === 'bureau') {
-        $('#accountCount').text(uniqueBureaus.size + (uniqueBureaus.size === 1 ? ' bureau' : ' bureaus'));
+        entityCount = uniqueBureaus.size;
+        entityType = entityCount === 1 ? 'bureau' : 'bureaus';
+        $('#accountCount').text(entityCount + ' ' + entityType);
     } else {
+        entityCount = count;
+        entityType = 'accounts';
         $('#accountCount').text(count);
     }
+    
+    // Announce to screen readers
+    const announcement = `Showing ${entityCount} ${entityType}. Total budget authority: ${formatCurrency(totalBudget)}, Total unobligated: ${formatCurrency(totalUnobligated)}, ${overallPercentage.toFixed(1)}% unobligated.`;
+    $('#ariaLiveRegion').text(announcement);
+}
+
+// Update bubble chart title based on filters
+function updateBubbleChartTitle() {
+    const titleElement = $('#bubbleChartTitle');
+    let title = "Budget Authority vs. Unobligated Balance";
+    
+    // Add filter context to title
+    const agency = $('#mainAgencyFilter').val();
+    const bureau = $('#mainBureauFilter').val();
+    
+    if (agency || bureau) {
+        title += " - ";
+        if (agency) title += agency;
+        if (bureau) title += (agency ? ", " : "") + bureau;
+    }
+    
+    titleElement.text(title);
 }
 
 // Initialize bubble chart
 function initializeBubbleChart() {
     const container = d3.select('#bubble-chart');
     container.selectAll('*').remove();
+    
+    // Update the title
+    updateBubbleChartTitle();
     
     // Get dimensions
     const margin = {top: 20, right: 40, bottom: 60, left: 40};
@@ -990,6 +1020,32 @@ function initializeBubbleChart() {
         .append('svg')
         .attr('width', width + margin.left + margin.right)
         .attr('height', height + margin.top + margin.bottom);
+    
+    // Add defs for patterns
+    const defs = svg.append('defs');
+    
+    // Create patterns
+    PATTERN_DEFINITIONS.forEach((pattern) => {
+        const patternEl = defs.append('pattern')
+            .attr('id', `pattern-${pattern.id}`)
+            .attr('patternUnits', 'userSpaceOnUse')
+            .attr('width', 8)
+            .attr('height', 8);
+        
+        if (pattern.fill) {
+            patternEl.append('circle')
+                .attr('cx', 4)
+                .attr('cy', 4)
+                .attr('r', 2)
+                .attr('fill', 'rgba(0,0,0,0.3)');
+        } else {
+            patternEl.append('path')
+                .attr('d', pattern.path)
+                .attr('stroke', 'rgba(0,0,0,0.3)')
+                .attr('stroke-width', pattern.strokeWidth)
+                .attr('fill', 'none');
+        }
+    });
     
     const g = svg.append('g')
         .attr('transform', `translate(${margin.left},${margin.top})`);
@@ -1051,7 +1107,30 @@ function initializeBubbleChart() {
             } else {
                 return AGENCY_COLORS[d.Agency] || '#999999';
             }
-        });
+        })
+        .style('stroke', '#333')
+        .style('stroke-width', 1);
+    
+    // Add pattern overlay for accessibility
+    bubbleGroups.append('circle')
+        .attr('class', 'bubble-pattern')
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y)
+        .attr('r', d => sizeScale(d.budgetAuthority || d.budgetAuthorityValue || 0))
+        .attr('fill', d => {
+            let agencyName;
+            if (aggregationLevel === 'agency') {
+                agencyName = d.name;
+            } else if (aggregationLevel === 'bureau') {
+                agencyName = d.agency;
+            } else {
+                agencyName = d.Agency;
+            }
+            const color = AGENCY_COLORS[agencyName] || '#999999';
+            const patternId = COLOR_TO_PATTERN[color];
+            return patternId ? `url(#pattern-${patternId})` : 'none';
+        })
+        .style('pointer-events', 'all');
     
     
     // Add hover handlers to bubble groups
@@ -1215,19 +1294,13 @@ function getFilteredAccountData(forBubbleChart = false) {
         }
         
         // Check percentage range filter
-        if (columnFilters.Percentage_Ranges && columnFilters.Percentage_Ranges.length > 0) {
+        if (columnFilters.Percentage_Range) {
             const percentage = row.percentageValue;
-            let inRange = false;
+            const [min, max] = columnFilters.Percentage_Range.split('-').map(v => parseFloat(v));
             
-            for (const range of columnFilters.Percentage_Ranges) {
-                const [min, max] = range.split('-').map(v => parseFloat(v));
-                if (percentage >= min && percentage <= max) {
-                    inRange = true;
-                    break;
-                }
+            if (!(percentage >= min && percentage <= max)) {
+                return false;
             }
-            
-            if (!inRange) return false;
         }
         
         return true;
@@ -1310,19 +1383,13 @@ function getFilteredAgencyData(forBubbleChart = false) {
         }
         
         // Check percentage range filter
-        if (columnFilters.Percentage_Ranges && columnFilters.Percentage_Ranges.length > 0) {
+        if (columnFilters.Percentage_Range) {
             const percentage = row.percentageValue;
-            let inRange = false;
+            const [min, max] = columnFilters.Percentage_Range.split('-').map(v => parseFloat(v));
             
-            for (const range of columnFilters.Percentage_Ranges) {
-                const [min, max] = range.split('-').map(v => parseFloat(v));
-                if (percentage >= min && percentage <= max) {
-                    inRange = true;
-                    break;
-                }
+            if (!(percentage >= min && percentage <= max)) {
+                return false;
             }
-            
-            if (!inRange) return false;
         }
         
         return true;
@@ -1406,19 +1473,13 @@ function getFilteredBureauData(forBubbleChart = false) {
         }
         
         // Check percentage range filter
-        if (columnFilters.Percentage_Ranges && columnFilters.Percentage_Ranges.length > 0) {
+        if (columnFilters.Percentage_Range) {
             const percentage = row.percentageValue;
-            let inRange = false;
+            const [min, max] = columnFilters.Percentage_Range.split('-').map(v => parseFloat(v));
             
-            for (const range of columnFilters.Percentage_Ranges) {
-                const [min, max] = range.split('-').map(v => parseFloat(v));
-                if (percentage >= min && percentage <= max) {
-                    inRange = true;
-                    break;
-                }
+            if (!(percentage >= min && percentage <= max)) {
+                return false;
             }
-            
-            if (!inRange) return false;
         }
         
         return true;
@@ -1534,6 +1595,117 @@ function showDetailedTable() {
     
     // Update statistics after table is redrawn
     updateFilteredStats();
+}
+
+// Convert table data to CSV format
+function tableToCSV() {
+    let csvContent = [];
+    
+    // Get the visible data from DataTable
+    const data = dataTable.rows({ search: 'applied' }).data();
+    
+    // Add header row based on aggregation level
+    let headers;
+    if (aggregationLevel === 'agency') {
+        headers = [
+            'Agency',
+            'Bureau Count',
+            'Account Count',
+            'Period',
+            'Expiration',
+            'Unobligated (2490)',
+            'Budget Authority (2500)',
+            '% Unobligated'
+        ];
+    } else if (aggregationLevel === 'bureau') {
+        headers = [
+            'Agency',
+            'Bureau',
+            'Account Count',
+            'Period',
+            'Expiration',
+            'Unobligated (2490)',
+            'Budget Authority (2500)',
+            '% Unobligated'
+        ];
+    } else {
+        headers = [
+            'Agency',
+            'Bureau', 
+            'Account',
+            'Account Number',
+            'Period',
+            'Expiration',
+            'Unobligated (2490)',
+            'Budget Authority (2500)',
+            '% Unobligated'
+        ];
+    }
+    csvContent.push(headers.join(','));
+    
+    // Add data rows
+    data.each(function(row) {
+        let csvRow;
+        if (aggregationLevel === 'agency') {
+            csvRow = [
+                '"' + row.Agency + '"',
+                '"' + row.Bureau + '"',
+                '"' + row.Account + '"',
+                '"' + row.Period_of_Performance + '"',
+                '"' + row.Expiration_Year + '"',
+                row.unobligatedValue,
+                row.budgetAuthorityValue,
+                row.percentageValue.toFixed(1)
+            ];
+        } else if (aggregationLevel === 'bureau') {
+            csvRow = [
+                '"' + row.Agency + '"',
+                '"' + row.Bureau + '"',
+                '"' + row.Account + '"',
+                '"' + row.Period_of_Performance + '"',
+                '"' + row.Expiration_Year + '"',
+                row.unobligatedValue,
+                row.budgetAuthorityValue,
+                row.percentageValue.toFixed(1)
+            ];
+        } else {
+            csvRow = [
+                '"' + row.Agency + '"',
+                '"' + row.Bureau + '"',
+                '"' + row.Account + '"',
+                '"' + row.Account_Number + '"',
+                '"' + row.Period_of_Performance + '"',
+                '"' + row.Expiration_Year + '"',
+                row.unobligatedValue,
+                row.budgetAuthorityValue,
+                row.percentageValue.toFixed(1)
+            ];
+        }
+        csvContent.push(csvRow.join(','));
+    });
+    
+    return csvContent.join('\n');
+}
+
+// Download CSV file
+function downloadCSV() {
+    const csv = tableToCSV();
+    const timestamp = new Date().toISOString().split('T')[0];
+    const level = aggregationLevel === 'account' ? 'accounts' : aggregationLevel;
+    const filename = `obligation_data_${level}_${timestamp}.csv`;
+    
+    // Create blob and download link
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', filename);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 // Initialize on page load

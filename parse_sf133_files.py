@@ -210,7 +210,7 @@ def parse_sf133_tafs_detail(file_path):
 
 def parse_all_sf133_files():
     """Process all SF 133 files and create a consolidated dataset."""
-    sf133_dir = Path('raw_data/sf133')
+    sf133_dir = Path('raw_data/july')
     
     # Ensure data directory exists
     data_dir = Path('data')
@@ -243,8 +243,9 @@ def parse_all_sf133_files():
     if all_data:
         combined_df = pd.concat(all_data, ignore_index=True)
         
-        # Save the master table
-        output_path = Path('data/sf133_master_table.csv')
+        # Save the master table to site/data directory
+        output_path = Path('site/data/sf133_master_table.csv')
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         combined_df.to_csv(output_path, index=False)
         
         print(f"\n=== SUMMARY ===")

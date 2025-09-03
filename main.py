@@ -11,25 +11,18 @@ def main():
     """Main pipeline for processing SF133 data."""
     print("Federal Agency Budget Obligation Analysis Pipeline")
     print("=" * 50)
+    print("\nProcessing July SF133 data from local folder...")
     
-    # Step 1: Download SF133 files from MAX.gov
-    print("\nStep 1: Downloading SF133 files from MAX.gov...")
-    from download_sf133_data import download_sf133_files
-    success = download_sf133_files()
-    if not success:
-        print("ERROR: Failed to download SF133 files")
-        sys.exit(1)
-    
-    # Step 2: Parse all SF133 files into master table
-    print("\nStep 2: Parsing all SF133 files into master table...")
+    # Step 1: Parse all SF133 files into master table
+    print("\nStep 1: Parsing all SF133 files into master table...")
     from parse_sf133_files import parse_all_sf133_files
     master_file = parse_all_sf133_files()
     if not master_file:
         print("ERROR: Failed to parse SF133 files")
         sys.exit(1)
     
-    # Step 3: Generate final summary from master table
-    print("\nStep 3: Generating obligation summary...")
+    # Step 2: Generate final summary from master table
+    print("\nStep 2: Generating obligation summary...")
     from generate_summary import generate_obligation_summary
     summary_file = generate_obligation_summary(master_file)
     if not summary_file:
