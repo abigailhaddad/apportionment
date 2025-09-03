@@ -221,13 +221,27 @@
         </div>
         
         <div class="methodology-section">
-            <h2>Output Files</h2>
-            <p>The processed data is saved as:</p>
-            <ul>
-                <li><a href="https://github.com/abigailhaddad/apportionment/blob/main/site/data/sf133_master_table.csv" target="_blank"><code>site/data/sf133_master_table.csv</code></a> - Raw extracted data from all Excel files</li>
-                <li><a href="https://github.com/abigailhaddad/apportionment/blob/main/site/data/all_agencies_obligation_summary.csv" target="_blank"><code>site/data/all_agencies_obligation_summary.csv</code></a> - Final processed data with calculations</li>
-                <li><a href="https://github.com/abigailhaddad/apportionment/blob/main/site/data/all_agencies_summary.json" target="_blank"><code>site/data/all_agencies_summary.json</code></a> - JSON format for web application</li>
-            </ul>
+            <h2>Data Files Used by the Application</h2>
+            <p>The web application reads the following data file:</p>
+            
+            <p><a href="https://raw.githubusercontent.com/abigailhaddad/apportionment/main/site/data/all_agencies_obligation_summary.csv" target="_blank"><code>all_agencies_obligation_summary.csv</code></a> - Account-level budget execution data</p>
+            
+            <div class="field-mapping">
+                <h4>Fields in the CSV file:</h4>
+                <ul>
+                    <li><strong>Agency</strong> - Federal agency name (e.g., "Department of Education")</li>
+                    <li><strong>Bureau</strong> - Sub-agency or bureau within the agency</li>
+                    <li><strong>Account</strong> - Full account name and description</li>
+                    <li><strong>Account_Number</strong> - Treasury Account Symbol (e.g., "91-0243")</li>
+                    <li><strong>Period_of_Performance</strong> - Single year or multi-year designation</li>
+                    <li><strong>Expiration_Year</strong> - When the funds expire (e.g., "2025", "No Year")</li>
+                    <li><strong>TAFS</strong> - Full Treasury Account Fund Symbol string</li>
+                    <li><strong>Unobligated Balance (Line 2490)</strong> - Amount not yet obligated (in millions)</li>
+                    <li><strong>Budget Authority (Line 2500)</strong> - Total budget authority (in millions)</li>
+                    <li><strong>Percentage Unobligated</strong> - Calculated percentage (Unobligated/Budget Authority × 100)</li>
+                </ul>
+            </div>
+            
         </div>
     </div>
 </body>
