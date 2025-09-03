@@ -884,9 +884,8 @@ function applyAllFilters() {
         $.fn.dataTable.ext.search = [];
         showAggregatedTable('bureau');
     } else {
-        // Individual accounts - apply the filter and draw
-        dataTable.draw();
-        updateFilteredStats();
+        // Individual accounts - need to refresh the data with current filters
+        showDetailedTable();
     }
     
     // Update bubble chart
