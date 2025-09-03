@@ -1,0 +1,253 @@
+---
+title: "Federal Budget Obligation Rate Analysis: June to July 2024"
+format: 
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: true
+    fig-width: 10
+    fig-height: 6
+---
+
+```{python}
+#| echo: false
+#| warning: false
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pathlib import Path
+import subprocess
+from io import StringIO
+
+# Set style
+plt.style.use('seaborn-v0_8-darkgrid')
+sns.set_palette("husl")
+
+# Function to get June data from git
+def get_june_data():
+    result = subprocess.run(
+        ['git', 'show', 'HEAD:data/all_agencies_obligation_summary.csv'],
+        capture_output=True,
+        text=True,
+        check=True
+    )
+    return pd.read_csv(StringIO(result.stdout))
+
+# Load data
+june_df = get_june_data()
+july_df = pd.read_csv('data/all_agencies_obligation_summary.csv')
+
+# Process data
+june_df['Pct_Unob'] = june_df['Percentage Unobligated'].str.rstrip('%').astype(float)
+july_df['Pct_Unob'] = july_df['Percentage Unobligated'].str.rstrip('%').astype(float)
+
+june_df['Obligation_Rate'] = 100 - june_df['Pct_Unob']
+july_df['Obligation_Rate'] = 100 - july_df['Pct_Unob']
+
+# Parse budget values
+june_df['Budget_M'] = june_df['Budget Authority (Line 2500)'].str.replace('[$,M]', '', regex=True).astype(float)
+july_df['Budget_M'] = july_df['Budget Authority (Line 2500)'].str.replace('[$,M]', '', regex=True).astype(float)
+
+# Merge data
+merge_cols = ['Agency', 'Bureau', 'Account', 'TAFS']
+merged = pd.merge(
+    june_df[merge_cols + ['Obligation_Rate', 'Budget_M']].rename(columns={'Budget_M': 'Budget_M_June'}),
+    july_df[merge_cols + ['Obligation_Rate', 'Budget_M']].rename(columns={'Budget_M': 'Budget_M_July'}),
+    on=merge_cols,
+    suffixes=('_June', '_July'),
+    how='inner'
+)
+
+merged['Rate_Change'] = merged['Obligation_Rate_July'] - merged['Obligation_Rate_June']
+merged['Budget_M'] = merged[['Budget_M_June', 'Budget_M_July']].max(axis=1)
+```
+
+## Summary Statistics
+
+```{python}
+#| echo: false
+
+# Quick summary stats
+june_avg = june_df['Obligation_Rate'].mean()
+july_avg = july_df['Obligation_Rate'].mean()
+
+print(f"June average obligation rate: {june_avg:.1f}%")
+print(f"July average obligation rate: {july_avg:.1f}%")
+print(f"Change: {july_avg - june_avg:+.1f} percentage points")
+```
+
+
+## Department-Level Analysis
+
+```{python}
+#| echo: false
+
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning)
+
+# Department level analysis
+all_dept_stats = merged.groupby('Agency').agg({
+    'Obligation_Rate_June': 'mean',
+    'Obligation_Rate_July': 'mean',
+    'Rate_Change': 'mean',
+    'Budget_M': 'sum',
+    'TAFS': 'count'
+}).round(1)
+
+# Create comprehensive table
+dept_table = all_dept_stats.copy()
+dept_table['June %'] = dept_table['Obligation_Rate_June']
+dept_table['July %'] = dept_table['Obligation_Rate_July'] 
+dept_table['Change'] = dept_table['Rate_Change']
+dept_table['Budget ($M)'] = dept_table['Budget_M'].astype(int)
+dept_table['Accounts'] = dept_table['TAFS'].astype(int)
+
+# Select and format columns
+table_cols = ['Budget ($M)', 'Accounts', 'June %', 'July %', 'Change']
+dept_display = dept_table[table_cols].copy()
+
+# Sort by budget
+dept_display = dept_display.sort_values('Budget ($M)', ascending=False)
+
+# Display as formatted table
+from IPython.display import display, HTML
+
+html_table = dept_display.to_html(float_format=lambda x: f'{x:.1f}')
+html_table = html_table.replace('<table', '<table style="font-size: 11px"')
+display(HTML(html_table))
+```
+
+## Notable Changes and Outliers
+
+### Accounts with Largest Increases
+
+```{python}
+#| echo: false
+
+# Find outliers
+large_increases = merged[merged['Rate_Change'] > 20].sort_values('Rate_Change', ascending=False).head(20)
+
+# Create summary
+outlier_summary = []
+for _, row in large_increases.iterrows():
+    outlier_summary.append({
+        'Agency': row['Agency'],
+        'Account': row['Account'],
+        'June %': row['Obligation_Rate_June'],
+        'July %': row['Obligation_Rate_July'],
+        'Change': row['Rate_Change'],
+        'Budget ($M)': row['Budget_M']
+    })
+
+outlier_df = pd.DataFrame(outlier_summary)
+
+# Format for display
+from IPython.display import display, HTML
+
+html = outlier_df.to_html(index=False, float_format=lambda x: f'{x:.1f}' if pd.notna(x) else '')
+html = html.replace('<table', '<table style="font-size: 11px"')
+display(HTML(html))
+```
+
+### Accounts with Largest Decreases
+
+```{python}
+#| echo: false
+
+# Find decreases
+large_decreases = merged[merged['Rate_Change'] < -10].sort_values('Rate_Change').head(20)
+
+# Create summary
+outlier_summary = []
+for _, row in large_decreases.iterrows():
+    outlier_summary.append({
+        'Agency': row['Agency'],
+        'Account': row['Account'],
+        'June %': row['Obligation_Rate_June'],
+        'July %': row['Obligation_Rate_July'],
+        'Change': row['Rate_Change'],
+        'Budget ($M)': row['Budget_M']
+    })
+
+outlier_df = pd.DataFrame(outlier_summary)
+
+# Format for display
+html = outlier_df.to_html(index=False, float_format=lambda x: f'{x:.1f}' if pd.notna(x) else '')
+html = html.replace('<table', '<table style="font-size: 11px"')
+display(HTML(html))
+```
+
+## New and Removed Accounts
+
+### New Accounts in July
+
+```{python}
+#| echo: false
+
+# Find accounts that appear in July but not June
+june_ids = set(june_df[['Agency', 'Bureau', 'Account', 'TAFS']].apply(lambda x: '|'.join(x.astype(str)), axis=1))
+july_ids = set(july_df[['Agency', 'Bureau', 'Account', 'TAFS']].apply(lambda x: '|'.join(x.astype(str)), axis=1))
+
+new_account_ids = july_ids - june_ids
+
+# Get details of new accounts
+new_accounts = []
+for acc_id in list(new_account_ids)[:20]:  # Show top 20
+    agency, bureau, account, tafs = acc_id.split('|')
+    july_row = july_df[(july_df['Agency'] == agency) & 
+                       (july_df['Bureau'] == bureau) & 
+                       (july_df['Account'] == account) & 
+                       (july_df['TAFS'] == tafs)].iloc[0]
+    
+    new_accounts.append({
+        'Agency': agency,
+        'Account': account,
+        'Budget ($M)': july_row['Budget_M'],
+        'July Obligation %': july_row['Obligation_Rate']
+    })
+
+if new_accounts:
+    new_df = pd.DataFrame(new_accounts)
+    from IPython.display import display, HTML
+    html = new_df.to_html(index=False, float_format=lambda x: f'{x:.1f}' if pd.notna(x) else '')
+    display(HTML(html))
+else:
+    print("No new accounts found in July data")
+
+print(f"\nTotal new accounts in July: {len(new_account_ids)}")
+```
+
+### Accounts Removed (in June but not July)
+
+```{python}
+#| echo: false
+
+# Find accounts that were in June but not July
+removed_account_ids = june_ids - july_ids
+
+# Get details of removed accounts
+removed_accounts = []
+for acc_id in list(removed_account_ids)[:20]:  # Show top 20
+    agency, bureau, account, tafs = acc_id.split('|')
+    june_row = june_df[(june_df['Agency'] == agency) & 
+                       (june_df['Bureau'] == bureau) & 
+                       (june_df['Account'] == account) & 
+                       (june_df['TAFS'] == tafs)].iloc[0]
+    
+    removed_accounts.append({
+        'Agency': agency,
+        'Account': account,
+        'Budget ($M)': june_row['Budget_M'],
+        'June Obligation %': june_row['Obligation_Rate']
+    })
+
+if removed_accounts:
+    removed_df = pd.DataFrame(removed_accounts)
+    html = removed_df.to_html(index=False, float_format=lambda x: f'{x:.1f}' if pd.notna(x) else '')
+    display(HTML(html))
+else:
+    print("No accounts removed from July data")
+
+print(f"\nTotal accounts removed from July: {len(removed_account_ids)}")
+```
