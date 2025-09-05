@@ -151,10 +151,12 @@ def generate_obligation_summary(master_table_path):
                         row['Col_4'], row['Agency']
                     )
                     
-                    # Extract account name
-                    account_name = row['Col_1'] if pd.notna(row['Col_1']) else ''
-                    if not account_name and ' - ' in str(row['Col_4']):
+                    # Extract account name from TAFS (preferred) or Col_1 (fallback)
+                    account_name = ''
+                    if ' - ' in str(row['Col_4']):
                         account_name = str(row['Col_4']).split(' - ', 1)[1]
+                    if not account_name:
+                        account_name = row['Col_1'] if pd.notna(row['Col_1']) else ''
                     
                     summary_data.append({
                         'Agency': row['Agency'],

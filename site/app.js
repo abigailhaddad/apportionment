@@ -80,9 +80,7 @@ function formatCurrency(value) {
 
 // Format percentage with color coding
 function formatPercentage(value) {
-    const className = value >= 75 ? 'high-percentage' : 
-                     value >= 50 ? 'medium-percentage' : 'low-percentage';
-    return `<span class="percentage-cell ${className}">${value.toFixed(1)}%</span>`;
+    return `<span class="percentage-cell">${value.toFixed(1)}%</span>`;
 }
 
 // Load CSV data
