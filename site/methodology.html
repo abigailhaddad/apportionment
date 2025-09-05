@@ -130,8 +130,8 @@
                 <h4>Column Mappings</h4>
                 <ul>
                     <li><code>Col_0</code> = Bureau</li>
-                    <li><code>Col_1</code> = Account Name</li>
-                    <li><code>Col_4</code> = TAFS (Treasury Account Fund Symbol)</li>
+                    <li><code>Col_1</code> = Account identifier (may contain bureau codes)</li>
+                    <li><code>Col_4</code> = TAFS (Treasury Account Fund Symbol) - contains account name after " - "</li>
                     <li><code>Line No</code> = Line number column</li>
                     <li><code>Jul</code> = July data column (contains budget values)</li>
                 </ul>
@@ -145,10 +145,11 @@
             
             <h3>Processing Steps</h3>
             <ol>
-                <li>Forward fill Bureau (Col_0), Account (Col_1), and TAFS (Col_4) values down the spreadsheet</li>
+                <li>Forward fill Bureau (Col_0), Account identifier (Col_1), and TAFS (Col_4) values down the spreadsheet</li>
                 <li>Filter to only rows where Line No = 2490.0 or 2500.0</li>
                 <li>Extract July column values</li>
                 <li>Merge Line 2490 and Line 2500 data on matching Agency + TAFS combinations</li>
+                <li>Extract account name from TAFS (text after " - "), falling back to Col_1 if not available</li>
                 <li>Convert values from dollars to millions</li>
                 <li>Calculate percentage: (Unobligated Balance / Budget Authority) × 100</li>
             </ol>
@@ -231,7 +232,7 @@
                 <ul>
                     <li><strong>Agency</strong> - Federal agency name (e.g., "Department of Education")</li>
                     <li><strong>Bureau</strong> - Sub-agency or bureau within the agency</li>
-                    <li><strong>Account</strong> - Full account name and description</li>
+                    <li><strong>Account</strong> - Account name extracted from TAFS (e.g., "Federal Direct Student Loan Program Account")</li>
                     <li><strong>Account_Number</strong> - Treasury Account Symbol (e.g., "91-0243")</li>
                     <li><strong>Period_of_Performance</strong> - Single year or multi-year designation</li>
                     <li><strong>Expiration_Year</strong> - When the funds expire (e.g., "2025", "No Year")</li>
