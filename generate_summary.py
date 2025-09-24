@@ -115,18 +115,24 @@ def generate_obligation_summary(master_table_path):
         line_2490 = standard_agencies[standard_agencies['Line No'] == 2490.0].copy()
         line_2500 = standard_agencies[standard_agencies['Line No'] == 2500.0].copy()
         
-        # Find July column
-        july_col = None
-        for col in standard_agencies.columns:
-            if 'Jul' in col:
-                july_col = col
+        # Find the latest month column (looking for Aug first, then Jul, etc.)
+        month_col = None
+        month_order = ['Aug', 'Jul', 'Jun', 'May', 'Apr', 'Mar', 'Feb', 'Jan', 'Dec', 'Nov', 'Oct', 'Sep']
+        
+        for month in month_order:
+            for col in standard_agencies.columns:
+                if month in col and col != f'{month} AMT':  # Avoid OIA columns
+                    month_col = col
+                    break
+            if month_col:
                 break
         
-        if july_col:
+        if month_col:
+            print(f"  Using month column: {month_col}")
             # Merge on TAFS (Col_4)
             merged = pd.merge(
-                line_2490[['Agency', 'Col_0', 'Col_1', 'Col_4', july_col]],
-                line_2500[['Agency', 'Col_4', july_col]], 
+                line_2490[['Agency', 'Col_0', 'Col_1', 'Col_4', month_col]],
+                line_2500[['Agency', 'Col_4', month_col]], 
                 on=['Agency', 'Col_4'], 
                 suffixes=('_2490', '_2500')
             )
@@ -138,8 +144,8 @@ def generate_obligation_summary(master_table_path):
             # Process each row
             for _, row in merged.iterrows():
                 try:
-                    unob = float(row[f'{july_col}_2490']) / 1_000_000
-                    ba = float(row[f'{july_col}_2500']) / 1_000_000
+                    unob = float(row[f'{month_col}_2490']) / 1_000_000
+                    ba = float(row[f'{month_col}_2500']) / 1_000_000
                     
                     if ba == 0:
                         pct = 0.0 if unob == 0 else 100.0
@@ -190,11 +196,21 @@ def generate_obligation_summary(master_table_path):
         print(f"  OIA Line 2490: {len(line_2490)} rows")
         print(f"  OIA Line 2500: {len(line_2500)} rows")
         
+        # Find the AMT column for OIA (Aug AMT, Jul AMT, etc.)
+        amt_col = None
+        for month in month_order:
+            test_col = f'{month} AMT'
+            if test_col in oia.columns:
+                amt_col = test_col
+                break
+                
+        print(f"  OIA using column: {amt_col}")
+        
         # Merge on Col_6 (TAFS)
-        if len(line_2490) > 0 and len(line_2500) > 0:
+        if len(line_2490) > 0 and len(line_2500) > 0 and amt_col:
             merged_oia = pd.merge(
-                line_2490[['Agency', 'Col_0', 'Col_1', 'Col_2', 'Col_4', 'Col_6', 'Jul AMT']],
-                line_2500[['Col_6', 'Jul AMT']], 
+                line_2490[['Agency', 'Col_0', 'Col_1', 'Col_2', 'Col_4', 'Col_6', amt_col]],
+                line_2500[['Col_6', amt_col]], 
                 on='Col_6', 
                 suffixes=('_2490', '_2500')
             )
@@ -205,8 +221,8 @@ def generate_obligation_summary(master_table_path):
             for _, row in merged_oia.iterrows():
                 try:
                     # Values are in dollars, convert to millions
-                    unob = float(row['Jul AMT_2490']) / 1_000_000
-                    ba = float(row['Jul AMT_2500']) / 1_000_000
+                    unob = float(row[f'{amt_col}_2490']) / 1_000_000
+                    ba = float(row[f'{amt_col}_2500']) / 1_000_000
                     
                     if ba == 0:
                         pct = 0.0 if unob == 0 else 100.0

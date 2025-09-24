@@ -11,7 +11,7 @@ import time
 from urllib.parse import urljoin
 import re
 
-def download_sf133_files():
+def download_sf133_files(target_dir='raw_data/sf133'):
     """Download all SF133 Excel files from MAX.gov."""
     
     # Base URL and page URL
@@ -19,7 +19,7 @@ def download_sf133_files():
     page_url = "https://portal.max.gov/portal/document/SF133/Budget/FY%202025%20-%20SF%20133%20Reports%20on%20Budget%20Execution%20and%20Budgetary%20Resources.html"
     
     # Create raw data directory
-    raw_data_dir = Path('raw_data/sf133')
+    raw_data_dir = Path(target_dir)
     raw_data_dir.mkdir(parents=True, exist_ok=True)
     
     print("Downloading SF133 files from MAX.gov...")
@@ -178,7 +178,12 @@ def clean_raw_data_directory():
     raw_data_dir.mkdir(parents=True, exist_ok=True)
 
 if __name__ == "__main__":
-    success = download_sf133_files()
+    import sys
+    
+    # Allow specifying target directory as command line argument
+    target_dir = sys.argv[1] if len(sys.argv) > 1 else 'raw_data/sf133'
+    
+    success = download_sf133_files(target_dir)
     
     if not success:
         print("\nFailed to download files. Please check your internet connection and try again.")

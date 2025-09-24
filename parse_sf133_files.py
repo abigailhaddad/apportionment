@@ -208,13 +208,13 @@ def parse_sf133_tafs_detail(file_path):
         print(f"  Error processing {file_path}: {str(e)}")
         return None
 
-def parse_all_sf133_files():
+def parse_all_sf133_files(source_dir='raw_data/august'):
     """Process all SF 133 files and create a consolidated dataset."""
-    sf133_dir = Path('raw_data/july')
+    sf133_dir = Path(source_dir)
     
     # Ensure data directory exists
-    data_dir = Path('data')
-    data_dir.mkdir(exist_ok=True)
+    output_data_dir = Path('data')
+    output_data_dir.mkdir(exist_ok=True)
     
     # Get all Excel files
     excel_files = list(sf133_dir.glob('*.xlsx')) + list(sf133_dir.glob('*.xls'))
@@ -271,4 +271,8 @@ def parse_all_sf133_files():
         return None
 
 if __name__ == "__main__":
-    parse_all_sf133_files()
+    import sys
+    
+    # Allow specifying source directory as command line argument
+    source_dir = sys.argv[1] if len(sys.argv) > 1 else 'raw_data/august'
+    parse_all_sf133_files(source_dir)
