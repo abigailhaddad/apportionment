@@ -111,7 +111,7 @@
         <div class="methodology-section">
             <h2>Data Source</h2>
             <p>All data is sourced from the <a href="https://portal.max.gov/portal/document/SF133/Budget/FY%202025%20-%20SF%20133%20Reports%20on%20Budget%20Execution%20and%20Budgetary%20Resources.html" target="_blank">MAX.gov FY 2025 - SF 133 Reports on Budget Execution and Budgetary Resources</a>.</p>
-            <p>The SF 133 report contains monthly budget execution data for all federal agencies. We process the July 2025 data files.</p>
+            <p>The SF 133 report contains monthly budget execution data for all federal agencies. We process the August 2025 data files.</p>
         </div>
         
         <div class="methodology-section">
@@ -133,7 +133,7 @@
                     <li><code>Col_1</code> = Account identifier (may contain bureau codes)</li>
                     <li><code>Col_4</code> = TAFS (Treasury Account Fund Symbol) - contains account name after " - "</li>
                     <li><code>Line No</code> = Line number column</li>
-                    <li><code>Jul</code> = July data column (contains budget values)</li>
+                    <li><code>Aug</code> = August data column (contains budget values)</li>
                 </ul>
             </div>
             
@@ -147,7 +147,7 @@
             <ol>
                 <li>Forward fill Bureau (Col_0), Account identifier (Col_1), and TAFS (Col_4) values down the spreadsheet</li>
                 <li>Filter to only rows where Line No = 2490.0 or 2500.0</li>
-                <li>Extract July column values</li>
+                <li>Extract August column values</li>
                 <li>Merge Line 2490 and Line 2500 data on matching Agency + TAFS combinations</li>
                 <li>Extract account name from TAFS (text after " - "), falling back to Col_1 if not available</li>
                 <li>Convert values from dollars to millions</li>
@@ -165,7 +165,7 @@
                     <li><code>Col_2</code> = Account info (format: "247-00-5721   400 Years of African-American History Commission")</li>
                     <li><code>Col_6</code> = TAFS (format: "95-2300 /25 - Salaries and Expenses")</li>
                     <li><code>Col_9</code> = Line number (stored as string)</li>
-                    <li><code>Jul AMT</code> = July data column (contains budget values)</li>
+                    <li><code>Jul AMT</code> = July data column (OIA still uses July data)</li>
                 </ul>
             </div>
             
@@ -173,7 +173,7 @@
             <ol>
                 <li>Forward fill Col_2 and Col_6 values</li>
                 <li>Convert Col_9 to numeric and filter for lines 2490.0 and 2500.0</li>
-                <li>Extract Jul AMT values</li>
+                <li>Extract Jul AMT values (OIA data not yet updated to August)</li>
                 <li>Merge Line 2490 and Line 2500 data on matching Col_6 (TAFS) values</li>
                 <li>Extract bureau name from Col_2 (text after account number)</li>
                 <li>Extract account name from Col_6 (text after " - ")</li>
