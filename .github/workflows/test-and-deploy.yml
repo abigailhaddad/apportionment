@@ -1,0 +1,113 @@
+name: Test and Deploy
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run all tests
+      run: python run_tests.py
+        
+    - name: Validate summary generation
+      run: |
+        echo "Validating summary data..."
+        python -c "
+        import pandas as pd
+        import sys
+        
+        # Check summary file exists and has data
+        summary = pd.read_csv('site/data/all_agencies_obligation_summary.csv')
+        
+        # Basic sanity checks
+        if len(summary) < 1000:
+            print(f'ERROR: Only {len(summary)} accounts found, expected >1000')
+            sys.exit(1)
+            
+        if summary['Agency'].nunique() < 29:
+            print(f'ERROR: Only {summary["Agency"].nunique()} agencies found, expected 29')
+            sys.exit(1)
+            
+        print(f'✓ Summary has {len(summary)} accounts from {summary["Agency"].nunique()} agencies')
+        "
+        
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: |
+          data/sf133_baseline.json
+          
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0  # Need full history for push
+    
+    - name: Configure Git
+      run: |
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+    
+    - name: Create/Update prod branch
+      run: |
+        # Check if prod branch exists
+        if git show-ref --quiet refs/heads/prod; then
+          git checkout prod
+          git merge main --no-edit
+        else
+          git checkout -b prod
+        fi
+        
+    - name: Push to prod branch
+      run: |
+        git push origin prod --force
+        
+    - name: Create deployment summary
+      run: |
+        echo "# Deployment Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Tests passed successfully" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Deployed to prod branch" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Data Statistics" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        python -c "
+        import pandas as pd
+        summary = pd.read_csv('site/data/all_agencies_obligation_summary.csv')
+        
+        # Parse numeric values
+        summary['BA_numeric'] = summary['Budget Authority (Line 2500)'].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float)
+        summary['Unob_numeric'] = summary['Unobligated Balance (Line 2490)'].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float)
+        
+        total_ba = summary['BA_numeric'].sum() / 1000
+        total_unob = summary['Unob_numeric'].sum() / 1000
+        pct = total_unob / total_ba * 100
+        
+        print(f'- Total Budget Authority: ${total_ba:,.1f}B')
+        print(f'- Total Unobligated: ${total_unob:,.1f}B ({pct:.1f}%)')
+        print(f'- Total Accounts: {len(summary):,}')
+        print(f'- Total Agencies: {summary[\"Agency\"].nunique()}')
+        " >> $GITHUB_STEP_SUMMARY
