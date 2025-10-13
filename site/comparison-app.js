@@ -656,6 +656,7 @@ function initializeDataTable() {
             },
             { 
                 data: 'fiscalYear',
+                type: 'num',
                 render: function(data) {
                     const color = getYearColor(data);
                     return `<span style="display: inline-block; width: 12px; height: 12px; 
