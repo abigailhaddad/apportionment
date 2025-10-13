@@ -438,8 +438,11 @@ function updateDependentFilters() {
             $yearFilter.val(currentYear);
         }
     } else {
-        // Default to 2025 if available, otherwise no default
-        if (years.includes('2025')) {
+        // Default to current fiscal year if available, otherwise 2025, otherwise no default
+        const defaultYear = currentFiscalYear ? currentFiscalYear.toString() : '2025';
+        if (years.includes(defaultYear)) {
+            $yearFilter.val(defaultYear);
+        } else if (years.includes('2025')) {
             $yearFilter.val('2025');
         }
     }
@@ -461,10 +464,11 @@ function populateMainFilters() {
     // Populate other dropdowns based on selected agency
     updateDependentFilters();
     
-    // Set default year to 2025 if available on initial load
+    // Set default expiration year to match current fiscal year if available
     if ($('#mainExpirationFilter').val() === null || $('#mainExpirationFilter').val() === '') {
-        if ($('#mainExpirationFilter option[value="2025"]').length > 0) {
-            $('#mainExpirationFilter').val('2025');
+        const defaultYear = currentFiscalYear ? currentFiscalYear.toString() : '2025';
+        if ($('#mainExpirationFilter option[value="' + defaultYear + '"]').length > 0) {
+            $('#mainExpirationFilter').val(defaultYear);
         }
     }
     
@@ -1865,12 +1869,11 @@ async function switchToYear(year) {
 
 // Preserve filter state when switching years
 function preserveFiltersAcrossYears() {
-    // Store current filter values
+    // Store current filter values (but NOT expiration year - that should reset to match the new fiscal year)
     const currentFilters = {
         agency: $('#mainAgencyFilter').val(),
         bureau: $('#mainBureauFilter').val(), 
         period: $('#mainPeriodFilter').val(),
-        expiration: $('#mainExpirationFilter').val(),
         percentage: $('#mainPercentageFilter').val()
     };
     
@@ -1891,8 +1894,11 @@ function preserveFiltersAcrossYears() {
         $('#mainPeriodFilter').val(currentFilters.period);
     }
     
-    if (currentFilters.expiration && $('#mainExpirationFilter option[value="' + currentFilters.expiration + '"]').length > 0) {
-        $('#mainExpirationFilter').val(currentFilters.expiration);
+    // DON'T restore expiration year - let it default to the new fiscal year
+    // Set expiration year to match current fiscal year
+    const defaultYear = currentFiscalYear ? currentFiscalYear.toString() : '2025';
+    if ($('#mainExpirationFilter option[value="' + defaultYear + '"]').length > 0) {
+        $('#mainExpirationFilter').val(defaultYear);
     }
     
     if (currentFilters.percentage && $('#mainPercentageFilter option[value="' + currentFilters.percentage + '"]').length > 0) {
