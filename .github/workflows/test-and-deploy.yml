@@ -51,15 +51,87 @@ jobs:
         git config user.name "GitHub Actions"
         git config user.email "actions@github.com"
     
-    - name: Create/Update prod branch
+    - name: Set up Python for deployment filtering
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+        
+    - name: Install deployment dependencies
+      run: pip install pandas
+        
+    - name: Filter approved data files
       run: |
-        # Check if prod branch exists
-        if git show-ref --quiet refs/heads/prod; then
-          git checkout prod
-          git merge main --no-edit
-        else
-          git checkout -b prod
-        fi
+        python -c "
+        import json
+        import os
+        import shutil
+        from pathlib import Path
+        
+        # Load approved years
+        with open('site/data/approved_years.json', 'r') as f:
+            approval_data = json.load(f)
+        approved_years = approval_data['approved_years']
+        
+        print(f'Approved years for deployment: {approved_years}')
+        
+        # Create deployment directory
+        deploy_dir = Path('deployment_files')
+        deploy_dir.mkdir(exist_ok=True)
+        
+        # Copy site structure
+        shutil.copytree('site', deploy_dir / 'site', dirs_exist_ok=True)
+        
+        # Remove all year-specific CSV files first
+        data_dir = deploy_dir / 'site' / 'data'
+        for csv_file in data_dir.glob('all_agencies_obligation_summary_*.csv'):
+            csv_file.unlink()
+            print(f'Removed: {csv_file.name}')
+        
+        # Copy only approved year CSV files
+        for year in approved_years:
+            src_file = Path(f'site/data/all_agencies_obligation_summary_{year}.csv')
+            dst_file = data_dir / f'all_agencies_obligation_summary_{year}.csv'
+            if src_file.exists():
+                shutil.copy2(src_file, dst_file)
+                print(f'Deployed: all_agencies_obligation_summary_{year}.csv')
+        
+        # Copy other important files
+        for file_pattern in ['all_agencies_obligation_summary.csv', 'fiscal_year_metadata.json', '*.json']:
+            for src_file in Path('site/data').glob(file_pattern):
+                if not src_file.name.startswith('all_agencies_obligation_summary_'):
+                    dst_file = data_dir / src_file.name
+                    shutil.copy2(src_file, dst_file)
+                    print(f'Deployed: {src_file.name}')
+        "
+        
+    - name: Create clean prod branch
+      run: |
+        # Delete existing prod branch if it exists (both local and remote)
+        git branch -D prod 2>/dev/null || echo "Local prod branch doesn't exist"
+        git push origin --delete prod 2>/dev/null || echo "Remote prod branch doesn't exist"
+        
+        # Create fresh prod branch from current state
+        git checkout -b prod
+        
+        # Remove ALL existing files to start completely clean
+        git rm -rf . 2>/dev/null || echo "No files to remove"
+        
+        # Copy ONLY the filtered deployment files
+        cp -r deployment_files/site ./
+        cp -r deployment_files/site/* ./  # Also copy contents to root level if needed
+        
+        # Add all new files
+        git add .
+        
+        # Create deployment commit
+        APPROVED_YEARS=$(cat site/data/approved_years.json | python -c 'import sys, json; data=json.load(sys.stdin); print(", ".join(map(str, data["approved_years"])))')
+        git commit -m "Clean deployment - approved years: $APPROVED_YEARS
+
+        This deployment includes only data that passed both validation suites:
+        - Data completeness validation 
+        - Structure validation
+        
+        Deployed $(cat site/data/approved_years.json | python -c 'import sys, json; data=json.load(sys.stdin); print(len(data["approved_years"]))') fiscal years with validated data."
         
     - name: Push to prod branch
       run: |
@@ -67,20 +139,27 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
-    - name: Set up Python for summary
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.10'
-    
-    - name: Install pandas for summary
-      run: pip install pandas
-        
     - name: Create deployment summary
       run: |
         echo "# Deployment Summary" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "✅ Tests passed successfully" >> $GITHUB_STEP_SUMMARY
-        echo "✅ Deployed to prod branch" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Year-based validation passed" >> $GITHUB_STEP_SUMMARY
+        echo "✅ Deployed to prod branch with filtered data" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "## Deployed Years" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        python -c "
+        import json
+        with open('site/data/approved_years.json', 'r') as f:
+            data = json.load(f)
+        approved = data['approved_years']
+        completeness = data['completeness_passing'] 
+        structure = data['structure_passing']
+        print(f'- **Approved for deployment**: {approved}')
+        print(f'- **Passed completeness tests**: {completeness}')
+        print(f'- **Passed structure tests**: {structure}')
+        print(f'- **Total years deployed**: {len(approved)}')
+        " >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "## Data Statistics" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
