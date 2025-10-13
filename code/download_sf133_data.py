@@ -11,12 +11,15 @@ import time
 from urllib.parse import urljoin
 import re
 
-def download_sf133_files(target_dir='raw_data/sf133'):
-    """Download all SF133 Excel files from MAX.gov."""
+def download_sf133_files(target_dir='raw_data/2025', page_url=None):
+    """Download all SF133 Excel files from MAX.gov for any fiscal year."""
     
-    # Base URL and page URL
+    # Base URL
     base_url = "https://portal.max.gov"
-    page_url = "https://portal.max.gov/portal/document/SF133/Budget/FY%202025%20-%20SF%20133%20Reports%20on%20Budget%20Execution%20and%20Budgetary%20Resources.html"
+    
+    # Default to 2025 if no URL provided
+    if page_url is None:
+        page_url = "https://portal.max.gov/portal/document/SF133/Budget/FY%202025%20-%20SF%20133%20Reports%20on%20Budget%20Execution%20and%20Budgetary%20Resources.html"
     
     # Create raw data directory
     raw_data_dir = Path(target_dir)
