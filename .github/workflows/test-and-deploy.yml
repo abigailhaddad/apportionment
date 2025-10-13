@@ -89,6 +89,14 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
+    - name: Set up Python for summary
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+    
+    - name: Install pandas for summary
+      run: pip install pandas
+        
     - name: Create deployment summary
       run: |
         echo "# Deployment Summary" >> $GITHUB_STEP_SUMMARY
