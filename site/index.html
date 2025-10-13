@@ -579,6 +579,12 @@
             border: 0;
         }
         
+        /* Navigation links styles */
+        .navigation-links a:hover {
+            background: rgba(255,255,255,0.2) !important;
+            border-color: rgba(255,255,255,0.6) !important;
+        }
+        
     </style>
 </head>
 <body>
@@ -595,6 +601,14 @@
         <h1>Federal Agency SF 133 Obligation Summary</h1>
         <p class="subtitle">Federal Budget Execution Report</p>
         <p class="text-muted" style="font-size: 0.9rem; margin-top: -5px;">Data updated: September 2025 | <a href="methodology.html">View Methodology</a></p>
+        
+        <!-- Navigation Links -->
+        <div class="navigation-links" style="background: linear-gradient(135deg, #003366, #0066cc); padding: 20px; border-radius: 8px; margin-bottom: 30px; text-align: center;">
+            <a href="index.html" style="color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.9); color: #003366; text-decoration: none; font-weight: 600; margin: 0 15px; padding: 10px 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.3s ease;">Single Year View</a>
+            <a href="comparison.html" style="color: white; text-decoration: none; font-weight: 600; margin: 0 15px; padding: 10px 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.3s ease;">Multi-Year Comparison</a>
+            <a href="methodology.html" style="color: white; text-decoration: none; font-weight: 600; margin: 0 15px; padding: 10px 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.3s ease;">Methodology</a>
+        </div>
+        
         <div id="activeFiltersDisplay" class="active-filters-display"></div>
         
         <!-- ARIA live region for screen reader announcements -->
