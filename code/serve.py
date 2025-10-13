@@ -29,7 +29,14 @@ def main():
     
     # Change to the site directory
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    site_dir = os.path.join(script_dir, 'site')
+    # Go up one level from code/ directory to find site/
+    project_dir = os.path.dirname(script_dir)
+    site_dir = os.path.join(project_dir, 'site')
+    
+    if not os.path.exists(site_dir):
+        print(f"Error: Site directory not found at {site_dir}")
+        return
+    
     os.chdir(site_dir)
     
     httpd = None
