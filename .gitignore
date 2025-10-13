@@ -13,6 +13,7 @@ __pycache__/
 # Data files
 data/*.csv
 *.csv
+*.xls
 *.xlsx
 raw_data/
 # Keep the generated JSON files for the web app

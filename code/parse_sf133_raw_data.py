@@ -12,28 +12,25 @@ warnings.filterwarnings('ignore')
 
 # Column mapping from Raw Data sheet to standardized month names
 RAW_DATA_COLUMN_MAPPING = {
-    # Monthly columns (individual months)
+    # Monthly columns (individual months) - these exist for some months
     'AMT_OCT': 'Oct',
     'AMT_NOV': 'Nov', 
-    'AMT_DEC': 'Dec',
+    'AMT_DEC': 'Dec',  # Usually not present as individual column
     'AMT_JAN': 'Jan',
     'AMT_FEB': 'Feb',
-    'AMT_MAR': 'Mar',
+    'AMT_MAR': 'Mar',  # Usually not present as individual column
     'AMT_APR': 'Apr',
     'AMT_MAY': 'May',
-    'AMT_JUN': 'Jun',
+    'AMT_JUN': 'Jun',  # Usually not present as individual column
     'AMT_JUL': 'Jul',
     'AMT_AUG': 'Aug',
-    'AMT_SEP': 'Sep',
+    'AMT_SEP': 'Sep',  # Usually not present as individual column
     
-    # Quarterly columns (cumulative amounts)
-    'AMT1': 'Dec (1Q)',  # December = 1st Quarter end
-    'AMT2': 'Mar (2Q)',  # March = 2nd Quarter end  
-    'AMT3': 'Jun (3Q)',  # June = 3rd Quarter end
-    'AMT4': 'Sep (4Q)',  # September = 4th Quarter end (fiscal year end)
-    
-    # Note: Some months may not have individual columns in all files,
-    # but quarterly columns should always be present
+    # Quarterly columns - these represent the missing individual months
+    'AMT1': 'Dec',  # December = 1st Quarter end
+    'AMT2': 'Mar',  # March = 2nd Quarter end  
+    'AMT3': 'Jun',  # June = 3rd Quarter end
+    'AMT4': 'Sep',  # September = 4th Quarter end (fiscal year end)
 }
 
 # List of expected agencies (same as original)
