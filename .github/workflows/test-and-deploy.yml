@@ -60,6 +60,8 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    permissions:
+      contents: write
     
     steps:
     - uses: actions/checkout@v4
@@ -84,6 +86,8 @@ jobs:
     - name: Push to prod branch
       run: |
         git push origin prod --force
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
     - name: Create deployment summary
       run: |
