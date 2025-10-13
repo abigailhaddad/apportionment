@@ -92,12 +92,13 @@ def parse_tafs_components(tafs, agency_name):
     
     return account_num, period_of_perf, expiration_year
 
-def generate_obligation_summary(master_table_path, fiscal_year=None):
+def generate_obligation_summary(master_table_path, fiscal_year=None, month=None):
     """Create obligation summary from the master SF133 table.
     
     Args:
         master_table_path: Path to the master CSV file
         fiscal_year: Fiscal year for naming output files (e.g., 2024)
+        month: Month of the data (e.g., 'September', 'August')
     """
     
     # Read the master table
@@ -321,8 +322,9 @@ def generate_obligation_summary(master_table_path, fiscal_year=None):
     json_data['Budget Authority (Line 2500)'] = json_data['Budget_Authority_M'].apply(lambda x: f'${x:,.1f}M')
     json_data['Percentage Unobligated'] = json_data['Percentage_Unobligated'].apply(lambda x: f'{x:.1f}%')
     
-    # Add fiscal year and placeholder time series data
+    # Add fiscal year, month, and placeholder time series data
     json_data['Fiscal_Year'] = fiscal_year if fiscal_year else 'Unknown'
+    json_data['Data_Month'] = month if month else 'Unknown'
     json_data['BA_TimeSeries'] = '[]'
     json_data['Unob_TimeSeries'] = '[]'
     
@@ -331,6 +333,28 @@ def generate_obligation_summary(master_table_path, fiscal_year=None):
     json_path.parent.mkdir(parents=True, exist_ok=True)
     json_data.to_json(json_path, orient='records')
     print(f"Saved JSON for web app to: {json_path}")
+    
+    # Create/update metadata file with fiscal year -> month mapping
+    metadata_path = Path('site/data/fiscal_year_metadata.json')
+    metadata = {}
+    
+    # Load existing metadata if it exists
+    if metadata_path.exists():
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+    
+    # Update metadata for this fiscal year
+    if fiscal_year and month:
+        metadata[str(fiscal_year)] = {
+            'month': month,
+            'display_month': month[:3] if month else 'Unknown'  # First 3 letters (Sep, Aug, etc.)
+        }
+        
+        # Save updated metadata
+        metadata_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(metadata_path, 'w') as f:
+            json.dump(metadata, f, indent=2)
+        print(f"Updated fiscal year metadata: {metadata_path}")
     
     # Report on filtering/drops
     print(f"\n=== FILTERING SUMMARY ===")
@@ -389,6 +413,7 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(description="Generate obligation summary from SF133 master data")
     parser.add_argument("--year", type=int, help="Fiscal year to process (e.g., 2024)")
+    parser.add_argument("--month", help="Month of the data (e.g., 'September', 'August')")
     parser.add_argument("--all-years", action="store_true", help="Process all available years")
     parser.add_argument("--master-file", help="Specific master file path")
     
@@ -398,7 +423,7 @@ if __name__ == "__main__":
         # Use specific file
         master_path = Path(args.master_file)
         if master_path.exists():
-            generate_obligation_summary(master_path, args.year)
+            generate_obligation_summary(master_path, args.year, args.month)
         else:
             print(f"ERROR: Master file not found: {master_path}")
             sys.exit(1)
@@ -425,7 +450,7 @@ if __name__ == "__main__":
                 print(f"\n{'='*80}")
                 print(f"Processing FY{year} ({master_file.name})")
                 print('='*80)
-                generate_obligation_summary(master_file, year)
+                generate_obligation_summary(master_file, year, args.month)
             except (IndexError, ValueError) as e:
                 print(f"WARNING: Could not extract year from {master_file.name}: {e}")
                 continue
@@ -435,7 +460,7 @@ if __name__ == "__main__":
         master_file = Path(f'site/data/sf133_{args.year}_master.csv')
         if master_file.exists():
             print(f"Processing FY{args.year} ({master_file.name})")
-            generate_obligation_summary(master_file, args.year)
+            generate_obligation_summary(master_file, args.year, args.month)
         else:
             print(f"ERROR: Master file not found: {master_file}")
             print("Available master files:")
@@ -449,7 +474,7 @@ if __name__ == "__main__":
         master_table = Path('site/data/sf133_master_table.csv')
         if master_table.exists():
             print("Using generic master table (sf133_master_table.csv)")
-            generate_obligation_summary(master_table)
+            generate_obligation_summary(master_table, None, args.month)
         else:
             # Try to find the most recent year
             data_dir = Path('site/data')
@@ -459,7 +484,7 @@ if __name__ == "__main__":
                 try:
                     year = int(latest_file.name.split('_')[1])
                     print(f"No generic master table found, using latest year: FY{year} ({latest_file.name})")
-                    generate_obligation_summary(latest_file, year)
+                    generate_obligation_summary(latest_file, year, args.month)
                 except (IndexError, ValueError):
                     print(f"ERROR: Could not extract year from {latest_file.name}")
                     sys.exit(1)

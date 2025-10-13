@@ -254,6 +254,37 @@ def create_year_summary(master_file_path, fiscal_year):
     json_data.to_json(json_path, orient='records')
     print(f"✅ Saved JSON for web app to: {json_path}")
     
+    # Create/update metadata file with fiscal year -> month mapping
+    metadata_path = Path('site/data/fiscal_year_metadata.json')
+    metadata = {}
+    
+    # Load existing metadata if it exists
+    if metadata_path.exists():
+        with open(metadata_path, 'r') as f:
+            metadata = json.load(f)
+    
+    # Convert month abbreviation to full name
+    month_mapping = {
+        'Oct': 'October', 'Nov': 'November', 'Dec': 'December',
+        'Jan': 'January', 'Feb': 'February', 'Mar': 'March',
+        'Apr': 'April', 'May': 'May', 'Jun': 'June',
+        'Jul': 'July', 'Aug': 'August', 'Sep': 'September'
+    }
+    
+    full_month = month_mapping.get(latest_month, latest_month)
+    
+    # Update metadata for this fiscal year
+    metadata[str(fiscal_year)] = {
+        'month': full_month,
+        'display_month': latest_month
+    }
+    
+    # Save updated metadata
+    metadata_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(metadata_path, 'w') as f:
+        json.dump(metadata, f, indent=2)
+    print(f"✅ Updated fiscal year metadata: {metadata_path}")
+    
     # Print summary statistics
     print(f"\n=== SUMMARY STATISTICS ===")
     print(f"Total accounts: {len(summary_df):,}")
