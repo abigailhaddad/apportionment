@@ -16,11 +16,15 @@ data/*.csv
 *.xls
 *.xlsx
 raw_data/
-# Keep the generated JSON files for the web app
+# Keep the generated files for the web app
 !data/all_agencies_summary.json
 !data/all_agencies_obligation_summary.csv
 !site/data/all_agencies_summary.json
 !site/data/all_agencies_obligation_summary.csv
+!site/data/all_agencies_summary_*.json
+!site/data/all_agencies_obligation_summary_*.csv
+!site/data/sf133_*_master.csv
+!site/data/summary_*.json
 
 # OS
 .DS_Store
