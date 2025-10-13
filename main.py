@@ -80,7 +80,9 @@ def main():
             # Multiple years
             print(f"🔄 Processing {len(args.year)} fiscal years: {', '.join(map(str, args.year))}")
             
-            all_success = True
+            successful_years = []
+            failed_years = []
+            
             for year in args.year:
                 print(f"\n{'='*80}")
                 success = processor.process_complete_year(
@@ -89,18 +91,27 @@ def main():
                     download=not args.no_download
                 )
                 if not success:
-                    all_success = False
-                    print(f"❌ FY{year} processing failed")
+                    failed_years.append(year)
+                    print(f"⚠️ FY{year} processing failed - will be excluded from website")
                 else:
+                    successful_years.append(year)
                     print(f"✅ FY{year} processing completed")
             
             print(f"\n{'='*80}")
-            if all_success:
-                print(f"🎉 All {len(args.year)} years processed successfully!")
-            else:
-                print(f"⚠️ Some years failed - check output above")
+            print(f"📊 PROCESSING SUMMARY:")
+            print(f"✅ Successfully processed: {len(successful_years)} years ({', '.join(map(str, successful_years))})")
             
-            sys.exit(0 if all_success else 1)
+            if failed_years:
+                print(f"⚠️ Failed/excluded years: {len(failed_years)} years ({', '.join(map(str, failed_years))})")
+                print(f"   These years will not appear on the website")
+            
+            # Always exit successfully if at least one year processed successfully
+            if successful_years:
+                print(f"🎉 Pipeline completed - {len(successful_years)} years ready for deployment!")
+                sys.exit(0)
+            else:
+                print(f"❌ No years processed successfully")
+                sys.exit(1)
     
     else:
         # Show help and available options

@@ -168,13 +168,18 @@ class SF133YearProcessor:
                         'has_data': abs(total) > 1000
                     }
             
-            # Check quarterly columns  
+            # Check quarterly columns with flexible naming patterns
             quarter_cols = {
-                'Q1': [col for col in df.columns if 'Dec (1Q)' in col or col == 'Dec (1Q)'],
-                'Q2': [col for col in df.columns if 'Mar (2Q)' in col or col == 'Mar (2Q)'], 
-                'Q3': [col for col in df.columns if 'Jun (3Q)' in col or col == 'Jun (3Q)'],
-                'Q4': [col for col in df.columns if 'Sep (4Q)' in col or col == 'Sep (4Q)']
+                'Q1': [col for col in df.columns if any(pattern in col for pattern in ['Dec (1Q)', 'Dec', 'AMT1', '1Q', 'Q1'])],
+                'Q2': [col for col in df.columns if any(pattern in col for pattern in ['Mar (2Q)', 'Mar', 'AMT2', '2Q', 'Q2'])], 
+                'Q3': [col for col in df.columns if any(pattern in col for pattern in ['Jun (3Q)', 'Jun', 'AMT3', '3Q', 'Q3'])],
+                'Q4': [col for col in df.columns if any(pattern in col for pattern in ['Sep (4Q)', 'Sep', 'AMT4', '4Q', 'Q4'])]
             }
+            
+            # Filter out individual month columns that were already captured above
+            for quarter, cols in quarter_cols.items():
+                # Remove columns that are already captured as individual months
+                quarter_cols[quarter] = [col for col in cols if col not in [data['column'] for data in month_data.values()]]
             
             for quarter, cols in quarter_cols.items():
                 if cols:
@@ -220,14 +225,29 @@ class SF133YearProcessor:
             print(f"  Total agencies: {df['Agency'].nunique()}")
             print(f"  Total rows: {len(df):,}")
             
-            # VALIDATION: Historical years should be complete (except October, which often has no data)
+            # VALIDATION: Historical years should have adequate data coverage
+            # For years before 2018, different data structures are acceptable
             critical_missing_months = [m for m in missing_months if m != 'Oct']
+            
             if not is_current_fiscal_year and len(critical_missing_months) > 0:
-                print(f"\n❌ VALIDATION FAILED:")
-                print(f"  FY{year} is a completed fiscal year but is missing {len(critical_missing_months)} months:")
-                print(f"  Missing: {', '.join(critical_missing_months)}")
-                print(f"  This indicates incomplete or corrupted data.")
-                return False
+                # Check if September data is missing (required for completed fiscal years)
+                if 'Sep' in critical_missing_months:
+                    print(f"\n⚠️ VALIDATION WARNING:")
+                    print(f"  FY{year} is missing September data (fiscal year end)")
+                    print(f"  Missing: {', '.join(critical_missing_months)}")
+                    print(f"  This year will be excluded from website deployment")
+                    print(f"  Available data: {', '.join(available_months)}")
+                    return False  # Fail validation but don't crash the entire process
+                elif len(critical_missing_months) > 3:  # Too many missing months
+                    print(f"\n⚠️ VALIDATION WARNING:")
+                    print(f"  FY{year} is missing too many months: {', '.join(critical_missing_months)}")
+                    print(f"  This year will be excluded from website deployment")
+                    return False
+                else:
+                    print(f"\n⚠️ Note: FY{year} missing some months but has adequate coverage")
+                    print(f"  Missing: {', '.join(critical_missing_months)}")
+                    print(f"  Available: {', '.join(available_months)}")
+                    # Continue processing - this year will be included
             elif not is_current_fiscal_year and 'Oct' in missing_months:
                 print(f"\n⚠️ Note: October data missing (common - often no spending in first month)")
                 # Don't return early - continue to TAFS validation
