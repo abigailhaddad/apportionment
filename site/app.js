@@ -1741,7 +1741,8 @@ function downloadCSV() {
 async function initializeYearSelector() {
     try {
         // Try to detect available years by checking for year-specific files
-        const testYears = [2023, 2024, 2025, 2026, 2027]; // Common years to check
+        // Generate years from 1998 to 2030
+        const testYears = Array.from({length: 2030 - 1998 + 1}, (_, i) => 1998 + i);
         const availableYearsSet = new Set();
         
         for (const year of testYears) {
