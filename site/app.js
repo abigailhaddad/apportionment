@@ -7,7 +7,7 @@ let agencyData = [];
 let bureauData = [];
 let agencyColorScale;
 let showBureauAggregates = false;
-let aggregationLevel = 'bureau'; // 'individual', 'bureau', or 'agency'
+let aggregationLevel = 'agency'; // 'individual', 'bureau', or 'agency'
 let currentFiscalYear = null; // Track the currently selected fiscal year
 let availableYears = []; // Track available fiscal years
 
@@ -154,14 +154,16 @@ async function loadData(fiscalYear = null) {
             downloadCSV();
         });
         
-        // Trigger initial filter update to show Department of Education and 2025
         // Update current fiscal year
         if (fiscalYear) {
             currentFiscalYear = fiscalYear;
             updateYearSelectorUI();
         }
         
-        updateFiltersFromUI();
+        // Only update filters if this is the initial load (no previous filter state to preserve)
+        if (!window.filterStatePreserved) {
+            updateFiltersFromUI();
+        }
         
     } catch (error) {
         console.error('Error loading data:', error);
@@ -436,7 +438,7 @@ function updateDependentFilters() {
             $yearFilter.val(currentYear);
         }
     } else {
-        // No selection yet, default to 2025 if available
+        // Default to 2025 if available, otherwise no default
         if (years.includes('2025')) {
             $yearFilter.val('2025');
         }
@@ -454,15 +456,16 @@ function populateMainFilters() {
         $agencyFilter.append(`<option value="${agency}">${agency}</option>`);
     });
     
-    // Set default agency
-    $agencyFilter.val('Department of Education');
+    // No default agency selection - start with "All Agencies"
     
     // Populate other dropdowns based on selected agency
     updateDependentFilters();
     
-    // Ensure year 2025 is selected by default on initial load
+    // Set default year to 2025 if available on initial load
     if ($('#mainExpirationFilter').val() === null || $('#mainExpirationFilter').val() === '') {
-        $('#mainExpirationFilter').val('2025');
+        if ($('#mainExpirationFilter option[value="2025"]').length > 0) {
+            $('#mainExpirationFilter').val('2025');
+        }
     }
     
     // Set up change handlers
@@ -1845,8 +1848,8 @@ async function switchToYear(year) {
         // Update UI elements that depend on the year
         console.log(`Successfully switched to FY${year}`);
         
-        // Reset filters to default state for new year
-        resetFiltersToDefault();
+        // Preserve existing filter state when switching years
+        preserveFiltersAcrossYears();
         
     } catch (error) {
         console.error(`Failed to switch to FY${year}:`, error);
@@ -1860,45 +1863,47 @@ async function switchToYear(year) {
     }
 }
 
-// Reset filters to default state for new year
-function resetFiltersToDefault() {
-    // Clear all filter selections
-    $('#mainAgencyFilter').val('');
-    $('#mainBureauFilter').val('');
-    $('#mainPeriodFilter').val('');
-    $('#mainExpirationFilter').val('');
-    $('#mainPercentageFilter').val('');
+// Preserve filter state when switching years
+function preserveFiltersAcrossYears() {
+    // Store current filter values
+    const currentFilters = {
+        agency: $('#mainAgencyFilter').val(),
+        bureau: $('#mainBureauFilter').val(), 
+        period: $('#mainPeriodFilter').val(),
+        expiration: $('#mainExpirationFilter').val(),
+        percentage: $('#mainPercentageFilter').val()
+    };
     
-    // Update dependent filters
+    // Update dependent filters first to get new available options
     updateDependentFilters();
     
-    // Set default selections (Department of Education if available)
-    const agencyOptions = $('#mainAgencyFilter option');
-    let foundEducation = false;
-    agencyOptions.each(function() {
-        if ($(this).text().includes('Department of Education')) {
-            $('#mainAgencyFilter').val($(this).val());
-            foundEducation = true;
-            return false; // break out of each loop
-        }
-    });
+    // Restore filter values if they still exist in the new data
+    if (currentFilters.agency && $('#mainAgencyFilter option[value="' + currentFilters.agency + '"]').length > 0) {
+        $('#mainAgencyFilter').val(currentFilters.agency);
+        updateDependentFilters(); // Update dependent filters after setting agency
+    }
     
-    if (foundEducation) {
-        updateDependentFilters();
-        
-        // Try to set current year or 2025 as default expiration year
-        const yearOptions = $('#mainExpirationFilter option');
-        yearOptions.each(function() {
-            const optVal = $(this).val();
-            if (optVal === currentFiscalYear.toString() || optVal === '2025') {
-                $('#mainExpirationFilter').val(optVal);
-                return false; // break out of each loop
-            }
-        });
+    if (currentFilters.bureau && $('#mainBureauFilter option[value="' + currentFilters.bureau + '"]').length > 0) {
+        $('#mainBureauFilter').val(currentFilters.bureau);
+    }
+    
+    if (currentFilters.period && $('#mainPeriodFilter option[value="' + currentFilters.period + '"]').length > 0) {
+        $('#mainPeriodFilter').val(currentFilters.period);
+    }
+    
+    if (currentFilters.expiration && $('#mainExpirationFilter option[value="' + currentFilters.expiration + '"]').length > 0) {
+        $('#mainExpirationFilter').val(currentFilters.expiration);
+    }
+    
+    if (currentFilters.percentage && $('#mainPercentageFilter option[value="' + currentFilters.percentage + '"]').length > 0) {
+        $('#mainPercentageFilter').val(currentFilters.percentage);
     }
     
     // Apply filters
     updateFiltersFromUI();
+    
+    // Mark that we've preserved filter state
+    window.filterStatePreserved = true;
 }
 
 // Initialize on page load
