@@ -48,6 +48,11 @@ jobs:
         print(f'✓ Summary has {len(summary)} accounts from {summary[\"Agency\"].nunique()} agencies')
         "
         
+    - name: Validate website data structure
+      run: |
+        echo "🔍 Validating website data structure and integrity..."
+        python test_website_data_structure.py
+        
     - name: Upload test results
       uses: actions/upload-artifact@v4
       if: always()
