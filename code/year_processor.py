@@ -255,6 +255,13 @@ class SF133YearProcessor:
                 print(f"\n⚠️ Current fiscal year - missing future months is expected:")
                 print(f"  Missing: {', '.join(missing_months)}")
             
+            # Determine validation status based on the same logic used above
+            validation_passed = True
+            if not is_current_fiscal_year and len(critical_missing_months) > 0:
+                if 'Sep' in critical_missing_months or len(critical_missing_months) > 3:
+                    validation_passed = False
+                # else: adequate coverage, keep validation_passed = True
+            
             # Save summary
             summary = {
                 'fiscal_year': year,
@@ -267,7 +274,7 @@ class SF133YearProcessor:
                 'total_rows': int(len(df)),
                 'processed_date': datetime.now().isoformat(),
                 'data_file': f"sf133_{year}_master.csv",
-                'validation_passed': is_current_fiscal_year or len([m for m in missing_months if m != 'Oct']) == 0
+                'validation_passed': validation_passed
             }
             
             summary_path = self.site_data_dir / f"summary_{year}.json"
