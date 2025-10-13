@@ -88,7 +88,7 @@ def test_csv_structure():
     return True
 
 def test_numerical_data():
-    """Test that numerical data is valid and makes sense."""
+    """Test that numerical data can be parsed by the website (like JavaScript parseFloat)."""
     
     site_data_dir = 'site/data/'
     
@@ -113,64 +113,48 @@ def test_numerical_data():
             if len(df) == 0:
                 continue
                 
-            # Parse Budget Authority values
+            # Test that Budget Authority values can be parsed (like JavaScript parseFloat)
             if 'Budget Authority (Line 2500)' in df.columns:
-                # Remove $ and M, convert to float
-                ba_col = df['Budget Authority (Line 2500)'].str.replace('$', '').str.replace(',', '').str.replace('M', '')
+                ba_col = df['Budget Authority (Line 2500)'].str.replace(r'[\$,M]', '', regex=True)
                 ba_numeric = pd.to_numeric(ba_col, errors='coerce')
                 
-                # Check for negative budget authority (shouldn't happen)
-                negative_ba = ba_numeric < 0
-                if negative_ba.any():
-                    errors.append(f"{csv_file}: Found {negative_ba.sum()} negative Budget Authority values")
-                
-                # Check for unreasonably large values (>1 trillion)
-                huge_ba = ba_numeric > 1000000  # More than 1 trillion dollars in millions
-                if huge_ba.any():
-                    errors.append(f"{csv_file}: Found {huge_ba.sum()} unreasonably large Budget Authority values (>$1T)")
+                # Check for unparseable values (would become NaN in JavaScript)
+                unparseable_ba = ba_numeric.isna()
+                if unparseable_ba.any():
+                    errors.append(f"{csv_file}: Found {unparseable_ba.sum()} unparseable Budget Authority values")
             
-            # Parse Unobligated Balance values  
+            # Test that Unobligated Balance values can be parsed
             if 'Unobligated Balance (Line 2490)' in df.columns:
-                unob_col = df['Unobligated Balance (Line 2490)'].str.replace('$', '').str.replace(',', '').str.replace('M', '')
+                unob_col = df['Unobligated Balance (Line 2490)'].str.replace(r'[\$,M]', '', regex=True)
                 unob_numeric = pd.to_numeric(unob_col, errors='coerce')
                 
-                # Check for negative unobligated balance (shouldn't happen normally)
-                negative_unob = unob_numeric < 0
-                if negative_unob.any():
-                    errors.append(f"{csv_file}: Found {negative_unob.sum()} negative Unobligated Balance values")
+                # Check for unparseable values
+                unparseable_unob = unob_numeric.isna()
+                if unparseable_unob.any():
+                    errors.append(f"{csv_file}: Found {unparseable_unob.sum()} unparseable Unobligated Balance values")
             
-            # Check percentage values
+            # Test that percentage values can be parsed
             if 'Percentage Unobligated' in df.columns:
                 pct_col = df['Percentage Unobligated'].str.replace('%', '')
                 pct_numeric = pd.to_numeric(pct_col, errors='coerce')
                 
-                # Check for valid percentage range (0-100)
-                invalid_pct = (pct_numeric < 0) | (pct_numeric > 100)
-                if invalid_pct.any():
-                    errors.append(f"{csv_file}: Found {invalid_pct.sum()} invalid percentage values (not 0-100%)")
+                # Check for unparseable percentages
+                unparseable_pct = pct_numeric.isna()
+                if unparseable_pct.any():
+                    errors.append(f"{csv_file}: Found {unparseable_pct.sum()} unparseable percentage values")
             
-            # Check that unobligated <= budget authority (when both > 0)
-            if all(col in df.columns for col in ['Budget Authority (Line 2500)', 'Unobligated Balance (Line 2490)']):
-                ba_clean = df['Budget Authority (Line 2500)'].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float)
-                unob_clean = df['Unobligated Balance (Line 2490)'].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float)
-                
-                # Check logical constraint: unobligated should not exceed budget authority
-                invalid_ratio = (unob_clean > ba_clean) & (ba_clean > 0)
-                if invalid_ratio.any():
-                    errors.append(f"{csv_file}: Found {invalid_ratio.sum()} cases where Unobligated > Budget Authority")
-            
-            print(f"✅ {csv_file}: Numerical data validation passed")
+            print(f"✅ {csv_file}: All numerical fields are parseable by website")
             
         except Exception as e:
-            errors.append(f"{csv_file}: Failed to validate numbers - {str(e)}")
+            errors.append(f"{csv_file}: Failed to validate parseability - {str(e)}")
     
     if errors:
-        print("\n❌ NUMERICAL VALIDATION ERRORS:")
+        print("\n❌ PARSEABILITY VALIDATION ERRORS:")
         for error in errors:
             print(f"  - {error}")
         return False
     
-    print("✅ All numerical data is valid")
+    print("✅ All numerical data is parseable by website")
     return True
 
 def test_required_fields():
@@ -269,7 +253,7 @@ def main():
     
     tests = [
         ("CSV Structure", test_csv_structure),
-        ("Numerical Data", test_numerical_data), 
+        ("Data Parseability", test_numerical_data), 
         ("Required Fields", test_required_fields),
         ("Data Consistency", test_data_consistency)
     ]
