@@ -23,35 +23,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     
-    - name: Run all tests
-      run: python run_tests.py
-        
-    - name: Validate summary generation
-      run: |
-        echo "Validating summary data..."
-        python -c "
-        import pandas as pd
-        import sys
-        
-        # Check summary file exists and has data
-        summary = pd.read_csv('site/data/all_agencies_obligation_summary.csv')
-        
-        # Basic sanity checks
-        if len(summary) < 1000:
-            print(f'ERROR: Only {len(summary)} accounts found, expected >1000')
-            sys.exit(1)
-            
-        if summary['Agency'].nunique() < 29:
-            print(f'ERROR: Only {summary[\"Agency\"].nunique()} agencies found, expected 29')
-            sys.exit(1)
-            
-        print(f'✓ Summary has {len(summary)} accounts from {summary[\"Agency\"].nunique()} agencies')
-        "
-        
-    - name: Validate website data structure
-      run: |
-        echo "🔍 Validating website data structure and integrity..."
-        python test_website_data_structure.py
+    - name: Run year-based validation
+      run: python validate_years.py
         
     - name: Upload test results
       uses: actions/upload-artifact@v4

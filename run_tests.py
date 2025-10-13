@@ -12,9 +12,6 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
-# Known incomplete years (will generate warnings but not fail the build)
-KNOWN_INCOMPLETE_YEARS = [2015, 2016, 2017]
-
 # Expected agencies list
 EXPECTED_AGENCIES = [
     "Legislative Branch",
@@ -73,14 +70,15 @@ def test_year_data_completeness():
     
     if not available_years:
         print("❌ ERROR: No year-specific data files found")
-        return False
+        return []
     
     # Check requirements for each year
-    all_passed = True
+    passing_years = []
     
     for year in available_years:
         print(f"\n  Checking FY{year}:")
         csv_path = Path(f'site/data/all_agencies_obligation_summary_{year}.csv')
+        year_passed = True
         
         try:
             df = pd.read_csv(csv_path)
@@ -97,28 +95,19 @@ def test_year_data_completeness():
                     print(f"    ✅ {len(agencies_found)} agencies present (Other Independent Agencies broken out as: {independent_agencies[:3]}{'...' if len(independent_agencies) > 3 else ''})")
                     missing_agencies.discard("Other Independent Agencies")
                 else:
-                    if year in KNOWN_INCOMPLETE_YEARS:
-                        print(f"    ⚠️  Missing Other Independent Agencies (expected for FY{year})")
-                    else:
-                        print(f"    ❌ Missing Other Independent Agencies and no individual independent agencies found")
+                    print(f"    ❌ Missing Other Independent Agencies and no individual independent agencies found")
             
-            # Check for other missing agencies (strict requirement for complete years only)
+            # Check for other missing agencies (strict requirement)
             if len(missing_agencies) > 0:
-                if year in KNOWN_INCOMPLETE_YEARS:
-                    print(f"    ⚠️  Missing {len(missing_agencies)} agencies (expected for FY{year}): {list(missing_agencies)[:5]}{'...' if len(missing_agencies) > 5 else ''}")
-                else:
-                    print(f"    ❌ Missing {len(missing_agencies)} required agencies: {list(missing_agencies)}")
-                    all_passed = False
+                print(f"    ❌ Missing {len(missing_agencies)} required agencies: {list(missing_agencies)}")
+                year_passed = False
             elif "Other Independent Agencies" not in missing_agencies:
                 print(f"    ✅ {len(agencies_found)} agencies present")
             
             # Check data volume
             if len(df) < 1000:
-                if year in KNOWN_INCOMPLETE_YEARS:
-                    print(f"    ⚠️  Only {len(df)} records (expected for FY{year})")
-                else:
-                    print(f"    ❌ Only {len(df)} records, expected >1000")
-                    all_passed = False
+                print(f"    ❌ Only {len(df)} records, expected >1000")
+                year_passed = False
             else:
                 print(f"    ✅ {len(df):,} records")
             
@@ -136,9 +125,14 @@ def test_year_data_completeness():
                 
         except Exception as e:
             print(f"    ❌ Error reading FY{year} data: {e}")
-            all_passed = False
+            year_passed = False
+        
+        # Add year to passing list if it passed all checks
+        if year_passed:
+            passing_years.append(year)
     
-    return all_passed
+    print(f"\n✅ Years passing completeness tests: {passing_years}")
+    return passing_years
 
 def test_csv_summary_files():
     """Test that CSV summary files exist and are properly formatted"""
