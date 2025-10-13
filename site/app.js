@@ -10,6 +10,7 @@ let showBureauAggregates = false;
 let aggregationLevel = 'agency'; // 'individual', 'bureau', or 'agency'
 let currentFiscalYear = null; // Track the currently selected fiscal year
 let availableYears = []; // Track available fiscal years
+let fiscalYearMetadata = {}; // Store month information for each fiscal year
 
 // Define agency colors - using d3 color schemes
 const AGENCY_COLORS = {
@@ -1744,9 +1745,27 @@ function downloadCSV() {
     document.body.removeChild(link);
 }
 
+// Load fiscal year metadata (month information)
+async function loadFiscalYearMetadata() {
+    try {
+        const response = await fetch('data/fiscal_year_metadata.json');
+        if (response.ok) {
+            fiscalYearMetadata = await response.json();
+            console.log('Loaded fiscal year metadata:', fiscalYearMetadata);
+        } else {
+            console.log('No fiscal year metadata file found, using defaults');
+        }
+    } catch (error) {
+        console.log('Could not load fiscal year metadata:', error);
+    }
+}
+
 // Initialize year selector
 async function initializeYearSelector() {
     try {
+        // Load metadata first
+        await loadFiscalYearMetadata();
+        
         // Try to detect available years by checking for year-specific files
         // Generate years from 1998 to 2030
         const testYears = Array.from({length: 2030 - 1998 + 1}, (_, i) => 1998 + i);
@@ -1782,7 +1801,16 @@ async function initializeYearSelector() {
             const button = document.createElement('button');
             button.className = 'year-btn';
             button.setAttribute('data-year', year);
-            button.textContent = `FY ${year}`;
+            
+            // Get month information for this year
+            const metadata = fiscalYearMetadata[year.toString()];
+            const monthText = metadata ? metadata.display_month : 'Sep'; // Default to Sep if no metadata
+            
+            // Create button with month above FY
+            button.innerHTML = `
+                <div style="font-size: 0.8em; opacity: 0.8; line-height: 1;">${monthText} ${year}</div>
+                <div style="font-weight: 600;">FY ${year}</div>
+            `;
             button.addEventListener('click', () => switchToYear(year));
             yearSelector.appendChild(button);
         });
