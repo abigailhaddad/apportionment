@@ -110,74 +110,130 @@
         
         <div class="methodology-section">
             <h2>Data Source</h2>
-            <p>All data is sourced from the <a href="https://portal.max.gov/portal/document/SF133/Budget/FY%202025%20-%20SF%20133%20Reports%20on%20Budget%20Execution%20and%20Budgetary%20Resources.html" target="_blank">MAX.gov FY 2025 - SF 133 Reports on Budget Execution and Budgetary Resources</a>.</p>
-            <p>The SF 133 report contains monthly budget execution data for all federal agencies. We process the August 2025 data files.</p>
+            <p>Data is sourced from <a href="https://portal.max.gov/portal/document/SF133/Budget/" target="_blank">MAX.gov SF 133 Reports on Budget Execution and Budgetary Resources</a> covering fiscal years 2018-2025.</p>
+            <p>The SF 133 report contains monthly budget execution data for all federal agencies. Our system processes complete fiscal years, automatically detecting available months for each year.</p>
+            
+            <h3>Multi-Year Coverage</h3>
+            <ul>
+                <li><strong>Historical Data (FY2018-2023)</strong>: Complete fiscal year datasets with all available months</li>
+                <li><strong>Current Years (FY2024-2025)</strong>: Updated as new monthly data becomes available</li>
+                <li><strong>Data Format Evolution</strong>: Handles different Excel formats (.xls/.xlsx) across years</li>
+            </ul>
         </div>
         
         <div class="methodology-section">
-            <h2>Excel File Structure</h2>
-            <p>Each agency has one Excel file containing multiple sheets. We extract data from the <strong>TAFS detail</strong> sheet.</p>
+            <h2>Excel File Structure & Processing Method</h2>
+            <p>Each agency provides Excel files containing multiple sheets. We use the <strong>Raw Data</strong> sheet method for maximum compatibility across years.</p>
+            
+            <h3>Why Raw Data Sheets?</h3>
+            <ul>
+                <li><strong>Cross-Year Compatibility</strong>: Raw Data sheets maintain consistent structure across different fiscal years</li>
+                <li><strong>Reliability</strong>: More stable than TAFS detail sheets which vary in format</li>
+                <li><strong>Comprehensive Coverage</strong>: Contains all months and quarters in standardized columns</li>
+            </ul>
             
             <h3>Finding the Header Row</h3>
-            <p>We search for a row containing "Line No" or "Lineno" within the first 30 rows of the TAFS detail sheet.</p>
+            <p>We search for a row containing "LINENO", "BUREAU", or "OMB_ACCT" within the first 30 rows of the Raw Data sheet.</p>
         </div>
         
         <div class="methodology-section">
-            <h2>Data Extraction - Standard Agencies</h2>
-            <p>For all agencies except "Other Independent Agencies":</p>
+            <h2>Data Extraction - Raw Data Sheet Method</h2>
+            <p>All agencies are processed using the standardized Raw Data sheet format:</p>
             
             <div class="field-mapping">
-                <h4>Column Mappings</h4>
+                <h4>Standard Raw Data Column Mappings</h4>
                 <ul>
-                    <li><code>Col_0</code> = Bureau</li>
-                    <li><code>Col_1</code> = Account identifier (may contain bureau codes)</li>
-                    <li><code>Col_4</code> = TAFS (Treasury Account Fund Symbol) - contains account name after " - "</li>
-                    <li><code>Line No</code> = Line number column</li>
-                    <li><code>Aug</code> = August data column (contains budget values)</li>
+                    <li><code>BUREAU</code> = Bureau/sub-agency name</li>
+                    <li><code>OMB_ACCT</code> = OMB account identifier</li>
+                    <li><code>TAFS</code> = Treasury Account Fund Symbol (contains account name after " - ")</li>
+                    <li><code>LINENO</code> = Line number column</li>
+                    <li><code>AMT_JUL</code> = July data (monthly amount)</li>
+                    <li><code>AMT_AUG</code> = August data (monthly amount)</li>
+                    <li><code>AMT3</code> = June data (3rd quarter cumulative)</li>
+                    <li><code>AMT4</code> = September data (4th quarter cumulative, fiscal year end)</li>
                 </ul>
             </div>
             
+            <h3>Auto-Detection of Available Months</h3>
+            <p>The system automatically detects which months have data for each fiscal year:</p>
+            <ul>
+                <li><strong>Individual Months</strong>: Oct, Nov, Dec, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep</li>
+                <li><strong>Quarterly Data</strong>: Dec (1Q), Mar (2Q), Jun (3Q), Sep (4Q)</li>
+                <li><strong>Latest Month Selection</strong>: Automatically uses the most recent month with valid data</li>
+            </ul>
+            
             <h3>Specific Lines Extracted</h3>
             <ul>
-                <li><strong>Line 2490</strong>: Unobligated Balance</li>
-                <li><strong>Line 2500</strong>: Budget Authority</li>
+                <li><strong>Line 2490</strong>: Unobligated Balance, end of period</li>
+                <li><strong>Line 2500</strong>: Total budgetary resources</li>
             </ul>
             
             <h3>Processing Steps</h3>
             <ol>
-                <li>Forward fill Bureau (Col_0), Account identifier (Col_1), and TAFS (Col_4) values down the spreadsheet</li>
-                <li>Filter to only rows where Line No = 2490.0 or 2500.0</li>
-                <li>Extract August column values</li>
+                <li>Load Raw Data sheet and identify header row containing "LINENO", "BUREAU", "OMB_ACCT"</li>
+                <li>Forward fill key columns (BUREAU, OMB_ACCT, TAFS) down the spreadsheet</li>
+                <li>Convert LINENO to numeric and filter for lines 2490.0 and 2500.0</li>
+                <li>Auto-detect latest available month with valid data (non-zero, non-null values)</li>
+                <li>Extract values from the latest month column</li>
                 <li>Merge Line 2490 and Line 2500 data on matching Agency + TAFS combinations</li>
-                <li>Extract account name from TAFS (text after " - "), falling back to Col_1 if not available</li>
+                <li>Extract account name from TAFS (text after " - ")</li>
                 <li>Convert values from dollars to millions</li>
                 <li>Calculate percentage: (Unobligated Balance / Budget Authority) × 100</li>
             </ol>
         </div>
         
         <div class="methodology-section">
-            <h2>Data Extraction - Other Independent Agencies</h2>
-            <p>The "Other Independent Agencies" file has a different structure:</p>
+            <h2>Data Validation Tests</h2>
+            <p>The system runs specific validation tests before deploying data. Each test must pass:</p>
             
-            <div class="field-mapping">
-                <h4>Column Mappings</h4>
-                <ul>
-                    <li><code>Col_2</code> = Account info (format: "247-00-5721   400 Years of African-American History Commission")</li>
-                    <li><code>Col_6</code> = TAFS (format: "95-2300 /25 - Salaries and Expenses")</li>
-                    <li><code>Col_9</code> = Line number (stored as string)</li>
-                    <li><code>Jul AMT</code> = July data column (OIA still uses July data)</li>
-                </ul>
-            </div>
+            <h3>test_year_data_completeness()</h3>
+            <ul>
+                <li>Checks each year CSV file has all 29 expected agencies (or valid alternatives for "Other Independent Agencies")</li>
+                <li>Requires minimum 1,000 records per year file</li>
+                <li>Historical years (before current FY) must have ≥8,000 records for comprehensive data</li>
+                <li>Current fiscal year accepts partial data</li>
+                <li>Returns list of years that pass all checks</li>
+            </ul>
             
-            <h3>Processing Steps</h3>
-            <ol>
-                <li>Forward fill Col_2 and Col_6 values</li>
-                <li>Convert Col_9 to numeric and filter for lines 2490.0 and 2500.0</li>
-                <li>Extract Jul AMT values (OIA data not yet updated to August)</li>
-                <li>Merge Line 2490 and Line 2500 data on matching Col_6 (TAFS) values</li>
-                <li>Extract bureau name from Col_2 (text after account number)</li>
-                <li>Extract account name from Col_6 (text after " - ")</li>
-            </ol>
+            <h3>test_csv_summary_files()</h3>
+            <ul>
+                <li>Verifies CSV files exist and are readable</li>
+                <li>Checks for required columns: Agency, Bureau, Account</li>
+                <li>Ensures files are not empty</li>
+                <li>Reports structure and record counts</li>
+            </ul>
+            
+            <h3>test_data_consistency()</h3>
+            <ul>
+                <li>Validates main summary file has ≥1,000 records</li>
+                <li>Requires ≥20 unique agencies</li>
+                <li>Checks Budget Authority values start with "$" and are properly formatted</li>
+                <li>Tests currency format parsing ("$1,234.5M" format)</li>
+            </ul>
+            
+            <h3>test_data_reasonableness()</h3>
+            <ul>
+                <li>Parses Budget Authority and Unobligated Balance values by removing "$", ",", "M"</li>
+                <li>Calculates total Budget Authority, must be between $1 trillion and $50 trillion</li>
+                <li>Checks percentage values are not extremely out of range (-1000% to +1000%)</li>
+                <li>Reports if extreme percentages found (may be valid for negative Budget Authority)</li>
+            </ul>
+            
+            <h3>test_cross_year_consistency()</h3>
+            <ul>
+                <li>Calculates year-over-year Budget Authority changes between consecutive fiscal years</li>
+                <li>Flags (but doesn't fail) if total Budget Authority changes >50% between years</li>
+                <li>Requires at least 2 years of data to run</li>
+                <li><em>Note: Agency coverage validation is handled by test_year_data_completeness()</em></li>
+            </ul>
+            
+            <h3>Website Structure Tests</h3>
+            <ul>
+                <li><strong>test_csv_structure()</strong>: Validates 10 required columns exist, ≥100 records, ≥15 agencies per file</li>
+                <li><strong>test_numerical_data()</strong>: Tests Budget Authority, Unobligated Balance, and Percentage values are parseable by JavaScript parseFloat()</li>
+                <li><strong>test_required_fields()</strong>: Ensures Agency, Bureau, Account, Account_Number have no missing/empty values</li>
+                <li><strong>test_data_consistency()</strong>: Verifies main file exists with ≥1,000 records and ≥20 agencies</li>
+            </ul>
         </div>
         
         <div class="methodology-section">
@@ -211,15 +267,6 @@
             </ul>
         </div>
         
-        <div class="methodology-section">
-            <h2>Data Quality Checks</h2>
-            <ul>
-                <li>Only include accounts where both Line 2490 and Line 2500 exist</li>
-                <li>Handle division by zero: If Budget Authority = 0 and Unobligated = 0, then Percentage = 0</li>
-                <li>Handle division by zero: If Budget Authority = 0 and Unobligated > 0, then Percentage = 100</li>
-                <li>Round values: Budget amounts to 1 decimal place, percentages to 1 decimal place</li>
-            </ul>
-        </div>
         
         <div class="methodology-section">
             <h2>Data Files Used by the Application</h2>

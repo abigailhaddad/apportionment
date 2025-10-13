@@ -1,19 +1,25 @@
 # SF133 Federal Budget Data Processing System
 
-A robust, automated system for processing federal agency budget execution data using SF133 reports. This system downloads, processes, validates, and publishes budget data with comprehensive integrity testing to ensure accuracy across multiple years.
+Automated system for processing complete fiscal years of federal agency budget execution data using SF133 reports. Downloads all agency files for entire fiscal years from MAX.gov, processes using reliable Raw Data sheets, and generates comprehensive datasets spanning 2018-2025.
 
 ## 🚀 Quick Start
 
-### New Month Data Update
+### Process Complete Fiscal Year
 ```bash
-# Process new month data (downloads, processes, tests, updates website)
-python update_sf133_data.py --month september --year 2024
+# Process complete fiscal year (downloads all agencies for entire year)
+python main.py --year 2024
 
-# Test existing data without updating
-python update_sf133_data.py --test-only
+# Process multiple years
+python main.py --year 2022 2023 2024
 
-# Process existing downloaded data without re-downloading
-python update_sf133_data.py --month august --no-download
+# Process year with custom URL
+python main.py --year 2024 --url "https://portal.max.gov/.../FY%202024%20..."
+
+# Use existing downloaded files (skip download)
+python main.py --year 2024 --no-download
+
+# Start web server
+python main.py --serve
 ```
 
 ### Setup
@@ -34,44 +40,45 @@ pip install -r requirements.txt
 
 ### Core Components
 
-1. **`update_sf133_data.py`** - Main orchestrator script
-   - Downloads new SF133 data when available
-   - Processes using robust Raw Data method
-   - Runs comprehensive validation tests
-   - Updates website only after all tests pass
+1. **`main.py`** - Main entry point and orchestrator
+   - Routes to year processing or web server
+   - Handles single or multi-year processing
+   - Manages pipeline success/failure reporting
 
-2. **`sf133_processor.py`** - Data processing engine
-   - Downloads data from MAX.gov
-   - Processes using Raw Data sheets (more reliable than TAFS detail)
-   - Handles multiple years and consolidated files
-   - Creates standardized monthly columns
+2. **`code/year_processor.py`** - Year-based processing engine
+   - Downloads complete fiscal year data from MAX.gov
+   - Processes all available months using Raw Data sheets
+   - Auto-detects available months and validates data completeness
+   - Generates year-specific master datasets
 
-3. **`parse_sf133_raw_data.py`** - Raw Data sheet parser
+3. **`code/parse_sf133_raw_data.py`** - Raw Data sheet parser
    - Uses Raw Data sheets instead of TAFS detail (better cross-year compatibility)
    - Standardized column mapping (AMT_JUL → Jul, AMT3 → Jun (3Q), etc.)
    - Handles consolidated files to prevent double-counting
    - Preserves exact financial accuracy
 
-4. **Testing Framework**
-   - `tests/test_sf133_integrity.py` - Data integrity validation
-   - `tests/test_cross_year_validation.py` - Cross-year compatibility testing
-   - Validates agency coverage, account structures, financial reasonableness
+4. **`create_year_summaries.py`** - Summary file generator
+   - Creates obligation summaries from master datasets
+   - Auto-detects latest month with data for each year
+   - Generates CSV and JSON files for website visualization
+   - Handles TAFS parsing for account details
 
-### Key Improvements Over Legacy System
+### Key Features
 
-✅ **Automated Pipeline** - Single command processes everything safely  
+✅ **Complete Year Processing** - Downloads and processes entire fiscal years  
+✅ **Multi-Year Support** - Process historical data from 2018-2025  
 ✅ **Raw Data Method** - More reliable than TAFS detail parsing  
-✅ **Comprehensive Testing** - Prevents data corruption or loss  
-✅ **Cross-Year Validation** - Ensures compatibility when adding new years  
-✅ **Backup System** - Automatic backups before updates  
-✅ **Standardized Columns** - Clean field names instead of "Col_0", "Col_1"
+✅ **Auto-Detection** - Automatically finds available months per year  
+✅ **Data Validation** - Comprehensive coverage and integrity checks  
+✅ **Standardized Output** - Consistent column naming across all years
 
 ## 🔍 Data Processing Details
 
 ### SF133 Data Source
 - Downloads from [MAX.gov SF133 Reports](https://portal.max.gov/portal/document/SF133/Budget/)
-- Processes 25+ federal agency files per month
-- Uses "Raw Data" sheets for maximum compatibility
+- Processes 25+ federal agency files per fiscal year
+- Uses "Raw Data" sheets for maximum compatibility across years
+- Handles different file formats (xlsx/xls) across historical years
 
 ### Column Mapping
 ```
@@ -85,6 +92,12 @@ OMB_ACCT         →    OMB_ACCT
 LINENO           →    LINENO
 ```
 
+### Fiscal Year Structure
+- **Q1**: Oct, Nov, Dec (ends with Dec 1Q data)
+- **Q2**: Jan, Feb, Mar (ends with Mar 2Q data)  
+- **Q3**: Apr, May, Jun (ends with Jun 3Q data)
+- **Q4**: Jul, Aug, Sep (ends with Sep 4Q data - fiscal year end)
+
 ### Key SF133 Line Numbers
 - **Line 1000**: Unobligated Balance brought forward
 - **Line 2490**: Unobligated Balance, end of period  
@@ -92,112 +105,104 @@ LINENO           →    LINENO
 - **Line 3020**: Outlays (gross)
 - **Line 4110**: Outlays (total)
 
-## 🧪 Testing & Validation
+## 📊 Available Data Coverage
 
-### Data Integrity Tests
+The system maintains complete datasets for fiscal years 2018-2025:
+- **Historical Years (2018-2023)**: Complete fiscal year data with all available months
+- **Recent Years (2024-2025)**: Current data with month-by-month updates
+- **Cross-Year Analysis**: Consistent TAFS validation across all years
+
 ```bash
-# Run comprehensive tests
-python -m tests.test_sf133_integrity
+# Generate summaries for all years
+python create_year_summaries.py --all-years
 
-# Cross-year validation
-python tests/test_cross_year_validation.py --compare 2024 2025
+# Generate summary for specific year
+python create_year_summaries.py --year 2024
+
+# Validate year coverage
+python validate_years.py
 ```
 
-**Tests Include:**
-- ✅ Agency coverage validation (25+ agencies expected)
-- ✅ Account structure consistency  
-- ✅ Financial total reasonableness
-- ✅ Month progression logic
-- ✅ Data completeness by agency
-- ✅ Line number structure validation
-
-### Validation Criteria
-- **Agency Coverage**: Must include all major agencies (Defense, HHS, Education, etc.)
-- **Data Completeness**: >100k rows expected, <5% missing values in key fields
-- **Financial Consistency**: Previous months' totals must remain unchanged
-- **Account Consistency**: Core line numbers (2500, 2490) must exist across agencies
-
-## 📊 Website & Visualization
+## 🌐 Website & Visualization
 
 The system generates an interactive website showing:
+- **Multi-Year Comparison**: Budget trends across fiscal years
 - **Bubble Chart**: Budget authority vs. unobligated percentages
 - **Agency/Bureau Filtering** 
-- **Expiration Year Analysis** (focus on FY2025 expiring funds)
-- **Monthly Progression** (June → July → August trends)
+- **Expiration Year Analysis**
+- **Month-by-Month Progression**
 
 ```bash
-# Start web server
-python serve.py
+# Start development server
+python main.py --serve
 # Visit http://localhost:8000
 ```
 
-## 🔄 Automated Updates
+## 🔧 Configuration
 
-### Safe Update Process
-1. **Backup** current data
-2. **Download** new SF133 files  
-3. **Process** using Raw Data method
-4. **Test** data integrity comprehensively
-5. **Validate** against previous months
-6. **Update** website only if all tests pass
+### URL Configuration (sf133_urls.json)
+```json
+{
+  "sf133_urls": {
+    "2024": "https://portal.max.gov/.../FY%202024%20...",
+    "2025": "https://portal.max.gov/.../FY%202025%20..."
+  }
+}
+```
 
-### Failure Handling
-- If ANY test fails, website is NOT updated
-- Previous data remains unchanged
-- Detailed logs saved for debugging
-- Easy rollback to previous version
+### Data Validation
+- **Agency Coverage**: Validates against FY2025 baseline (25+ agencies expected)
+- **Month Completeness**: Auto-detects available months, requires September for historical years
+- **TAFS Coverage**: Validates account coverage against baseline year
+- **Financial Totals**: Checks for reasonable budget authority and unobligated balances
 
 ## 📁 File Structure
 ```
-├── update_sf133_data.py          # Main update orchestrator
-├── sf133_processor.py            # Core processing engine  
-├── parse_sf133_raw_data.py       # Raw Data sheet parser
-├── download_sf133_data.py        # Data downloader
-├── tests/
-│   ├── test_sf133_integrity.py   # Data integrity tests
-│   └── test_cross_year_validation.py  # Cross-year tests
+├── main.py                       # Main entry point and router
+├── create_year_summaries.py      # Summary file generator
+├── validate_years.py             # Year coverage validator  
+├── sf133_urls.json              # MAX.gov URL configuration
+├── code/
+│   ├── year_processor.py         # Year-based processing engine
+│   ├── parse_sf133_raw_data.py   # Raw Data sheet parser
+│   ├── download_sf133_data.py    # Data downloader
+│   └── serve.py                 # Development web server
 ├── site/
-│   ├── data/                     # Processed data (CSV/JSON)
-│   └── index.html               # Web interface
-├── raw_data/                    # Downloaded SF133 files
-└── backups/                     # Automatic backups
+│   ├── data/                    # Processed data (CSV/JSON)
+│   │   ├── sf133_YYYY_master.csv # Year-specific master files
+│   │   └── summary_YYYY.json     # Year metadata and analysis
+│   └── index.html              # Web interface
+├── raw_data/
+│   ├── 2018/                   # FY2018 Excel files
+│   ├── 2024/                   # FY2024 Excel files
+│   └── 2025/                   # FY2025 Excel files
+└── requirements.txt            # Python dependencies
 ```
 
 ## 🚨 Important Notes
 
-- **Always run tests** before using new data in production
-- **Previous months' data must remain unchanged** when adding new months
-- **Cross-year validation** ensures compatibility when adding new fiscal years  
-- **Backup system** protects against data corruption
-- **Raw Data method** is more reliable than legacy TAFS detail parsing
+- **Complete Year Processing**: System processes entire fiscal years, not individual months
+- **Historical Coverage**: Maintains data from FY2018 through current fiscal year
+- **Auto-Detection**: Automatically identifies available months for each year
+- **Data Validation**: Failed years are excluded from website but don't crash pipeline
+- **Raw Data Method**: More reliable than legacy TAFS detail parsing across different year formats
 
 ## 📈 Production Usage
 
 ```bash
-# Monthly update (recommended)
-python update_sf133_data.py --month september --year 2024 --save-log
+# Process latest fiscal year
+python main.py --year 2025
 
-# Emergency testing
-python update_sf133_data.py --test-only
+# Historical data rebuild
+python main.py --year 2020 2021 2022 2023 2024 2025
 
-# Cross-year validation when adding new fiscal year
-python tests/test_cross_year_validation.py --compare 2024 2025 --report
-```
+# Update summaries after processing
+python create_year_summaries.py --all-years
 
-## 🔧 Development
-
-### Running Tests
-```bash
-# All tests
-python -m pytest tests/ -v
-
-# Specific test
-python tests/test_sf133_integrity.py
-
-# Cross-year validation
-python tests/test_cross_year_validation.py --compare 2024 2025
+# Deploy to production
+python main.py --serve
 ```
 
 ---
 
-**Status**: ✅ **Production Ready** - Comprehensive testing and validation system ensures data integrity across years and months.
+**Status**: ✅ **Production Ready** - Multi-year processing system with comprehensive validation and historical data coverage (FY2018-2025).
