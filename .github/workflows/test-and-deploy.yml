@@ -42,10 +42,10 @@ jobs:
             sys.exit(1)
             
         if summary['Agency'].nunique() < 29:
-            print(f'ERROR: Only {summary["Agency"].nunique()} agencies found, expected 29')
+            print(f'ERROR: Only {summary[\"Agency\"].nunique()} agencies found, expected 29')
             sys.exit(1)
             
-        print(f'✓ Summary has {len(summary)} accounts from {summary["Agency"].nunique()} agencies')
+        print(f'✓ Summary has {len(summary)} accounts from {summary[\"Agency\"].nunique()} agencies')
         "
         
     - name: Upload test results
