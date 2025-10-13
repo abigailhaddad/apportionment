@@ -385,46 +385,91 @@ function initializeMultiSelectDropdown(filterId, options, defaultSelected = []) 
     return updateButtonText;
 }
 
-// Update dependent filter dropdowns based on current selections
+// Update dependent filter dropdowns based on current selections (cascading filters)
 function updateDependentFilters() {
     const selectedAgency = $('#mainAgencyFilter').val();
     const selectedBureau = $('#mainBureauFilter').val();
     const selectedPeriod = $('#mainPeriodFilter').val();
     
-    // Filter data based ONLY on agency selection for dropdown population
-    // This allows switching between bureaus/periods without getting stuck
-    let filteredData = obligationData;
     
-    if (selectedAgency) {
-        filteredData = filteredData.filter(row => row.Agency === selectedAgency);
+    // Start with all data and progressively filter for each dropdown
+    let filteredForBureaus = obligationData;
+    let filteredForPeriods = obligationData;
+    let filteredForYears = obligationData;
+    
+    // For bureaus: filter by agency only (if agency is selected)
+    if (selectedAgency && selectedAgency !== '') {
+        filteredForBureaus = filteredForBureaus.filter(row => row.Agency === selectedAgency);
     }
     
-    // Update Bureau dropdown
-    const bureaus = [...new Set(filteredData.map(row => row.Bureau))].filter(b => b).sort();
+    // For periods: filter by agency and bureau (if selected)
+    if (selectedAgency && selectedAgency !== '') {
+        filteredForPeriods = filteredForPeriods.filter(row => row.Agency === selectedAgency);
+    }
+    if (selectedBureau && selectedBureau !== '') {
+        filteredForPeriods = filteredForPeriods.filter(row => row.Bureau === selectedBureau);
+    }
+    
+    // For years: filter by agency, bureau, and period (if selected)
+    if (selectedAgency && selectedAgency !== '') {
+        filteredForYears = filteredForYears.filter(row => row.Agency === selectedAgency);
+    }
+    if (selectedBureau && selectedBureau !== '') {
+        filteredForYears = filteredForYears.filter(row => row.Bureau === selectedBureau);
+    }
+    if (selectedPeriod && selectedPeriod !== '') {
+        filteredForYears = filteredForYears.filter(row => row.Period_of_Performance === selectedPeriod);
+    }
+    
+    // Update Bureau dropdown (cascaded from Agency)
+    const bureaus = [...new Set(filteredForBureaus.map(row => row.Bureau))].filter(b => b).sort();
+    
     const $bureauFilter = $('#mainBureauFilter');
     const currentBureau = $bureauFilter.val();
     $bureauFilter.empty().append('<option value="">All Bureaus</option>');
     bureaus.forEach(bureau => {
         $bureauFilter.append(`<option value="${bureau}">${bureau}</option>`);
     });
-    if (bureaus.includes(currentBureau)) {
+    
+    // Clear bureau selection if it's no longer available
+    if (currentBureau && currentBureau !== '' && !bureaus.includes(currentBureau)) {
+        $bureauFilter.val('');
+    } else if (bureaus.includes(currentBureau)) {
         $bureauFilter.val(currentBureau);
     }
     
-    // Update Period dropdown
-    const periods = [...new Set(filteredData.map(row => row.Period_of_Performance))].filter(p => p).sort();
+    // Update filter hint
+    if (selectedAgency && selectedAgency !== '') {
+        $('#bureauFilterHint').text(`(${bureaus.length} available)`);
+    } else {
+        $('#bureauFilterHint').text('');
+    }
+    
+    // Update Period dropdown (cascaded from Agency + Bureau)
+    const periods = [...new Set(filteredForPeriods.map(row => row.Period_of_Performance))].filter(p => p).sort();
     const $periodFilter = $('#mainPeriodFilter');
     const currentPeriod = $periodFilter.val();
     $periodFilter.empty().append('<option value="">All Periods</option>');
     periods.forEach(period => {
         $periodFilter.append(`<option value="${period}">${period}</option>`);
     });
-    if (periods.includes(currentPeriod)) {
+    
+    // Clear period selection if it's no longer available
+    if (currentPeriod && !periods.includes(currentPeriod)) {
+        $periodFilter.val('');
+    } else if (periods.includes(currentPeriod)) {
         $periodFilter.val(currentPeriod);
     }
     
-    // Update Year dropdown
-    const years = [...new Set(filteredData.map(row => row.Expiration_Year))].filter(y => y).sort();
+    // Update filter hint
+    if (selectedAgency || selectedBureau) {
+        $('#periodFilterHint').text(`(${periods.length} available)`);
+    } else {
+        $('#periodFilterHint').text('');
+    }
+    
+    // Update Year dropdown (cascaded from Agency + Bureau + Period)
+    const years = [...new Set(filteredForYears.map(row => row.Expiration_Year))].filter(y => y).sort();
     const $yearFilter = $('#mainExpirationFilter');
     const currentYear = $yearFilter.val();
     $yearFilter.empty().append('<option value="">All Years</option>');
@@ -432,20 +477,29 @@ function updateDependentFilters() {
         $yearFilter.append(`<option value="${year}">${year}</option>`);
     });
     
-    // Preserve current selection if it exists in the new list
+    // Preserve current selection if it exists in the new list, otherwise clear it
     if (currentYear !== null && currentYear !== undefined) {
-        // User has made a selection (including "All Years" which is empty string)
         if (currentYear === '' || years.includes(currentYear)) {
             $yearFilter.val(currentYear);
+        } else {
+            // Clear selection if it's no longer available
+            $yearFilter.val('');
         }
     } else {
-        // Default to current fiscal year if available, otherwise 2025, otherwise no default
+        // Default to current fiscal year if available, otherwise no default
         const defaultYear = currentFiscalYear ? currentFiscalYear.toString() : '2025';
         if (years.includes(defaultYear)) {
             $yearFilter.val(defaultYear);
         } else if (years.includes('2025')) {
             $yearFilter.val('2025');
         }
+    }
+    
+    // Update filter hint
+    if (selectedAgency || selectedBureau || selectedPeriod) {
+        $('#yearFilterHint').text(`(${years.length} available)`);
+    } else {
+        $('#yearFilterHint').text('');
     }
 }
 
@@ -462,7 +516,7 @@ function populateMainFilters() {
     
     // No default agency selection - start with "All Agencies"
     
-    // Populate other dropdowns based on selected agency
+    // Initialize other dropdowns with all available options (will be filtered on selection)
     updateDependentFilters();
     
     // Set default expiration year to match current fiscal year if available
@@ -473,10 +527,27 @@ function populateMainFilters() {
         }
     }
     
-    // Set up change handlers
-    $('#mainAgencyFilter, #mainBureauFilter, #mainPeriodFilter, #mainExpirationFilter, #mainPercentageFilter').on('change', function() {
-        updateDependentFilters();
-        updateFiltersFromUI();
+    // Clear any existing handlers first
+    $('#mainAgencyFilter, #mainBureauFilter, #mainPeriodFilter, #mainExpirationFilter, #mainPercentageFilter').off('change');
+    
+    // Set up change handlers with cascading filter updates
+    $('#mainAgencyFilter').on('change', function() {
+        updateDependentFilters(); // Update dependent dropdowns first
+        updateFiltersFromUI();    // Then update the data display
+    });
+    
+    $('#mainBureauFilter').on('change', function() {
+        updateDependentFilters(); // Update dependent dropdowns first  
+        updateFiltersFromUI();    // Then update the data display
+    });
+    
+    $('#mainPeriodFilter').on('change', function() {
+        updateDependentFilters(); // Update dependent dropdowns first
+        updateFiltersFromUI();    // Then update the data display
+    });
+    
+    $('#mainExpirationFilter, #mainPercentageFilter').on('change', function() {
+        updateFiltersFromUI();    // These don't affect other dropdowns
     });
     
     // Don't trigger filter update here - DataTable isn't initialized yet
@@ -1616,6 +1687,9 @@ function showAggregatedTable(level) {
     dataTable.rows.add(aggregatedRows);
     dataTable.draw();
     
+    // Sort by Expiration Year (column index 5) ascending to keep year sorting
+    dataTable.order([5, 'asc']).draw();
+    
     // Update statistics after table is redrawn
     updateFilteredStats();
 }
@@ -1629,6 +1703,9 @@ function showDetailedTable() {
     dataTable.clear();
     dataTable.rows.add(filteredData);
     dataTable.draw();
+    
+    // Sort by Expiration Year (column index 5) ascending to keep year sorting
+    dataTable.order([5, 'asc']).draw();
     
     // Update statistics after table is redrawn
     updateFilteredStats();
@@ -1830,6 +1907,16 @@ async function initializeYearSelector() {
     }
 }
 
+// Update data update text based on current fiscal year
+function updateDataUpdateText() {
+    const dataUpdateElement = document.getElementById('data-update-text');
+    if (dataUpdateElement && currentFiscalYear) {
+        const metadata = fiscalYearMetadata[currentFiscalYear.toString()];
+        const monthText = metadata ? metadata.month : 'September'; // Default to September if no metadata
+        dataUpdateElement.textContent = `Latest data: ${monthText} ${currentFiscalYear}`;
+    }
+}
+
 // Update year selector UI to reflect current selection
 function updateYearSelectorUI() {
     const yearButtons = document.querySelectorAll('.year-btn');
@@ -1842,6 +1929,9 @@ function updateYearSelectorUI() {
         }
         btn.classList.remove('loading'); // Remove any loading states
     });
+    
+    // Update the data update text
+    updateDataUpdateText();
     
     // Update page subtitle if needed
     const subtitle = document.querySelector('.subtitle');

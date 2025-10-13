@@ -141,7 +141,7 @@ async function loadAllYearsData() {
         
         console.log(`Loaded data for ${availableYears.length} years, total records: ${multiYearData.length}`);
         
-        // Update UI
+        // Initial setup of filter options
         updateFilterOptions();
         
         // Set default agency filter to Department of Defense (it's usually large and interesting)
@@ -149,6 +149,8 @@ async function loadAllYearsData() {
         if ($('#mainAgencyFilter option[value="' + defaultAgency + '"]').length > 0) {
             $('#mainAgencyFilter').val(defaultAgency);
             columnFilters.Agency = [defaultAgency];
+            // Update dependent filters after setting default agency
+            updateFilterOptions();
         }
         
         updateSummaryStats();
@@ -164,39 +166,125 @@ async function loadAllYearsData() {
     }
 }
 
-// Update filter options based on loaded multi-year data
+// Update filter options based on loaded multi-year data and current selections (cascading filters)
 function updateFilterOptions() {
-    // Get unique values across all years
-    const agencies = [...new Set(multiYearData.map(row => row.Agency))].filter(a => a).sort();
-    const bureaus = [...new Set(multiYearData.map(row => row.Bureau))].filter(b => b).sort();
-    const periods = [...new Set(multiYearData.map(row => row.Period_of_Performance))].filter(p => p).sort();
-    const expirationYears = [...new Set(multiYearData.map(row => row.Expiration_Year))].filter(y => y).sort();
+    const selectedAgency = $('#mainAgencyFilter').val();
+    const selectedBureau = $('#mainBureauFilter').val();
+    const selectedPeriod = $('#mainPeriodFilter').val();
     
-    // Populate dropdowns
+    // Start with all data and progressively filter for each dropdown
+    let filteredForBureaus = multiYearData;
+    let filteredForPeriods = multiYearData;
+    let filteredForYears = multiYearData;
+    
+    // For bureaus: filter by agency only (if agency is selected)
+    if (selectedAgency && selectedAgency !== '') {
+        filteredForBureaus = filteredForBureaus.filter(row => row.Agency === selectedAgency);
+    }
+    
+    // For periods: filter by agency and bureau (if selected)
+    if (selectedAgency && selectedAgency !== '') {
+        filteredForPeriods = filteredForPeriods.filter(row => row.Agency === selectedAgency);
+    }
+    if (selectedBureau && selectedBureau !== '') {
+        filteredForPeriods = filteredForPeriods.filter(row => row.Bureau === selectedBureau);
+    }
+    
+    // For years: filter by agency, bureau, and period (if selected)
+    if (selectedAgency && selectedAgency !== '') {
+        filteredForYears = filteredForYears.filter(row => row.Agency === selectedAgency);
+    }
+    if (selectedBureau && selectedBureau !== '') {
+        filteredForYears = filteredForYears.filter(row => row.Bureau === selectedBureau);
+    }
+    if (selectedPeriod && selectedPeriod !== '') {
+        filteredForYears = filteredForYears.filter(row => row.Period_of_Performance === selectedPeriod);
+    }
+    
+    // Get unique values for each dropdown based on filtered data
+    const agencies = [...new Set(multiYearData.map(row => row.Agency))].filter(a => a).sort();
+    const bureaus = [...new Set(filteredForBureaus.map(row => row.Bureau))].filter(b => b).sort();
+    const periods = [...new Set(filteredForPeriods.map(row => row.Period_of_Performance))].filter(p => p).sort();
+    const expirationYears = [...new Set(filteredForYears.map(row => row.Expiration_Year))].filter(y => y).sort();
+    
+    // Update Agency dropdown (always shows all agencies)
     const $agencyFilter = $('#mainAgencyFilter');
+    const currentAgency = $agencyFilter.val();
     $agencyFilter.empty().append('<option value="">All Agencies</option>');
     agencies.forEach(agency => {
         $agencyFilter.append(`<option value="${agency}">${agency}</option>`);
     });
+    if (agencies.includes(currentAgency)) {
+        $agencyFilter.val(currentAgency);
+    }
     
+    // Update Bureau dropdown (cascaded from Agency)
     const $bureauFilter = $('#mainBureauFilter');
+    const currentBureau = $bureauFilter.val();
     $bureauFilter.empty().append('<option value="">All Bureaus</option>');
     bureaus.forEach(bureau => {
         $bureauFilter.append(`<option value="${bureau}">${bureau}</option>`);
     });
     
+    // Clear bureau selection if it's no longer available
+    if (currentBureau && currentBureau !== '' && !bureaus.includes(currentBureau)) {
+        $bureauFilter.val('');
+    } else if (bureaus.includes(currentBureau)) {
+        $bureauFilter.val(currentBureau);
+    }
+    
+    // Update filter hint
+    if (selectedAgency && selectedAgency !== '') {
+        $('#bureauFilterHint').text(`(${bureaus.length} available)`);
+    } else {
+        $('#bureauFilterHint').text('');
+    }
+    
+    // Update Period dropdown (cascaded from Agency + Bureau)
     const $periodFilter = $('#mainPeriodFilter');
+    const currentPeriod = $periodFilter.val();
     $periodFilter.empty().append('<option value="">All Periods</option>');
     periods.forEach(period => {
         $periodFilter.append(`<option value="${period}">${period}</option>`);
     });
     
+    // Clear period selection if it's no longer available
+    if (currentPeriod && !periods.includes(currentPeriod)) {
+        $periodFilter.val('');
+    } else if (periods.includes(currentPeriod)) {
+        $periodFilter.val(currentPeriod);
+    }
+    
+    // Update filter hint
+    if (selectedAgency || selectedBureau) {
+        $('#periodFilterHint').text(`(${periods.length} available)`);
+    } else {
+        $('#periodFilterHint').text('');
+    }
+    
+    // Update Expiration Year dropdown (cascaded from Agency + Bureau + Period)
     const $expirationFilter = $('#mainExpirationFilter');
+    const currentExpiration = $expirationFilter.val();
     $expirationFilter.empty().append('<option value="">Expiring That Year (Default)</option>');
     $expirationFilter.append('<option value="ALL_YEARS">All Years</option>');
     expirationYears.forEach(year => {
         $expirationFilter.append(`<option value="${year}">${year}</option>`);
     });
+    
+    // Preserve current selection if it exists in the new list, otherwise clear it
+    if (currentExpiration && (currentExpiration === 'ALL_YEARS' || expirationYears.includes(currentExpiration))) {
+        $expirationFilter.val(currentExpiration);
+    } else if (currentExpiration && !expirationYears.includes(currentExpiration) && currentExpiration !== '' && currentExpiration !== 'ALL_YEARS') {
+        // Clear selection if it's no longer available
+        $expirationFilter.val('');
+    }
+    
+    // Update filter hint
+    if (selectedAgency || selectedBureau || selectedPeriod) {
+        $('#yearFilterHint').text(`(${expirationYears.length} available)`);
+    } else {
+        $('#yearFilterHint').text('');
+    }
 }
 
 // Aggregate data based on current aggregation level and filters
@@ -637,8 +725,25 @@ async function initializeAndLoadData() {
 
 // Set up filter change handlers
 function setupFilterHandlers() {
-    $('#mainAgencyFilter, #mainBureauFilter, #mainPeriodFilter, #mainExpirationFilter, #mainPercentageFilter').on('change', function() {
-        updateFilters();
+    // Separate handlers for filters that affect other dropdowns vs those that don't
+    $('#mainAgencyFilter').on('change', function() {
+        updateFilterOptions(); // Update dependent dropdowns first (cascading)
+        updateFilters();       // Then update the data display
+    });
+    
+    $('#mainBureauFilter').on('change', function() {
+        updateFilterOptions(); // Update dependent dropdowns first (cascading)
+        updateFilters();       // Then update the data display
+    });
+    
+    $('#mainPeriodFilter').on('change', function() {
+        updateFilterOptions(); // Update dependent dropdowns first (cascading)
+        updateFilters();       // Then update the data display
+    });
+    
+    // These filters don't affect other dropdowns, so just update data
+    $('#mainExpirationFilter, #mainPercentageFilter').on('change', function() {
+        updateFilters();       // Just update the data display
     });
     
     $('#aggregationLevel').on('change', function() {
