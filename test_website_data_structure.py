@@ -10,7 +10,8 @@ import glob
 from pathlib import Path
 
 def test_csv_structure():
-    """Test that all CSV files have the correct structure and columns."""
+    """Test that all CSV files have the correct structure and columns.
+    Returns list of years that pass validation."""
     
     # Expected columns based on website HTML table headers
     expected_columns = [
@@ -46,8 +47,19 @@ def test_csv_structure():
     print(f"✅ Found {len(csv_files)} CSV files to validate")
     
     errors = []
+    passing_years = []
     
     for csv_file in csv_files:
+        file_passed = True
+        
+        # Extract year from filename if it's a year-specific file
+        year = None
+        filename = os.path.basename(csv_file)
+        if filename.startswith('all_agencies_obligation_summary_') and filename.endswith('.csv'):
+            year_str = filename.replace('all_agencies_obligation_summary_', '').replace('.csv', '')
+            if year_str.isdigit():
+                year = int(year_str)
+        
         try:
             # Read CSV
             df = pd.read_csv(csv_file)
@@ -66,26 +78,32 @@ def test_csv_structure():
             # Check for minimum number of records
             if len(df) < 100:
                 errors.append(f"{csv_file}: Only {len(df)} records, expected at least 100")
+                file_passed = False
                 
             # Check for minimum number of agencies
             if 'Agency' in df.columns:
                 unique_agencies = df['Agency'].nunique()
                 if unique_agencies < 15:
                     errors.append(f"{csv_file}: Only {unique_agencies} agencies, expected at least 15")
+                    file_passed = False
                     
             print(f"✅ {csv_file}: Structure OK ({len(df)} records, {df['Agency'].nunique()} agencies)")
             
         except Exception as e:
             errors.append(f"{csv_file}: Failed to read - {str(e)}")
+            file_passed = False
+        
+        # Add year to passing list if it passed and is a year-specific file
+        if file_passed and year is not None:
+            passing_years.append(year)
     
     if errors:
         print("\n❌ STRUCTURE VALIDATION ERRORS:")
         for error in errors:
             print(f"  - {error}")
-        return False
     
-    print("✅ All CSV files have correct structure")
-    return True
+    print(f"\n✅ Years passing structure tests: {sorted(passing_years)}")
+    return sorted(passing_years)
 
 def test_numerical_data():
     """Test that numerical data can be parsed by the website (like JavaScript parseFloat)."""
