@@ -8,6 +8,8 @@ on:
 jobs:
   test-and-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     
     steps:
     - name: Checkout main branch
@@ -126,6 +128,8 @@ jobs:
         
         # Push to prod branch
         git push origin prod --force
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
         echo "✅ Successfully deployed to prod branch"
     
