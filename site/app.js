@@ -8,6 +8,8 @@ let bureauData = [];
 let agencyColorScale;
 let showBureauAggregates = false;
 let aggregationLevel = 'bureau'; // 'individual', 'bureau', or 'agency'
+let currentFiscalYear = null; // Track the currently selected fiscal year
+let availableYears = []; // Track available fiscal years
 
 // Define agency colors - using d3 color schemes
 const AGENCY_COLORS = {
@@ -83,14 +85,23 @@ function formatPercentage(value) {
     return `<span class="percentage-cell">${value.toFixed(1)}%</span>`;
 }
 
-// Load CSV data
-async function loadData() {
+// Load CSV data for a specific fiscal year
+async function loadData(fiscalYear = null) {
     try {
-        console.log('Starting to load CSV data...');
-        const response = await fetch('data/all_agencies_obligation_summary.csv');
+        // Determine which file to load
+        let csvFile;
+        if (fiscalYear) {
+            csvFile = `data/all_agencies_obligation_summary_${fiscalYear}.csv`;
+            console.log(`Loading data for FY${fiscalYear}...`);
+        } else {
+            csvFile = 'data/all_agencies_obligation_summary.csv';
+            console.log('Loading default data file...');
+        }
+        
+        const response = await fetch(csvFile);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status} for ${csvFile}`);
         }
         
         const csvText = await response.text();
@@ -144,13 +155,28 @@ async function loadData() {
         });
         
         // Trigger initial filter update to show Department of Education and 2025
+        // Update current fiscal year
+        if (fiscalYear) {
+            currentFiscalYear = fiscalYear;
+            updateYearSelectorUI();
+        }
+        
         updateFiltersFromUI();
         
     } catch (error) {
         console.error('Error loading data:', error);
-        console.error('Failed to load: data/all_agencies_obligation_summary.csv');
+        const fileName = fiscalYear ? `all_agencies_obligation_summary_${fiscalYear}.csv` : 'all_agencies_obligation_summary.csv';
+        console.error(`Failed to load: data/${fileName}`);
         console.error('Make sure you are running the server with ./serve.py or python3 serve.py');
-        alert('Error loading data. Please ensure you are running the server with ./serve.py and not just opening the HTML file directly.');
+        alert(`Error loading data for ${fiscalYear ? `FY${fiscalYear}` : 'default year'}. Please ensure you are running the server with ./serve.py and the data file exists.`);
+        
+        // Remove loading state from year buttons
+        if (fiscalYear) {
+            const yearBtn = document.querySelector(`.year-btn[data-year="${fiscalYear}"]`);
+            if (yearBtn) {
+                yearBtn.classList.remove('loading');
+            }
+        }
     }
 }
 
@@ -695,6 +721,12 @@ function updateActiveFilterBadges() {
 
 // Initialize DataTable
 function initializeDataTable() {
+    // Destroy existing DataTable if it exists
+    if ($.fn.DataTable.isDataTable('#obligationTable')) {
+        $('#obligationTable').DataTable().destroy();
+        $('#obligationTable').empty();
+    }
+    
     dataTable = $('#obligationTable').DataTable({
         data: obligationData,
         columns: [
@@ -1705,7 +1737,178 @@ function downloadCSV() {
     document.body.removeChild(link);
 }
 
+// Initialize year selector
+async function initializeYearSelector() {
+    try {
+        // Try to detect available years by checking for year-specific files
+        const testYears = [2023, 2024, 2025, 2026, 2027]; // Common years to check
+        const availableYearsSet = new Set();
+        
+        for (const year of testYears) {
+            try {
+                const response = await fetch(`data/all_agencies_obligation_summary_${year}.csv`, { method: 'HEAD' });
+                if (response.ok) {
+                    availableYearsSet.add(year);
+                }
+            } catch (e) {
+                // File doesn't exist, skip
+            }
+        }
+        
+        availableYears = Array.from(availableYearsSet).sort((a, b) => a - b); // Sort ascending (oldest first)
+        
+        if (availableYears.length === 0) {
+            // No year-specific files found, hide year selector
+            const yearSection = document.querySelector('.year-selector-section');
+            if (yearSection) {
+                yearSection.style.display = 'none';
+            }
+            return;
+        }
+        
+        // Create year selector buttons
+        const yearSelector = document.getElementById('yearSelector');
+        yearSelector.innerHTML = '';
+        
+        availableYears.forEach(year => {
+            const button = document.createElement('button');
+            button.className = 'year-btn';
+            button.setAttribute('data-year', year);
+            button.textContent = `FY ${year}`;
+            button.addEventListener('click', () => switchToYear(year));
+            yearSelector.appendChild(button);
+        });
+        
+        // Set default year (most recent)
+        const defaultYear = availableYears[availableYears.length - 1]; // Last item = most recent
+        currentFiscalYear = defaultYear;
+        updateYearSelectorUI();
+        
+    } catch (error) {
+        console.error('Error initializing year selector:', error);
+        // Hide year selector if there's an error
+        const yearSection = document.querySelector('.year-selector-section');
+        if (yearSection) {
+            yearSection.style.display = 'none';
+        }
+    }
+}
+
+// Update year selector UI to reflect current selection
+function updateYearSelectorUI() {
+    const yearButtons = document.querySelectorAll('.year-btn');
+    yearButtons.forEach(btn => {
+        const year = parseInt(btn.getAttribute('data-year'));
+        if (year === currentFiscalYear) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+        btn.classList.remove('loading'); // Remove any loading states
+    });
+    
+    // Update page subtitle if needed
+    const subtitle = document.querySelector('.subtitle');
+    if (subtitle && currentFiscalYear) {
+        // Use more generic subtitle since month varies by year
+        subtitle.textContent = `Federal Budget Execution Report - Fiscal Year ${currentFiscalYear}`;
+    }
+}
+
+// Switch to a different fiscal year
+async function switchToYear(year) {
+    if (year === currentFiscalYear) {
+        return; // Already on this year
+    }
+    
+    // Add loading state to the clicked button
+    const yearBtn = document.querySelector(`.year-btn[data-year="${year}"]`);
+    if (yearBtn) {
+        yearBtn.classList.add('loading');
+    }
+    
+    // Clear existing data and properly destroy DataTable
+    obligationData = [];
+    if (dataTable) {
+        dataTable.destroy();
+        dataTable = null;
+        
+        // Clear the table HTML
+        $('#obligationTable').empty();
+    }
+    
+    try {
+        // Load new year's data
+        await loadData(year);
+        
+        // Update UI elements that depend on the year
+        console.log(`Successfully switched to FY${year}`);
+        
+        // Reset filters to default state for new year
+        resetFiltersToDefault();
+        
+    } catch (error) {
+        console.error(`Failed to switch to FY${year}:`, error);
+        
+        // Remove loading state from button
+        if (yearBtn) {
+            yearBtn.classList.remove('loading');
+        }
+        
+        alert(`Failed to load data for FY${year}. Please check if the data file exists.`);
+    }
+}
+
+// Reset filters to default state for new year
+function resetFiltersToDefault() {
+    // Clear all filter selections
+    $('#mainAgencyFilter').val('');
+    $('#mainBureauFilter').val('');
+    $('#mainPeriodFilter').val('');
+    $('#mainExpirationFilter').val('');
+    $('#mainPercentageFilter').val('');
+    
+    // Update dependent filters
+    updateDependentFilters();
+    
+    // Set default selections (Department of Education if available)
+    const agencyOptions = $('#mainAgencyFilter option');
+    let foundEducation = false;
+    agencyOptions.each(function() {
+        if ($(this).text().includes('Department of Education')) {
+            $('#mainAgencyFilter').val($(this).val());
+            foundEducation = true;
+            return false; // break out of each loop
+        }
+    });
+    
+    if (foundEducation) {
+        updateDependentFilters();
+        
+        // Try to set current year or 2025 as default expiration year
+        const yearOptions = $('#mainExpirationFilter option');
+        yearOptions.each(function() {
+            const optVal = $(this).val();
+            if (optVal === currentFiscalYear.toString() || optVal === '2025') {
+                $('#mainExpirationFilter').val(optVal);
+                return false; // break out of each loop
+            }
+        });
+    }
+    
+    // Apply filters
+    updateFiltersFromUI();
+}
+
 // Initialize on page load
-$(document).ready(function() {
-    loadData();
+$(document).ready(async function() {
+    // Initialize year selector first
+    await initializeYearSelector();
+    
+    // Load initial data
+    if (currentFiscalYear) {
+        await loadData(currentFiscalYear);
+    } else {
+        await loadData(); // Load default file
+    }
 });

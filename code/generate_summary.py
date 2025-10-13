@@ -92,8 +92,13 @@ def parse_tafs_components(tafs, agency_name):
     
     return account_num, period_of_perf, expiration_year
 
-def generate_obligation_summary(master_table_path):
-    """Create obligation summary from the master SF133 table."""
+def generate_obligation_summary(master_table_path, fiscal_year=None):
+    """Create obligation summary from the master SF133 table.
+    
+    Args:
+        master_table_path: Path to the master CSV file
+        fiscal_year: Fiscal year for naming output files (e.g., 2024)
+    """
     
     # Read the master table
     print("Reading master table...")
@@ -296,7 +301,14 @@ def generate_obligation_summary(master_table_path):
                          'Budget Authority (Line 2500)', 'Percentage Unobligated']]
     
     # Save CSV output to site/data directory
-    output_path = Path('site/data/all_agencies_obligation_summary.csv')
+    if fiscal_year:
+        output_filename = f'all_agencies_obligation_summary_{fiscal_year}.csv'
+        json_filename = f'all_agencies_summary_{fiscal_year}.json'
+    else:
+        output_filename = 'all_agencies_obligation_summary.csv'
+        json_filename = 'all_agencies_summary.json'
+    
+    output_path = Path(f'site/data/{output_filename}')
     output_path.parent.mkdir(parents=True, exist_ok=True)
     final_df.to_csv(output_path, index=False)
     print(f"\nSaved summary CSV to: {output_path}")
@@ -309,12 +321,13 @@ def generate_obligation_summary(master_table_path):
     json_data['Budget Authority (Line 2500)'] = json_data['Budget_Authority_M'].apply(lambda x: f'${x:,.1f}M')
     json_data['Percentage Unobligated'] = json_data['Percentage_Unobligated'].apply(lambda x: f'{x:.1f}%')
     
-    # Add placeholder time series data
+    # Add fiscal year and placeholder time series data
+    json_data['Fiscal_Year'] = fiscal_year if fiscal_year else 'Unknown'
     json_data['BA_TimeSeries'] = '[]'
     json_data['Unob_TimeSeries'] = '[]'
     
     # Save JSON to site/data directory
-    json_path = Path('site/data/all_agencies_summary.json')
+    json_path = Path(f'site/data/{json_filename}')
     json_path.parent.mkdir(parents=True, exist_ok=True)
     json_data.to_json(json_path, orient='records')
     print(f"Saved JSON for web app to: {json_path}")
@@ -371,9 +384,87 @@ def generate_obligation_summary(master_table_path):
     return output_path
 
 if __name__ == "__main__":
-    # Look for master table
-    master_table = Path('site/data/sf133_master_table.csv')
-    if master_table.exists():
-        generate_obligation_summary(master_table)
+    import sys
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Generate obligation summary from SF133 master data")
+    parser.add_argument("--year", type=int, help="Fiscal year to process (e.g., 2024)")
+    parser.add_argument("--all-years", action="store_true", help="Process all available years")
+    parser.add_argument("--master-file", help="Specific master file path")
+    
+    args = parser.parse_args()
+    
+    if args.master_file:
+        # Use specific file
+        master_path = Path(args.master_file)
+        if master_path.exists():
+            generate_obligation_summary(master_path, args.year)
+        else:
+            print(f"ERROR: Master file not found: {master_path}")
+            sys.exit(1)
+    
+    elif args.all_years:
+        # Process all available year-specific master files
+        data_dir = Path('site/data')
+        master_files = list(data_dir.glob('sf133_*_master.csv'))
+        
+        if not master_files:
+            print("ERROR: No year-specific master files found in site/data/")
+            print("Expected files like: sf133_2023_master.csv, sf133_2024_master.csv, etc.")
+            sys.exit(1)
+        
+        print(f"Found {len(master_files)} master files:")
+        for f in sorted(master_files):
+            print(f"  {f.name}")
+        
+        for master_file in sorted(master_files):
+            # Extract year from filename (e.g., sf133_2024_master.csv -> 2024)
+            try:
+                year_match = master_file.name.split('_')[1]
+                year = int(year_match)
+                print(f"\n{'='*80}")
+                print(f"Processing FY{year} ({master_file.name})")
+                print('='*80)
+                generate_obligation_summary(master_file, year)
+            except (IndexError, ValueError) as e:
+                print(f"WARNING: Could not extract year from {master_file.name}: {e}")
+                continue
+    
+    elif args.year:
+        # Process specific year
+        master_file = Path(f'site/data/sf133_{args.year}_master.csv')
+        if master_file.exists():
+            print(f"Processing FY{args.year} ({master_file.name})")
+            generate_obligation_summary(master_file, args.year)
+        else:
+            print(f"ERROR: Master file not found: {master_file}")
+            print("Available master files:")
+            data_dir = Path('site/data')
+            for f in sorted(data_dir.glob('sf133_*_master.csv')):
+                print(f"  {f.name}")
+            sys.exit(1)
+    
     else:
-        print("ERROR: Master table not found. Run parse_sf133_files.py first.")
+        # Default behavior - look for generic master table first, then try current year
+        master_table = Path('site/data/sf133_master_table.csv')
+        if master_table.exists():
+            print("Using generic master table (sf133_master_table.csv)")
+            generate_obligation_summary(master_table)
+        else:
+            # Try to find the most recent year
+            data_dir = Path('site/data')
+            master_files = sorted(data_dir.glob('sf133_*_master.csv'), reverse=True)
+            if master_files:
+                latest_file = master_files[0]
+                try:
+                    year = int(latest_file.name.split('_')[1])
+                    print(f"No generic master table found, using latest year: FY{year} ({latest_file.name})")
+                    generate_obligation_summary(latest_file, year)
+                except (IndexError, ValueError):
+                    print(f"ERROR: Could not extract year from {latest_file.name}")
+                    sys.exit(1)
+            else:
+                print("ERROR: No master table found.")
+                print("Run 'python main.py --year YYYY' to process data first, or")
+                print("run 'python generate_summary.py --all-years' to process all available years.")
+                sys.exit(1)
