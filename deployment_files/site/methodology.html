@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Processing Methodology - Federal Agency SF 133</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        h1 {
+            color: #003366;
+            font-weight: 600;
+            margin-bottom: 30px;
+        }
+        
+        .methodology-section {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #003366;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            padding-bottom: 10px;
+        }
+        
+        h3 {
+            color: #003366;
+            font-size: 1.2rem;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        
+        .code-block {
+            background: #f8f9fa;
+            border-left: 4px solid #003366;
+            padding: 15px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+        
+        .field-mapping {
+            background: #f0f8ff;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+        
+        .field-mapping h4 {
+            color: #003366;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+        
+        .field-mapping ul {
+            margin: 10px 0;
+        }
+        
+        .field-mapping li {
+            margin: 5px 0;
+        }
+        
+        .field-mapping code {
+            background: white;
+            padding: 2px 6px;
+            border-radius: 3px;
+            color: #d32f2f;
+        }
+        
+        .nav-links {
+            margin-bottom: 30px;
+        }
+        
+        .nav-links a {
+            color: #003366;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        
+        /* Navigation links styles */
+        .navigation-links a:hover {
+            background: rgba(255,255,255,0.2) !important;
+            border-color: rgba(255,255,255,0.6) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navigation Links -->
+        <div class="navigation-links" style="background: linear-gradient(135deg, #003366, #0066cc); padding: 20px; border-radius: 8px; margin-bottom: 30px; text-align: center;">
+            <a href="index.html" style="color: white; text-decoration: none; font-weight: 600; margin: 0 15px; padding: 10px 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.3s ease;">Single Year View</a>
+            <a href="comparison.html" style="color: white; text-decoration: none; font-weight: 600; margin: 0 15px; padding: 10px 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.3s ease;">Multi-Year Comparison</a>
+            <a href="methodology.html" style="color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.9); color: #003366; text-decoration: none; font-weight: 600; margin: 0 15px; padding: 10px 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.3s ease;">Methodology</a>
+        </div>
+        
+        <div class="methodology-section">
+            <h2>Data Source</h2>
+            <p>Data is sourced from <a href="https://portal.max.gov/portal/document/SF133/Budget/" target="_blank">MAX.gov SF 133 Reports on Budget Execution and Budgetary Resources</a> covering fiscal years 2018-2025.</p>
+            <p>The SF 133 report contains monthly budget execution data for all federal agencies. Our system processes complete fiscal years, automatically detecting available months for each year.</p>
+            
+            <h3>Multi-Year Coverage</h3>
+            <ul>
+                <li><strong>Historical Data (FY2018-2023)</strong>: Complete fiscal year datasets with all available months</li>
+                <li><strong>Current Years (FY2024-2025)</strong>: Updated as new monthly data becomes available</li>
+                <li><strong>Data Format Evolution</strong>: Handles different Excel formats (.xls/.xlsx) across years</li>
+            </ul>
+        </div>
+        
+        <div class="methodology-section">
+            <h2>Understanding Federal Accounts</h2>
+            <div class="account-explanation">
+                <h3>Account Number</h3>
+                <p>The Treasury Account Symbol (TAS) using Treasury's standard agency codes from the FAST Book</p>
+                <p class="example">Example: <code>91-0243</code></p>
+                <ul>
+                    <li><strong>91:</strong> Treasury's designation for Department of Education</li>
+                    <li><strong>0243:</strong> Federal Direct Student Loan Program account</li>
+                </ul>
+                <p class="learn-more">
+                    <a href="https://fiscal.treasury.gov/files/fast-book/Fastbook_March_2019.pdf" target="_blank">
+                        View the Treasury FAST Book for complete agency codes →
+                    </a>
+                </p>
+            </div>
+        </div>
+        
+        <div class="methodology-section">
+            <h2>Excel File Structure & Processing Method</h2>
+            <p>Each agency provides Excel files containing multiple sheets. We use the <strong>Raw Data</strong> sheet method for maximum compatibility across years.</p>
+            
+            <h3>Why Raw Data Sheets?</h3>
+            <ul>
+                <li><strong>Cross-Year Compatibility</strong>: Raw Data sheets maintain consistent structure across different fiscal years</li>
+                <li><strong>Reliability</strong>: More stable than TAFS detail sheets which vary in format</li>
+                <li><strong>Comprehensive Coverage</strong>: Contains all months and quarters in standardized columns</li>
+            </ul>
+            
+            <h3>Finding the Header Row</h3>
+            <p>We search for a row containing "LINENO", "BUREAU", or "OMB_ACCT" within the first 30 rows of the Raw Data sheet.</p>
+        </div>
+        
+        <div class="methodology-section">
+            <h2>Data Extraction - Raw Data Sheet Method</h2>
+            <p>All agencies are processed using the standardized Raw Data sheet format:</p>
+            
+            <div class="field-mapping">
+                <h4>Standard Raw Data Column Mappings</h4>
+                <ul>
+                    <li><code>BUREAU</code> = Bureau/sub-agency name</li>
+                    <li><code>OMB_ACCT</code> = OMB account identifier</li>
+                    <li><code>TAFS</code> = Treasury Account Fund Symbol (contains account name after " - ")</li>
+                    <li><code>LINENO</code> = Line number column</li>
+                    <li><code>AMT_JUL</code> = July data (monthly amount)</li>
+                    <li><code>AMT_AUG</code> = August data (monthly amount)</li>
+                    <li><code>AMT3</code> = June data (3rd quarter cumulative)</li>
+                    <li><code>AMT4</code> = September data (4th quarter cumulative, fiscal year end)</li>
+                </ul>
+            </div>
+            
+            <h3>Auto-Detection of Available Months</h3>
+            <p>The system automatically detects which months have data for each fiscal year:</p>
+            <ul>
+                <li><strong>Individual Months</strong>: Oct, Nov, Dec, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep</li>
+                <li><strong>Quarterly Data</strong>: Dec (1Q), Mar (2Q), Jun (3Q), Sep (4Q)</li>
+                <li><strong>Latest Month Selection</strong>: Automatically uses the most recent month with valid data</li>
+            </ul>
+            
+            <h3>Specific Lines Extracted</h3>
+            <ul>
+                <li><strong>Line 2490</strong>: Unobligated Balance, end of period</li>
+                <li><strong>Line 2500</strong>: Total budgetary resources</li>
+            </ul>
+            
+            <h3>Processing Steps</h3>
+            <ol>
+                <li>Load Raw Data sheet and identify header row containing "LINENO", "BUREAU", "OMB_ACCT"</li>
+                <li>Forward fill key columns (BUREAU, OMB_ACCT, TAFS) down the spreadsheet</li>
+                <li>Convert LINENO to numeric and filter for lines 2490.0 and 2500.0</li>
+                <li>Auto-detect latest available month with valid data (non-zero, non-null values)</li>
+                <li>Extract values from the latest month column</li>
+                <li>Merge Line 2490 and Line 2500 data on matching Agency + TAFS combinations</li>
+                <li>Extract account name from TAFS (text after " - ")</li>
+                <li>Convert values from dollars to millions</li>
+                <li>Calculate percentage: (Unobligated Balance / Budget Authority) × 100</li>
+            </ol>
+        </div>
+        
+        <div class="methodology-section">
+            <h2>Data Validation Tests</h2>
+            <p>The system runs specific validation tests before deploying data. Each test must pass:</p>
+            
+            <h3>test_year_data_completeness()</h3>
+            <ul>
+                <li>Checks each year CSV file has all 29 expected agencies (or valid alternatives for "Other Independent Agencies")</li>
+                <li>Requires minimum 1,000 records per year file</li>
+                <li>Historical years (before current FY) must have ≥8,000 records for comprehensive data</li>
+                <li>Current fiscal year accepts partial data</li>
+                <li>Returns list of years that pass all checks</li>
+            </ul>
+            
+            <h3>test_csv_summary_files()</h3>
+            <ul>
+                <li>Verifies CSV files exist and are readable</li>
+                <li>Checks for required columns: Agency, Bureau, Account</li>
+                <li>Ensures files are not empty</li>
+                <li>Reports structure and record counts</li>
+            </ul>
+            
+            <h3>test_data_consistency()</h3>
+            <ul>
+                <li>Validates main summary file has ≥1,000 records</li>
+                <li>Requires ≥20 unique agencies</li>
+                <li>Checks Budget Authority values start with "$" and are properly formatted</li>
+                <li>Tests currency format parsing ("$1,234.5M" format)</li>
+            </ul>
+            
+            <h3>test_data_reasonableness()</h3>
+            <ul>
+                <li>Parses Budget Authority and Unobligated Balance values by removing "$", ",", "M"</li>
+                <li>Calculates total Budget Authority, must be between $1 trillion and $50 trillion</li>
+                <li>Checks percentage values are not extremely out of range (-1000% to +1000%)</li>
+                <li>Reports if extreme percentages found (may be valid for negative Budget Authority)</li>
+            </ul>
+            
+            <h3>test_cross_year_consistency()</h3>
+            <ul>
+                <li>Calculates year-over-year Budget Authority changes between consecutive fiscal years</li>
+                <li>Flags (but doesn't fail) if total Budget Authority changes >50% between years</li>
+                <li>Requires at least 2 years of data to run</li>
+                <li><em>Note: Agency coverage validation is handled by test_year_data_completeness()</em></li>
+            </ul>
+            
+            <h3>Website Structure Tests</h3>
+            <ul>
+                <li><strong>test_csv_structure()</strong>: Validates 10 required columns exist, ≥100 records, ≥15 agencies per file</li>
+                <li><strong>test_numerical_data()</strong>: Tests Budget Authority, Unobligated Balance, and Percentage values are parseable by JavaScript parseFloat()</li>
+                <li><strong>test_required_fields()</strong>: Ensures Agency, Bureau, Account, Account_Number have no missing/empty values</li>
+                <li><strong>test_data_consistency()</strong>: Verifies main file exists with ≥1,000 records and ≥20 agencies</li>
+            </ul>
+        </div>
+        
+        <div class="methodology-section">
+            <h2>TAFS Parsing</h2>
+            <p>The Treasury Account Fund Symbol (TAFS) contains account and year information:</p>
+            
+            <h3>Standard Agency TAFS Format</h3>
+            <div class="code-block">
+                018-45-0243 /25 - Federal Direct Student Loan Program Account
+            </div>
+            <ul>
+                <li><strong>018-45-0243</strong>: Account number (agency-bureau-account)</li>
+                <li><strong>/25</strong>: Expiration year (2025)</li>
+                <li><strong>Federal Direct Student Loan Program Account</strong>: Account name</li>
+            </ul>
+            
+            <h3>Other Independent Agencies TAFS Format</h3>
+            <div class="code-block">
+                95-2300 24/25 - Salaries and Expenses
+            </div>
+            <ul>
+                <li><strong>95-2300</strong>: Account number</li>
+                <li><strong>24/25</strong>: Multi-year (FY2024-FY2025)</li>
+                <li><strong>Salaries and Expenses</strong>: Account name</li>
+            </ul>
+            
+            <h3>Special Cases</h3>
+            <ul>
+                <li><code>/X</code> = No year accounts</li>
+                <li><code>21/25</code> = Multi-year accounts (FY2021-FY2025)</li>
+            </ul>
+        </div>
+        
+        
+        <div class="methodology-section">
+            <h2>Data Files Used by the Application</h2>
+            <p>The web application reads the following data file:</p>
+            
+            <p><a href="https://raw.githubusercontent.com/abigailhaddad/apportionment/main/site/data/all_agencies_obligation_summary.csv" target="_blank"><code>all_agencies_obligation_summary.csv</code></a> - Account-level budget execution data</p>
+            
+            <div class="field-mapping">
+                <h4>Fields in the CSV file:</h4>
+                <ul>
+                    <li><strong>Agency</strong> - Federal agency name (e.g., "Department of Education")</li>
+                    <li><strong>Bureau</strong> - Sub-agency or bureau within the agency</li>
+                    <li><strong>Account</strong> - Account name extracted from TAFS (e.g., "Federal Direct Student Loan Program Account")</li>
+                    <li><strong>Account_Number</strong> - Treasury Account Symbol (e.g., "91-0243")</li>
+                    <li><strong>Period_of_Performance</strong> - Single year or multi-year designation</li>
+                    <li><strong>Expiration_Year</strong> - When the funds expire (e.g., "2025", "No Year")</li>
+                    <li><strong>TAFS</strong> - Full Treasury Account Fund Symbol string</li>
+                    <li><strong>Unobligated Balance (Line 2490)</strong> - Amount not yet obligated (in millions)</li>
+                    <li><strong>Budget Authority (Line 2500)</strong> - Total budget authority (in millions)</li>
+                    <li><strong>Percentage Unobligated</strong> - Calculated percentage (Unobligated/Budget Authority × 100)</li>
+                </ul>
+            </div>
+            
+        </div>
+        
+        <div class="methodology-section">
+            <h2>Code and Issues</h2>
+            <p>View code and report issues: <a href="https://github.com/abigailhaddad/apportionment" target="_blank" class="text-decoration-none">github.com/abigailhaddad/apportionment</a></p>
+        </div>
+    </div>
+</body>
+</html>
