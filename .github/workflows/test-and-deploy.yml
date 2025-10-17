@@ -95,10 +95,29 @@ jobs:
                 shutil.copy2(src_file, dst_file)
                 print(f'Deployed: all_agencies_obligation_summary_{year}.csv')
         
+        # Copy monthly files for approved years only
+        for monthly_file in Path('site/data').glob('all_agencies_monthly_summary_*.csv'):
+            # Extract year from filename (e.g., all_agencies_monthly_summary_2024_Oct.csv)
+            filename = monthly_file.name
+            if '_all.csv' in filename:
+                # Handle combined files like all_agencies_monthly_summary_2024_all.csv
+                year_part = filename.replace('all_agencies_monthly_summary_', '').replace('_all.csv', '')
+            else:
+                # Handle individual month files like all_agencies_monthly_summary_2024_Oct.csv
+                parts = filename.replace('all_agencies_monthly_summary_', '').replace('.csv', '').split('_')
+                year_part = parts[0] if parts else ''
+            
+            if year_part.isdigit() and int(year_part) in approved_years:
+                dst_file = data_dir / monthly_file.name
+                shutil.copy2(monthly_file, dst_file)
+                print(f'Deployed: {monthly_file.name}')
+            else:
+                print(f'Skipped monthly file (year not approved): {monthly_file.name}')
+        
         # Copy other important files
         for file_pattern in ['all_agencies_obligation_summary.csv', 'fiscal_year_metadata.json', '*.json']:
             for src_file in Path('site/data').glob(file_pattern):
-                if not src_file.name.startswith('all_agencies_obligation_summary_'):
+                if not src_file.name.startswith('all_agencies_obligation_summary_') and not src_file.name.startswith('all_agencies_monthly_summary_'):
                     dst_file = data_dir / src_file.name
                     shutil.copy2(src_file, dst_file)
                     print(f'Deployed: {src_file.name}')

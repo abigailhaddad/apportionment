@@ -2,14 +2,18 @@
 """
 Year-based validation coordinator.
 Runs both test suites and deploys only years that pass both sets of tests.
+Generates monthly data ONLY for approved years.
 """
 
 import sys
+import json
 from pathlib import Path
 
 # Import the test functions
 from run_tests import test_year_data_completeness
 from test_website_data_structure import test_csv_structure
+from create_monthly_summaries import create_monthly_summaries
+from create_year_summaries import create_year_summaries
 
 def main():
     """Run both test suites and find years that pass both."""
@@ -67,9 +71,8 @@ def main():
         print(f"✅ DEPLOYMENT APPROVED: {len(passing_both_sorted)} years ready for production")
         print(f"Deploying years: {passing_both_sorted}")
         
-        # Optional: Create a file listing the approved years for deployment scripts
+        # Create a file listing the approved years for deployment scripts
         approved_years_file = Path('site/data/approved_years.json')
-        import json
         with open(approved_years_file, 'w') as f:
             json.dump({
                 'approved_years': passing_both_sorted,
@@ -77,6 +80,77 @@ def main():
                 'structure_passing': structure_passing_years
             }, f, indent=2)
         print(f"📄 Approved years list saved to: {approved_years_file}")
+        
+        # Generate monthly data ONLY for approved years
+        print()
+        print("🗓️  GENERATING MONTHLY DATA FOR APPROVED YEARS")
+        print("=" * 60)
+        
+        # Clean up any existing data files to ensure we only have approved data
+        site_data_dir = Path('site/data')
+        
+        # Clean up monthly CSV files
+        existing_monthly_files = list(site_data_dir.glob('all_agencies_monthly_summary_*.csv'))
+        if existing_monthly_files:
+            print(f"🧹 Cleaning up {len(existing_monthly_files)} existing monthly CSV files...")
+            for file in existing_monthly_files:
+                file.unlink()
+                print(f"  Removed: {file.name}")
+        
+        # Clean up year-specific JSON summary files
+        existing_json_files = list(site_data_dir.glob('all_agencies_summary_*.json'))
+        # Keep the main summary file (all_agencies_summary.json) but remove year-specific ones
+        year_specific_json = [f for f in existing_json_files if f.name != 'all_agencies_summary.json']
+        if year_specific_json:
+            print(f"🧹 Cleaning up {len(year_specific_json)} existing year-specific JSON files...")
+            for file in year_specific_json:
+                file.unlink()
+                print(f"  Removed: {file.name}")
+        
+        # Clean up year-specific CSV obligation summary files
+        existing_obligation_files = list(site_data_dir.glob('all_agencies_obligation_summary_*.csv'))
+        if existing_obligation_files:
+            print(f"🧹 Cleaning up {len(existing_obligation_files)} existing obligation summary files...")
+            for file in existing_obligation_files:
+                file.unlink()
+                print(f"  Removed: {file.name}")
+        
+        successful_monthly_years = []
+        total_monthly_files = 0
+        
+        for year in passing_both_sorted:
+            print(f"\n--- Generating monthly data for FY{year} ---")
+            
+            # Check if master file exists for this year
+            master_file = site_data_dir / f'sf133_{year}_master.csv'
+            if not master_file.exists():
+                print(f"⚠️  WARNING: No master file found for FY{year}: {master_file}")
+                print(f"   Skipping monthly data generation for FY{year}")
+                continue
+            
+            try:
+                output_files = create_monthly_summaries(master_file, year)
+                if output_files:
+                    successful_monthly_years.append(year)
+                    total_monthly_files += len(output_files)
+                    print(f"✅ Generated {len(output_files)} monthly files for FY{year}")
+                else:
+                    print(f"⚠️  No monthly data generated for FY{year}")
+            except Exception as e:
+                print(f"❌ ERROR generating monthly data for FY{year}: {e}")
+                continue
+        
+        print()
+        print("=" * 60)
+        print("📊 MONTHLY DATA GENERATION SUMMARY")
+        print("=" * 60)
+        print(f"Years with monthly data: {successful_monthly_years}")
+        print(f"Total monthly files generated: {total_monthly_files}")
+        
+        if successful_monthly_years:
+            print("✅ Monthly data generation completed successfully!")
+        else:
+            print("⚠️  No monthly data was generated (may be due to missing master files)")
         
         return 0
 
