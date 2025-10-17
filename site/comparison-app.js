@@ -205,15 +205,25 @@ async function detectAvailableMonths() {
     // This avoids the 404 errors while still providing month options
     const knownMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
     
-    // Check if we have any monthly data by testing one year we know has data
+    // Check if we have any monthly data by testing for any monthly file
     let hasMonthlyData = false;
-    try {
-        const response = await fetch(`data/all_agencies_monthly_summary_2018_Jan.csv`, { method: 'HEAD' });
-        if (response.ok) {
-            hasMonthlyData = true;
+    const testFiles = [
+        'data/all_agencies_monthly_summary_2018_Jan.csv',
+        'data/all_agencies_monthly_summary_2019_Jan.csv', 
+        'data/all_agencies_monthly_summary_2020_Jan.csv',
+        'data/all_agencies_monthly_summary_2025_Jan.csv'
+    ];
+    
+    for (const testFile of testFiles) {
+        try {
+            const response = await fetch(testFile, { method: 'HEAD' });
+            if (response.ok) {
+                hasMonthlyData = true;
+                break;
+            }
+        } catch (e) {
+            // Continue checking other files
         }
-    } catch (e) {
-        // No monthly data available
     }
     
     // If we have monthly data, add the known months

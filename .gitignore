@@ -23,6 +23,7 @@ raw_data/
 !site/data/all_agencies_obligation_summary.csv
 !site/data/all_agencies_summary_*.json
 !site/data/all_agencies_obligation_summary_*.csv
+!site/data/all_agencies_monthly_summary_*.csv
 !site/data/summary_*.json
 
 # Ignore large master CSV files - they exceed GitHub's 100MB limit
