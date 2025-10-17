@@ -13,7 +13,7 @@ from pathlib import Path
 from run_tests import test_year_data_completeness
 from test_website_data_structure import test_csv_structure
 from create_monthly_summaries import create_monthly_summaries
-from create_year_summaries import create_year_summaries
+from create_year_summaries import create_year_summary
 
 def main():
     """Run both test suites and find years that pass both."""
@@ -149,6 +149,37 @@ def main():
         
         if successful_monthly_years:
             print("✅ Monthly data generation completed successfully!")
+            
+            # Generate year summaries for successful years
+            print()
+            print("📋 GENERATING YEAR SUMMARIES FOR APPROVED YEARS")
+            print("=" * 60)
+            
+            successful_year_summaries = []
+            for year in successful_monthly_years:
+                print(f"\n--- Generating year summary for FY{year} ---")
+                master_file = site_data_dir / f'sf133_{year}_master.csv'
+                
+                try:
+                    create_year_summary(master_file, year)
+                    successful_year_summaries.append(year)
+                    print(f"✅ Generated year summary for FY{year}")
+                except Exception as e:
+                    print(f"❌ ERROR generating year summary for FY{year}: {e}")
+                    continue
+            
+            print()
+            print("=" * 60)
+            print("📊 YEAR SUMMARY GENERATION SUMMARY")
+            print("=" * 60)
+            print(f"Years with summaries: {successful_year_summaries}")
+            print(f"Total year summaries generated: {len(successful_year_summaries)}")
+            
+            if successful_year_summaries:
+                print("✅ Year summary generation completed successfully!")
+            else:
+                print("⚠️  No year summaries were generated")
+                
         else:
             print("⚠️  No monthly data was generated (may be due to missing master files)")
         
