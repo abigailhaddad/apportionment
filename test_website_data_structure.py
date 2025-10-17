@@ -11,7 +11,7 @@ from pathlib import Path
 
 def test_csv_structure():
     """Test that all CSV files have the correct structure and columns.
-    Returns list of years that pass validation."""
+    Returns dict with passing years and monthly data."""
     
     # Expected columns based on website HTML table headers
     expected_columns = [
@@ -27,9 +27,26 @@ def test_csv_structure():
         'Percentage Unobligated'
     ]
     
+    # Expected columns for monthly files (includes Month and Fiscal_Year)
+    expected_monthly_columns = [
+        'Month',
+        'Fiscal_Year',
+        'Agency',
+        'Bureau', 
+        'Account',
+        'Account_Number',
+        'Period_of_Performance',
+        'Expiration_Year',
+        'TAFS',
+        'Unobligated Balance (Line 2490)',
+        'Budget Authority (Line 2500)',
+        'Percentage Unobligated'
+    ]
+    
     # Find all CSV files that the website uses
     site_data_dir = 'site/data/'
     csv_files = []
+    monthly_files = []
     
     # Main summary file
     main_file = f'{site_data_dir}all_agencies_obligation_summary.csv'
@@ -40,14 +57,18 @@ def test_csv_structure():
     year_files = glob.glob(f'{site_data_dir}all_agencies_obligation_summary_*.csv')
     csv_files.extend(year_files)
     
-    if not csv_files:
-        print("❌ ERROR: No CSV summary files found in site/data/")
-        return False
+    # Monthly files
+    monthly_files = glob.glob(f'{site_data_dir}all_agencies_monthly_summary_*_all.csv')
     
-    print(f"✅ Found {len(csv_files)} CSV files to validate")
+    if not csv_files and not monthly_files:
+        print("❌ ERROR: No CSV summary files found in site/data/")
+        return {"passing_years": [], "monthly_data": {}}
+    
+    print(f"✅ Found {len(csv_files)} year-specific CSV files and {len(monthly_files)} monthly files to validate")
     
     errors = []
     passing_years = []
+    monthly_data = {}  # year -> list of available months
     
     for csv_file in csv_files:
         file_passed = True
@@ -97,13 +118,69 @@ def test_csv_structure():
         if file_passed and year is not None:
             passing_years.append(year)
     
+    # Validate monthly files
+    for monthly_file in monthly_files:
+        file_passed = True
+        
+        # Extract year from filename (e.g., all_agencies_monthly_summary_2024_all.csv)
+        year = None
+        filename = os.path.basename(monthly_file)
+        if filename.startswith('all_agencies_monthly_summary_') and filename.endswith('_all.csv'):
+            year_str = filename.replace('all_agencies_monthly_summary_', '').replace('_all.csv', '')
+            if year_str.isdigit():
+                year = int(year_str)
+        
+        try:
+            # Read monthly CSV
+            df = pd.read_csv(monthly_file)
+            
+            # Check if file is empty
+            if len(df) == 0:
+                errors.append(f"{monthly_file}: File is empty")
+                continue
+                
+            # Check required columns exist
+            missing_cols = set(expected_monthly_columns) - set(df.columns)
+            if missing_cols:
+                errors.append(f"{monthly_file}: Missing columns: {missing_cols}")
+                continue
+                
+            # Check for minimum number of records
+            if len(df) < 100:
+                errors.append(f"{monthly_file}: Only {len(df)} records, expected at least 100")
+                file_passed = False
+                
+            # Check for minimum number of agencies
+            if 'Agency' in df.columns:
+                unique_agencies = df['Agency'].nunique()
+                if unique_agencies < 15:
+                    errors.append(f"{monthly_file}: Only {unique_agencies} agencies, expected at least 15")
+                    file_passed = False
+            
+            # Get available months for this year
+            if 'Month' in df.columns and file_passed:
+                available_months = sorted(df['Month'].unique().tolist())
+                if year is not None:
+                    monthly_data[year] = available_months
+                    
+            print(f"✅ {monthly_file}: Structure OK ({len(df)} records, {df['Agency'].nunique()} agencies, {len(df['Month'].unique())} months)")
+            
+        except Exception as e:
+            errors.append(f"{monthly_file}: Failed to read - {str(e)}")
+            file_passed = False
+    
     if errors:
         print("\n❌ STRUCTURE VALIDATION ERRORS:")
         for error in errors:
             print(f"  - {error}")
     
     print(f"\n✅ Years passing structure tests: {sorted(passing_years)}")
-    return sorted(passing_years)
+    print(f"✅ Years with monthly data: {sorted(monthly_data.keys())}")
+    
+    return {
+        "passing_years": sorted(passing_years),
+        "monthly_data": monthly_data
+    }
 
 def test_numerical_data():
     """Test that numerical data can be parsed by the website (like JavaScript parseFloat)."""
@@ -278,12 +355,24 @@ def main():
     
     results = []
     
+    validation_results = None
+    
     for test_name, test_func in tests:
         print(f"Running {test_name} test...")
         try:
             result = test_func()
-            results.append(result)
-            print(f"{'✅' if result else '❌'} {test_name}: {'PASSED' if result else 'FAILED'}")
+            
+            # Special handling for CSV Structure test which returns validation data
+            if test_name == "CSV Structure":
+                validation_results = result
+                # Consider it passed if we have any passing years or monthly data
+                passed = len(result["passing_years"]) > 0 or len(result["monthly_data"]) > 0
+                results.append(passed)
+            else:
+                results.append(result)
+                
+            is_passed = result if isinstance(result, bool) else (len(result["passing_years"]) > 0 or len(result["monthly_data"]) > 0)
+            print(f"{'✅' if is_passed else '❌'} {test_name}: {'PASSED' if is_passed else 'FAILED'}")
         except Exception as e:
             print(f"❌ {test_name}: ERROR - {str(e)}")
             results.append(False)
@@ -295,11 +384,22 @@ def main():
     
     print(f"📊 FINAL RESULTS: {passed}/{total} tests passed")
     
+    # Show available data summary
+    if validation_results:
+        print(f"\n📅 DATA AVAILABILITY SUMMARY:")
+        print(f"   Years available: {validation_results['passing_years']}")
+        if validation_results['monthly_data']:
+            print(f"   Monthly data:")
+            for year, months in validation_results['monthly_data'].items():
+                print(f"     FY{year}: {', '.join(months)} ({len(months)} months)")
+        else:
+            print(f"   No monthly data available")
+    
     if passed == total:
-        print("🎉 All website data validation tests PASSED!")
+        print("\n🎉 All website data validation tests PASSED!")
         return 0
     else:
-        print("💥 Some website data validation tests FAILED!")
+        print("\n💥 Some website data validation tests FAILED!")
         return 1
 
 if __name__ == "__main__":

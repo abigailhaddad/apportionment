@@ -131,6 +131,93 @@
             margin-bottom: 30px;
         }
         
+        .year-selector-section {
+            background: linear-gradient(135deg, #003366, #0066cc);
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .year-selector-section h2 {
+            color: white !important;
+            text-align: center;
+            margin-bottom: 25px !important;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .year-selector-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .year-btn {
+            background: white;
+            color: #003366;
+            border: 3px solid transparent;
+            padding: 15px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            min-width: 100px;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .year-btn:hover {
+            background: #f0f8ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .year-btn.active {
+            background: #ff6b35;
+            color: white;
+            border-color: #ff6b35;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,107,53,0.4);
+        }
+        
+        .year-btn.loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        
+        .year-btn.loading::after {
+            content: "";
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 12px;
+            height: 12px;
+            border: 2px solid currentColor;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: translateY(-50%) rotate(360deg); }
+        }
+        
+        /* Responsive year selector */
+        @media (max-width: 768px) {
+            .year-selector-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .year-btn {
+                width: 200px;
+            }
+        }
+        
         .filter-section h3 {
             color: #003366;
             font-size: 1.3rem;
@@ -176,6 +263,13 @@
         
         <div id="activeFiltersDisplay" class="active-filters-display"></div>
         
+        <!-- Month Selection -->
+        <div class="year-selector-section">
+            <h2>Select Month</h2>
+            <div class="year-selector-buttons" id="monthSelector">
+                <!-- Month buttons will be populated by JavaScript -->
+            </div>
+        </div>
         
         <!-- Filter Section -->
         <div class="filter-section">

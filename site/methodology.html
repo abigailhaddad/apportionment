@@ -98,15 +98,22 @@
         .nav-links a:hover {
             text-decoration: underline;
         }
+        
+        /* Navigation links styles */
+        .navigation-links a:hover {
+            background: rgba(255,255,255,0.2) !important;
+            border-color: rgba(255,255,255,0.6) !important;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="nav-links">
-            <a href="index.html">← Back to Main Dashboard</a>
+        <!-- Navigation Links -->
+        <div class="navigation-links" style="background: linear-gradient(135deg, #003366, #0066cc); padding: 20px; border-radius: 8px; margin-bottom: 30px; text-align: center;">
+            <a href="index.html" style="color: white; text-decoration: none; font-weight: 600; margin: 0 15px; padding: 10px 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.3s ease;">Single Year View</a>
+            <a href="comparison.html" style="color: white; text-decoration: none; font-weight: 600; margin: 0 15px; padding: 10px 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.3s ease;">Multi-Year Comparison</a>
+            <a href="methodology.html" style="color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.9); color: #003366; text-decoration: none; font-weight: 600; margin: 0 15px; padding: 10px 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.3s ease;">Methodology</a>
         </div>
-        
-        <h1>Data Processing Methodology</h1>
         
         <div class="methodology-section">
             <h2>Data Source</h2>
@@ -119,6 +126,24 @@
                 <li><strong>Current Years (FY2024-2025)</strong>: Updated as new monthly data becomes available</li>
                 <li><strong>Data Format Evolution</strong>: Handles different Excel formats (.xls/.xlsx) across years</li>
             </ul>
+        </div>
+        
+        <div class="methodology-section">
+            <h2>Understanding Federal Accounts</h2>
+            <div class="account-explanation">
+                <h3>Account Number</h3>
+                <p>The Treasury Account Symbol (TAS) using Treasury's standard agency codes from the FAST Book</p>
+                <p class="example">Example: <code>91-0243</code></p>
+                <ul>
+                    <li><strong>91:</strong> Treasury's designation for Department of Education</li>
+                    <li><strong>0243:</strong> Federal Direct Student Loan Program account</li>
+                </ul>
+                <p class="learn-more">
+                    <a href="https://fiscal.treasury.gov/files/fast-book/Fastbook_March_2019.pdf" target="_blank">
+                        View the Treasury FAST Book for complete agency codes →
+                    </a>
+                </p>
+            </div>
         </div>
         
         <div class="methodology-section">

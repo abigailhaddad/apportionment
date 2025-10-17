@@ -6,6 +6,8 @@ let availableYears = [];
 let columnFilters = {};
 let aggregationLevel = 'agency';
 let fiscalYearMetadata = {};
+let selectedMonth = null; // null means show all months
+let availableMonths = [];
 
 // Define colors for different years (long list like agency colors)
 const YEAR_COLORS = [
@@ -43,7 +45,7 @@ function formatPercentage(value) {
     return `${value.toFixed(1)}%`;
 }
 
-// Parse CSV line handling quoted values (same as main app)
+// Parse CSV line handling quoted values (needed for individual month files)
 function parseCSVLine(line) {
     const result = [];
     let current = '';
@@ -69,41 +71,84 @@ function parseCSVLine(line) {
     return result;
 }
 
-// Load data for a single fiscal year
-async function loadYearData(fiscalYear) {
+// Load data for a single fiscal year and specific month (lazy loading)
+async function loadYearData(fiscalYear, month = null) {
     try {
-        const csvFile = `data/all_agencies_obligation_summary_${fiscalYear}.csv`;
-        const response = await fetch(csvFile);
+        let dataFile;
+        if (month && month !== 'all') {
+            // Load specific month file
+            dataFile = `data/all_agencies_monthly_summary_${fiscalYear}_${month}.csv`;
+        } else {
+            // Load most recent month (use JSON for performance)
+            dataFile = `data/all_agencies_summary_${fiscalYear}.json`;
+        }
+        
+        const response = await fetch(dataFile);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status} for ${csvFile}`);
+            throw new Error(`HTTP error! status: ${response.status} for ${dataFile}`);
         }
         
-        const csvText = await response.text();
-        const lines = csvText.split('\n');
-        const headers = lines[0].split(',');
-        
-        const yearData = [];
-        for (let i = 1; i < lines.length; i++) {
-            if (lines[i].trim() === '') continue;
+        let yearData;
+        if (dataFile.endsWith('.json')) {
+            yearData = await response.json();
+        } else {
+            // Parse CSV for specific month
+            const csvText = await response.text();
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',');
             
-            const values = parseCSVLine(lines[i]);
-            if (values.length !== headers.length) continue;
-            
-            const row = { fiscalYear: fiscalYear }; // Add fiscal year to each row
-            headers.forEach((header, index) => {
-                row[header.trim()] = values[index];
-            });
-            
-            // Convert numeric values
-            row.unobligatedValue = parseFloat(row['Unobligated Balance (Line 2490)'].replace(/[$,M]/g, ''));
-            row.budgetAuthorityValue = parseFloat(row['Budget Authority (Line 2500)'].replace(/[$,M]/g, ''));
-            row.percentageValue = parseFloat(row['Percentage Unobligated'].replace('%', ''));
-            
-            yearData.push(row);
+            yearData = [];
+            for (let i = 1; i < lines.length; i++) {
+                if (lines[i].trim() === '') continue;
+                
+                const values = parseCSVLine(lines[i]);
+                if (values.length !== headers.length) continue;
+                
+                const row = {};
+                headers.forEach((header, index) => {
+                    row[header.trim()] = values[index];
+                });
+                yearData.push(row);
+            }
         }
         
-        return yearData;
+        // Convert to format expected by the comparison app
+        const processedData = yearData.map(row => {
+            // Convert numeric values (handle both JSON and CSV formats)
+            if (row.Unobligated_Balance_M !== undefined) {
+                row.unobligatedValue = row.Unobligated_Balance_M;
+            } else {
+                row.unobligatedValue = parseFloat(row['Unobligated Balance (Line 2490)'].replace(/[$,M]/g, ''));
+            }
+            
+            if (row.Budget_Authority_M !== undefined) {
+                row.budgetAuthorityValue = row.Budget_Authority_M;
+            } else {
+                row.budgetAuthorityValue = parseFloat(row['Budget Authority (Line 2500)'].replace(/[$,M]/g, ''));
+            }
+            
+            if (row.Percentage_Unobligated !== undefined) {
+                row.percentageValue = row.Percentage_Unobligated;
+            } else {
+                row.percentageValue = parseFloat(row['Percentage Unobligated'].replace('%', ''));
+            }
+            
+            // Set fiscal year and month
+            row.fiscalYear = parseInt(row.Fiscal_Year || fiscalYear);
+            
+            // For CSV files, extract month from the data; for JSON, it's the most recent month
+            if (dataFile.endsWith('.csv') && row.Month) {
+                row.month = row.Month;
+            } else if (dataFile.endsWith('.json')) {
+                row.month = 'Most Recent';
+            }
+            
+            return row;
+        });
+        
+        console.log(`Loaded ${processedData.length} records for FY${fiscalYear} (${month || 'most recent month'})`);
+        return processedData;
     } catch (error) {
         console.error(`Error loading data for FY${fiscalYear}:`, error);
         throw error;
@@ -117,29 +162,92 @@ async function loadFiscalYearMetadata() {
         if (response.ok) {
             fiscalYearMetadata = await response.json();
             console.log('Loaded fiscal year metadata:', fiscalYearMetadata);
+            
+            // Extract all available months from the metadata
+            const monthsSet = new Set();
+            Object.values(fiscalYearMetadata).forEach(yearMeta => {
+                if (yearMeta.display_month) {
+                    monthsSet.add(yearMeta.display_month);
+                }
+            });
+            availableMonths = Array.from(monthsSet).sort((a, b) => {
+                // Sort months in fiscal year order: Oct, Nov, Dec, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep
+                const fiscalOrder = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+                return fiscalOrder.indexOf(a) - fiscalOrder.indexOf(b);
+            });
+            console.log('Available months:', availableMonths);
         } else {
             console.log('No fiscal year metadata file found, using defaults');
+            // Will be populated from actual data if metadata fails
         }
     } catch (error) {
         console.log('Could not load fiscal year metadata:', error);
+        // Will be populated from actual data if metadata fails
+    }
+}
+
+// Detect available months by checking file existence
+async function detectAvailableMonths() {
+    const testMonths = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+    const monthsSet = new Set();
+    
+    // Check each year to see what months have files
+    for (const year of availableYears) {
+        for (const month of testMonths) {
+            try {
+                const response = await fetch(`data/all_agencies_monthly_summary_${year}_${month}.csv`, { method: 'HEAD' });
+                if (response.ok) {
+                    monthsSet.add(month);
+                }
+            } catch (e) {
+                // File doesn't exist, skip
+            }
+        }
+    }
+    
+    // Sort months in fiscal year order
+    availableMonths = Array.from(monthsSet).sort((a, b) => {
+        const fiscalOrder = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+        return fiscalOrder.indexOf(a) - fiscalOrder.indexOf(b);
+    });
+    
+    console.log('Detected available months from files:', availableMonths);
+    
+    // Fallback to metadata if no months detected
+    if (availableMonths.length === 0 && fiscalYearMetadata) {
+        const monthsSet = new Set();
+        availableYears.forEach(year => {
+            const metadata = fiscalYearMetadata[year.toString()];
+            const monthText = metadata ? metadata.display_month : 'Sep';
+            monthsSet.add(monthText);
+        });
+        availableMonths = Array.from(monthsSet).sort((a, b) => {
+            const fiscalOrder = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
+            return fiscalOrder.indexOf(a) - fiscalOrder.indexOf(b);
+        });
+        console.log('Using metadata fallback for available months:', availableMonths);
     }
 }
 
 // Load data for multiple years (all available years)
 async function loadAllYearsData() {
     try {
-        console.log(`Loading data for all years: ${availableYears.join(', ')}`);
+        console.log(`Loading data for all years: ${availableYears.join(', ')} (month: ${selectedMonth || 'most recent'})`);
         
         // Load metadata first
         await loadFiscalYearMetadata();
         
-        const promises = availableYears.map(year => loadYearData(year));
+        const promises = availableYears.map(year => loadYearData(year, selectedMonth));
         const yearDataArrays = await Promise.all(promises);
         
         // Combine all data
         multiYearData = yearDataArrays.flat();
         
         console.log(`Loaded data for ${availableYears.length} years, total records: ${multiYearData.length}`);
+        
+        // For lazy loading, we need to detect available months from file existence
+        // instead of relying on loaded data (which might only be "Most Recent")
+        await detectAvailableMonths();
         
         // Initial setup of filter options
         updateFilterOptions();
@@ -154,6 +262,7 @@ async function loadAllYearsData() {
         }
         
         updateSummaryStats();
+        createMonthSelector();
         initializeBubbleChart();
         initializeDataTable();
         
@@ -287,10 +396,172 @@ function updateFilterOptions() {
     }
 }
 
+// Create month selector buttons
+function createMonthSelector() {
+    const monthSelector = document.getElementById('monthSelector');
+    if (!monthSelector) return;
+    
+    monthSelector.innerHTML = '';
+    
+    // Add "Most Recent" button
+    const allButton = document.createElement('button');
+    allButton.className = 'year-btn';
+    allButton.setAttribute('data-month', 'all');
+    allButton.innerHTML = `
+        <div style="font-weight: 600;">Most Recent</div>
+        <div style="font-size: 0.8rem; color: #666; margin-top: 2px;">All Years</div>
+    `;
+    allButton.addEventListener('click', () => switchToMonth(null));
+    monthSelector.appendChild(allButton);
+    
+    // Add buttons for each available month
+    availableMonths.forEach(month => {
+        const button = document.createElement('button');
+        button.className = 'year-btn';
+        button.setAttribute('data-month', month);
+        button.innerHTML = `
+            <div style="font-weight: 600;">${month}</div>
+            <div style="font-size: 0.8rem; color: #666; margin-top: 2px;">Month</div>
+        `;
+        button.addEventListener('click', () => switchToMonth(month));
+        monthSelector.appendChild(button);
+    });
+    
+    // Set initial state (all months selected)
+    updateMonthSelectorUI();
+}
+
+// Loading state management
+function showLoadingState() {
+    // Add loading class to main containers
+    const containers = document.querySelectorAll('.summary-stats, .table-container, .treemap-container');
+    containers.forEach(container => {
+        container.style.opacity = '0.5';
+        container.style.pointerEvents = 'none';
+    });
+    
+    // Show loading text in summary stats
+    const summaryStats = document.querySelector('.summary-stats');
+    if (summaryStats && !summaryStats.querySelector('.loading-overlay')) {
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.className = 'loading-overlay';
+        loadingOverlay.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255,255,255,0.9);
+            padding: 10px 20px;
+            border-radius: 4px;
+            font-weight: 600;
+            color: #003366;
+        `;
+        loadingOverlay.textContent = 'Loading month data...';
+        summaryStats.style.position = 'relative';
+        summaryStats.appendChild(loadingOverlay);
+    }
+}
+
+function hideLoadingState() {
+    // Remove loading state
+    const containers = document.querySelectorAll('.summary-stats, .table-container, .treemap-container');
+    containers.forEach(container => {
+        container.style.opacity = '1';
+        container.style.pointerEvents = 'auto';
+    });
+    
+    // Remove loading overlay
+    const loadingOverlay = document.querySelector('.loading-overlay');
+    if (loadingOverlay) {
+        loadingOverlay.remove();
+    }
+}
+
+// Switch to a specific month filter
+async function switchToMonth(month) {
+    if (selectedMonth === month) {
+        return; // Already on this month
+    }
+    
+    selectedMonth = month;
+    console.log('Switched to month:', month || 'Most Recent');
+    
+    // Show loading state
+    showLoadingState();
+    
+    try {
+        // Reload data for the new month
+        await loadAllYearsData();
+        
+        // Update data display
+        updateSummaryStats();
+        initializeBubbleChart();
+        initializeDataTable();
+        updateFilters(); // Update active filters display
+        
+        hideLoadingState();
+    } catch (error) {
+        console.error('Error switching month:', error);
+        hideLoadingState();
+    }
+    
+    // Update month selector UI
+    updateMonthSelectorUI();
+}
+
+// Update month selector UI to reflect current selection
+function updateMonthSelectorUI() {
+    const monthButtons = document.querySelectorAll('#monthSelector .year-btn');
+    monthButtons.forEach(btn => {
+        const month = btn.getAttribute('data-month');
+        if ((selectedMonth === null && month === 'all') || month === selectedMonth) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+}
+
 // Aggregate data based on current aggregation level and filters
 function getAggregatedData() {
-    // First apply filters, including the default "expiring soon" logic
-    let filteredData = multiYearData.filter(row => {
+    // First handle month filtering
+    let filteredData;
+    if (selectedMonth === null) {
+        // "Most Recent" - show only the most recent month for each fiscal year
+        const mostRecentByYear = new Map();
+        
+        // Define fiscal year month order (Oct = 1, Nov = 2, ..., Sep = 12)
+        const fiscalMonthOrder = {
+            'Oct': 1, 'Nov': 2, 'Dec': 3,
+            'Jan': 4, 'Feb': 5, 'Mar': 6,
+            'Apr': 7, 'May': 8, 'Jun': 9,
+            'Jul': 10, 'Aug': 11, 'Sep': 12
+        };
+        
+        // Find the most recent month for each fiscal year
+        multiYearData.forEach(row => {
+            const year = row.fiscalYear;
+            const currentMonthOrder = fiscalMonthOrder[row.month] || 0;
+            const existingMonthOrder = mostRecentByYear.has(year) ? fiscalMonthOrder[mostRecentByYear.get(year)] || 0 : 0;
+            
+            if (!mostRecentByYear.has(year) || currentMonthOrder > existingMonthOrder) {
+                mostRecentByYear.set(year, row.month);
+            }
+        });
+        
+        // Filter to only include the most recent month for each year
+        filteredData = multiYearData.filter(row => {
+            return row.month === mostRecentByYear.get(row.fiscalYear);
+        });
+    } else {
+        // Specific month selected - filter to only that month
+        filteredData = multiYearData.filter(row => {
+            return row.month === selectedMonth;
+        });
+    }
+    
+    // Now apply other filters to the month-filtered data
+    filteredData = filteredData.filter(row => {
         // Handle expiration year filtering
         if (!columnFilters.Expiration_Year) {
             // Default behavior: only show money expiring in the same year as the fiscal year
@@ -313,21 +584,20 @@ function getAggregatedData() {
         return true;
     });
     
-    // Then aggregate based on level
-    const aggregateMap = new Map();
+    // Group data by account and month, then aggregate
+    const accountMap = new Map();
     
     filteredData.forEach(row => {
-        let key;
+        let baseKey;
         if (aggregationLevel === 'agency') {
-            key = `${row.fiscalYear}|${row.Agency}`;
+            baseKey = `${row.fiscalYear}|${row.month}|${row.Agency}`;
         } else if (aggregationLevel === 'bureau') {
-            key = `${row.fiscalYear}|${row.Agency}|${row.Bureau}`;
+            baseKey = `${row.fiscalYear}|${row.month}|${row.Agency}|${row.Bureau}`;
         } else {
-            // individual accounts - still aggregate by account name to combine different periods
-            key = `${row.fiscalYear}|${row.Agency}|${row.Bureau}|${row.Account}`;
+            baseKey = `${row.fiscalYear}|${row.month}|${row.Agency}|${row.Bureau}|${row.Account}`;
         }
         
-        if (!aggregateMap.has(key)) {
+        if (!accountMap.has(baseKey)) {
             let displayData;
             if (aggregationLevel === 'agency') {
                 displayData = {
@@ -348,12 +618,13 @@ function getAggregatedData() {
                     Agency: row.Agency,
                     Bureau: row.Bureau,
                     Account: row.Account,
-                    Period_of_Performance: 'All'
+                    Period_of_Performance: row.Period_of_Performance || 'All'
                 };
             }
             
-            aggregateMap.set(key, {
+            accountMap.set(baseKey, {
                 fiscalYear: row.fiscalYear,
+                month: row.month,
                 ...displayData,
                 budgetAuthorityValue: 0,
                 unobligatedValue: 0,
@@ -363,9 +634,11 @@ function getAggregatedData() {
             });
         }
         
-        const aggregate = aggregateMap.get(key);
-        aggregate.budgetAuthorityValue += row.budgetAuthorityValue;
-        aggregate.unobligatedValue += row.unobligatedValue;
+        const aggregate = accountMap.get(baseKey);
+        
+        // Add values from the monthly summary (already aggregated)
+        aggregate.budgetAuthorityValue += row.budgetAuthorityValue || 0;
+        aggregate.unobligatedValue += row.unobligatedValue || 0;
         aggregate.accountCount += 1;
         
         // Track unique items for display
@@ -374,7 +647,7 @@ function getAggregatedData() {
     });
     
     // Calculate percentages and format display fields
-    return Array.from(aggregateMap.values()).map(item => {
+    return Array.from(accountMap.values()).map(item => {
         // Update display fields based on aggregation level
         if (aggregationLevel === 'agency') {
             item.Bureau = `${item.uniqueBureaus.size} bureaus`;
@@ -387,13 +660,9 @@ function getAggregatedData() {
         delete item.uniqueAccounts;
         delete item.uniqueBureaus;
         
-        // Add month information
-        const metadata = fiscalYearMetadata[item.fiscalYear.toString()];
-        const monthText = metadata ? metadata.display_month : 'Sep';
-        
         return {
             ...item,
-            monthText: monthText,
+            monthText: item.month || 'Unknown',
             percentageValue: item.budgetAuthorityValue > 0 ? 
                 (item.unobligatedValue / item.budgetAuthorityValue * 100) : 0
         };
@@ -692,13 +961,14 @@ function initializeDataTable() {
 // Initialize available years and load all data
 async function initializeAndLoadData() {
     try {
-        // Try to detect available years (same logic as main app)
-        const testYears = Array.from({length: 2030 - 1998 + 1}, (_, i) => 1998 + i);
+        // Try to detect available years (only check reasonable range)
+        const testYears = Array.from({length: 2030 - 2015 + 1}, (_, i) => 2015 + i);
         const availableYearsSet = new Set();
         
         for (const year of testYears) {
             try {
-                const response = await fetch(`data/all_agencies_obligation_summary_${year}.csv`, { method: 'HEAD' });
+                // Check if JSON summary file exists (for most recent month)
+                const response = await fetch(`data/all_agencies_summary_${year}.json`, { method: 'HEAD' });
                 if (response.ok) {
                     availableYearsSet.add(year);
                 }
@@ -779,6 +1049,7 @@ function updateFilters() {
     
     // Update active filters display
     const filterTexts = [];
+    if (selectedMonth) filterTexts.push(`Month: ${selectedMonth}`);
     if (agencyVal) filterTexts.push(agencyVal);
     if (bureauVal) filterTexts.push(bureauVal);
     if (periodVal) filterTexts.push(periodVal);
