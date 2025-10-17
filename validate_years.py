@@ -41,10 +41,8 @@ def main():
     print("🏗️  RUNNING STRUCTURE VALIDATION TESTS")
     print("-" * 40)
     try:
-        structure_passing_years = test_csv_structure()
-        if not isinstance(structure_passing_years, list):
-            print("❌ ERROR: Structure test didn't return year list")
-            return 1
+        structure_result = test_csv_structure()
+        structure_passing_years = structure_result['passing_years']
     except Exception as e:
         print(f"❌ ERROR: Structure tests failed: {e}")
         return 1
