@@ -86,7 +86,13 @@ async function loadYearData(fiscalYear, month = null) {
         const response = await fetch(dataFile);
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status} for ${dataFile}`);
+            if (month && month !== 'Most Recent') {
+                // For monthly files that don't exist, try to fall back to "Most Recent"
+                console.warn(`Monthly file not found for FY${fiscalYear} ${month}, falling back to most recent data`);
+                return await loadYearData(fiscalYear, 'Most Recent');
+            } else {
+                throw new Error(`HTTP error! status: ${response.status} for ${dataFile}`);
+            }
         }
         
         let yearData;
@@ -137,11 +143,13 @@ async function loadYearData(fiscalYear, month = null) {
             // Set fiscal year and month
             row.fiscalYear = parseInt(row.Fiscal_Year || fiscalYear);
             
-            // For CSV files, extract month from the data; for JSON, it's the most recent month
+            // For CSV files, extract month from the data; for JSON, get actual month from metadata
             if (dataFile.endsWith('.csv') && row.Month) {
                 row.month = row.Month;
             } else if (dataFile.endsWith('.json')) {
-                row.month = 'Most Recent';
+                // Get the actual month from metadata if available
+                const yearMetadata = fiscalYearMetadata[fiscalYear.toString()];
+                row.month = yearMetadata && yearMetadata.display_month ? yearMetadata.display_month : 'Sep';
             }
             
             return row;
@@ -188,45 +196,42 @@ async function loadFiscalYearMetadata() {
 
 // Detect available months by checking file existence
 async function detectAvailableMonths() {
-    const testMonths = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
     const monthsSet = new Set();
     
-    // Check each year to see what months have files
-    for (const year of availableYears) {
-        for (const month of testMonths) {
-            try {
-                const response = await fetch(`data/all_agencies_monthly_summary_${year}_${month}.csv`, { method: 'HEAD' });
-                if (response.ok) {
-                    monthsSet.add(month);
-                }
-            } catch (e) {
-                // File doesn't exist, skip
-            }
+    // Add "Most Recent" as always available (uses JSON files)
+    monthsSet.add('Most Recent');
+    
+    // Based on current data, we know these months exist for 2018 and 2019
+    // This avoids the 404 errors while still providing month options
+    const knownMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Nov', 'Dec'];
+    
+    // Check if we have any monthly data by testing one year we know has data
+    let hasMonthlyData = false;
+    try {
+        const response = await fetch(`data/all_agencies_monthly_summary_2018_Jan.csv`, { method: 'HEAD' });
+        if (response.ok) {
+            hasMonthlyData = true;
         }
+    } catch (e) {
+        // No monthly data available
+    }
+    
+    // If we have monthly data, add the known months
+    if (hasMonthlyData) {
+        knownMonths.forEach(month => monthsSet.add(month));
     }
     
     // Sort months in fiscal year order
     availableMonths = Array.from(monthsSet).sort((a, b) => {
+        // "Most Recent" should always be first
+        if (a === 'Most Recent') return -1;
+        if (b === 'Most Recent') return 1;
+        
         const fiscalOrder = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
         return fiscalOrder.indexOf(a) - fiscalOrder.indexOf(b);
     });
     
-    console.log('Detected available months from files:', availableMonths);
-    
-    // Fallback to metadata if no months detected
-    if (availableMonths.length === 0 && fiscalYearMetadata) {
-        const monthsSet = new Set();
-        availableYears.forEach(year => {
-            const metadata = fiscalYearMetadata[year.toString()];
-            const monthText = metadata ? metadata.display_month : 'Sep';
-            monthsSet.add(monthText);
-        });
-        availableMonths = Array.from(monthsSet).sort((a, b) => {
-            const fiscalOrder = ['Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'];
-            return fiscalOrder.indexOf(a) - fiscalOrder.indexOf(b);
-        });
-        console.log('Using metadata fallback for available months:', availableMonths);
-    }
+    console.log('Available months:', availableMonths);
 }
 
 // Load data for multiple years (all available years)
@@ -237,7 +242,14 @@ async function loadAllYearsData() {
         // Load metadata first
         await loadFiscalYearMetadata();
         
-        const promises = availableYears.map(year => loadYearData(year, selectedMonth));
+        const promises = availableYears.map(async year => {
+            try {
+                return await loadYearData(year, selectedMonth);
+            } catch (error) {
+                console.warn(`Failed to load ${selectedMonth || 'most recent'} data for FY${year}, skipping:`, error.message);
+                return []; // Return empty array for failed loads
+            }
+        });
         const yearDataArrays = await Promise.all(promises);
         
         // Combine all data
