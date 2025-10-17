@@ -57,8 +57,8 @@ def test_csv_structure():
     year_files = glob.glob(f'{site_data_dir}all_agencies_obligation_summary_*.csv')
     csv_files.extend(year_files)
     
-    # Monthly files
-    monthly_files = glob.glob(f'{site_data_dir}all_agencies_monthly_summary_*_all.csv')
+    # Monthly files - check for both individual month files and combined files
+    monthly_files = glob.glob(f'{site_data_dir}all_agencies_monthly_summary_*.csv')
     
     if not csv_files and not monthly_files:
         print("❌ ERROR: No CSV summary files found in site/data/")
@@ -122,11 +122,15 @@ def test_csv_structure():
     for monthly_file in monthly_files:
         file_passed = True
         
-        # Extract year from filename (e.g., all_agencies_monthly_summary_2024_all.csv)
+        # Extract year from filename (e.g., all_agencies_monthly_summary_2024_all.csv or all_agencies_monthly_summary_2024_Jan.csv)
         year = None
         filename = os.path.basename(monthly_file)
-        if filename.startswith('all_agencies_monthly_summary_') and filename.endswith('_all.csv'):
-            year_str = filename.replace('all_agencies_monthly_summary_', '').replace('_all.csv', '')
+        if filename.startswith('all_agencies_monthly_summary_') and filename.endswith('.csv'):
+            # Remove prefix and suffix
+            remaining = filename.replace('all_agencies_monthly_summary_', '').replace('.csv', '')
+            # Split by underscore and take first part as year
+            parts = remaining.split('_')
+            year_str = parts[0]
             if year_str.isdigit():
                 year = int(year_str)
         
@@ -158,12 +162,24 @@ def test_csv_structure():
                     file_passed = False
             
             # Get available months for this year
-            if 'Month' in df.columns and file_passed:
-                available_months = sorted(df['Month'].unique().tolist())
-                if year is not None:
-                    monthly_data[year] = available_months
+            if file_passed and year is not None:
+                if year not in monthly_data:
+                    monthly_data[year] = set()
+                
+                if 'Month' in df.columns:
+                    # Combined file with multiple months
+                    available_months = df['Month'].unique().tolist()
+                    monthly_data[year].update(available_months)
+                else:
+                    # Individual month file - extract month from filename
+                    remaining = filename.replace('all_agencies_monthly_summary_', '').replace('.csv', '')
+                    parts = remaining.split('_')
+                    if len(parts) >= 2:
+                        month = parts[1]  # e.g., "Jan" from "2024_Jan"
+                        monthly_data[year].add(month)
                     
-            print(f"✅ {monthly_file}: Structure OK ({len(df)} records, {df['Agency'].nunique()} agencies, {len(df['Month'].unique())} months)")
+            month_count = len(df['Month'].unique()) if 'Month' in df.columns else 1
+            print(f"✅ {monthly_file}: Structure OK ({len(df)} records, {df['Agency'].nunique()} agencies, {month_count} months)")
             
         except Exception as e:
             errors.append(f"{monthly_file}: Failed to read - {str(e)}")
@@ -177,9 +193,12 @@ def test_csv_structure():
     print(f"\n✅ Years passing structure tests: {sorted(passing_years)}")
     print(f"✅ Years with monthly data: {sorted(monthly_data.keys())}")
     
+    # Convert sets to sorted lists
+    monthly_data_sorted = {year: sorted(list(months)) for year, months in monthly_data.items()}
+    
     return {
         "passing_years": sorted(passing_years),
-        "monthly_data": monthly_data
+        "monthly_data": monthly_data_sorted
     }
 
 def test_numerical_data():

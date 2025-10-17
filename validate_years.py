@@ -18,8 +18,15 @@ from create_year_summaries import create_year_summary
 def main():
     """Run both test suites and find years that pass both."""
     
+    import os
+    
+    # Detect if running in GitHub Actions
+    is_github_actions = os.getenv('GITHUB_ACTIONS') == 'true'
+    mode = "VALIDATION-ONLY" if is_github_actions else "LOCAL CLEANUP"
+    
     print("🔍 YEAR-BASED VALIDATION COORDINATOR")
     print("=" * 60)
+    print(f"Mode: {mode}")
     print("Running both test suites to find years that pass all validations...")
     print()
     
@@ -62,12 +69,20 @@ def main():
     print()
     
     if len(passing_both_sorted) == 0:
-        print("❌ DEPLOYMENT BLOCKED: No years pass both test suites!")
-        print("Fix data issues before deploying.")
+        print("❌ VALIDATION FAILED: No years pass both test suites!")
+        if is_github_actions:
+            print("GitHub Actions will fail - fix data issues before deploying.")
+        else:
+            print("Fix data issues before deploying.")
         return 1
     else:
-        print(f"✅ DEPLOYMENT APPROVED: {len(passing_both_sorted)} years ready for production")
-        print(f"Deploying years: {passing_both_sorted}")
+        if is_github_actions:
+            print(f"✅ VALIDATION PASSED: {len(passing_both_sorted)} years ready for production")
+            print(f"Validated years: {passing_both_sorted}")
+            print("GitHub Actions will proceed with deployment.")
+        else:
+            print(f"✅ LOCAL VALIDATION: {len(passing_both_sorted)} years pass validation")
+            print(f"Years to keep: {passing_both_sorted}")
         
         # Create a file listing the approved years for deployment scripts
         approved_years_file = Path('site/data/approved_years.json')
@@ -79,39 +94,73 @@ def main():
             }, f, indent=2)
         print(f"📄 Approved years list saved to: {approved_years_file}")
         
-        # Generate monthly data ONLY for approved years
+        if is_github_actions:
+            # In GitHub Actions, just validate - don't modify files
+            print()
+            print("🔒 GITHUB ACTIONS MODE: Validation complete, no file modifications")
+            print("=" * 60)
+            print("✅ All tests passed - GitHub Actions will proceed with deployment")
+            return 0
+        
+        # LOCAL MODE: Clean up non-passing years and regenerate monthly data
         print()
-        print("🗓️  GENERATING MONTHLY DATA FOR APPROVED YEARS")
+        print("🧹 LOCAL MODE: Cleaning up non-passing years and regenerating data")
         print("=" * 60)
         
-        # Clean up any existing data files to ensure we only have approved data
+        # Clean up data files for non-passing years only
         site_data_dir = Path('site/data')
         
-        # Clean up monthly CSV files
-        existing_monthly_files = list(site_data_dir.glob('all_agencies_monthly_summary_*.csv'))
-        if existing_monthly_files:
-            print(f"🧹 Cleaning up {len(existing_monthly_files)} existing monthly CSV files...")
-            for file in existing_monthly_files:
-                file.unlink()
-                print(f"  Removed: {file.name}")
+        # Get all years that have any data files
+        all_data_years = set()
+        for pattern in ['all_agencies_obligation_summary_*.csv', 'all_agencies_summary_*.json', 'all_agencies_monthly_summary_*.csv']:
+            for file in site_data_dir.glob(pattern):
+                # Extract year from various filename patterns
+                filename = file.name
+                if '_summary_' in filename and filename.endswith('.json'):
+                    year_str = filename.replace('all_agencies_summary_', '').replace('.json', '')
+                elif 'obligation_summary_' in filename and filename.endswith('.csv'):
+                    year_str = filename.replace('all_agencies_obligation_summary_', '').replace('.csv', '')
+                elif 'monthly_summary_' in filename and filename.endswith('.csv'):
+                    parts = filename.replace('all_agencies_monthly_summary_', '').replace('.csv', '').split('_')
+                    year_str = parts[0]
+                else:
+                    continue
+                    
+                if year_str.isdigit():
+                    all_data_years.add(int(year_str))
         
-        # Clean up year-specific JSON summary files
-        existing_json_files = list(site_data_dir.glob('all_agencies_summary_*.json'))
-        # Keep the main summary file (all_agencies_summary.json) but remove year-specific ones
-        year_specific_json = [f for f in existing_json_files if f.name != 'all_agencies_summary.json']
-        if year_specific_json:
-            print(f"🧹 Cleaning up {len(year_specific_json)} existing year-specific JSON files...")
-            for file in year_specific_json:
-                file.unlink()
-                print(f"  Removed: {file.name}")
+        # Find years to remove (years that have data but don't pass validation)
+        years_to_remove = all_data_years - set(passing_both_sorted)
         
-        # Clean up year-specific CSV obligation summary files
-        existing_obligation_files = list(site_data_dir.glob('all_agencies_obligation_summary_*.csv'))
-        if existing_obligation_files:
-            print(f"🧹 Cleaning up {len(existing_obligation_files)} existing obligation summary files...")
-            for file in existing_obligation_files:
-                file.unlink()
-                print(f"  Removed: {file.name}")
+        if years_to_remove:
+            print(f"🧹 Removing data for {len(years_to_remove)} non-passing years: {sorted(years_to_remove)}")
+            
+            # Remove year-specific CSV files
+            for year in years_to_remove:
+                csv_file = site_data_dir / f'all_agencies_obligation_summary_{year}.csv'
+                if csv_file.exists():
+                    csv_file.unlink()
+                    print(f"  Removed: {csv_file.name}")
+            
+            # Remove year-specific JSON files
+            for year in years_to_remove:
+                json_file = site_data_dir / f'all_agencies_summary_{year}.json'
+                if json_file.exists():
+                    json_file.unlink()
+                    print(f"  Removed: {json_file.name}")
+            
+            # Remove monthly files for non-passing years
+            monthly_files = list(site_data_dir.glob('all_agencies_monthly_summary_*.csv'))
+            for file in monthly_files:
+                filename = file.name
+                parts = filename.replace('all_agencies_monthly_summary_', '').replace('.csv', '').split('_')
+                if parts and parts[0].isdigit():
+                    year = int(parts[0])
+                    if year in years_to_remove:
+                        file.unlink()
+                        print(f"  Removed: {file.name}")
+        else:
+            print("✅ No non-passing years to clean up")
         
         successful_monthly_years = []
         total_monthly_files = 0
