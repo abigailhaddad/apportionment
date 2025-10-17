@@ -245,7 +245,7 @@ async function detectAvailableMonths() {
 }
 
 // Load data for multiple years (all available years)
-async function loadAllYearsData() {
+async function loadAllYearsData(preserveFilters = false) {
     try {
         console.log(`Loading data for all years: ${availableYears.join(', ')} (month: ${selectedMonth || 'most recent'})`);
         
@@ -271,16 +271,22 @@ async function loadAllYearsData() {
         // instead of relying on loaded data (which might only be "Most Recent")
         await detectAvailableMonths();
         
-        // Initial setup of filter options
+        // Setup filter options
         updateFilterOptions();
         
-        // Set default agency filter to Department of Defense (it's usually large and interesting)
-        const defaultAgency = 'Department of Defense-Military';
-        if ($('#mainAgencyFilter option[value="' + defaultAgency + '"]').length > 0) {
-            $('#mainAgencyFilter').val(defaultAgency);
-            columnFilters.Agency = [defaultAgency];
-            // Update dependent filters after setting default agency
-            updateFilterOptions();
+        // Only set default filters if not preserving existing ones
+        if (!preserveFilters) {
+            // Set default agency filter to Department of Defense (it's usually large and interesting)
+            const defaultAgency = 'Department of Defense-Military';
+            if ($('#mainAgencyFilter option[value="' + defaultAgency + '"]').length > 0) {
+                $('#mainAgencyFilter').val(defaultAgency);
+                columnFilters.Agency = [defaultAgency];
+                // Update dependent filters after setting default agency
+                updateFilterOptions();
+            }
+        } else {
+            // If preserving filters, just update the filter UI to match current columnFilters
+            updateFilterUI();
         }
         
         updateSummaryStats();
@@ -295,6 +301,27 @@ async function loadAllYearsData() {
         console.error('Error loading multi-year data:', error);
         alert('Failed to load data for one or more years.');
     }
+}
+
+// Update filter UI to match current columnFilters (when preserving filters)
+function updateFilterUI() {
+    // Set agency filter
+    if (columnFilters.Agency && columnFilters.Agency.length > 0) {
+        $('#mainAgencyFilter').val(columnFilters.Agency[0]);
+    }
+    
+    // Set bureau filter
+    if (columnFilters.Bureau && columnFilters.Bureau.length > 0) {
+        $('#mainBureauFilter').val(columnFilters.Bureau[0]);
+    }
+    
+    // Set period filter
+    if (columnFilters.Period_of_Performance && columnFilters.Period_of_Performance.length > 0) {
+        $('#mainPeriodFilter').val(columnFilters.Period_of_Performance[0]);
+    }
+    
+    // Update filter options to reflect current data and cascading
+    updateFilterOptions();
 }
 
 // Update filter options based on loaded multi-year data and current selections (cascading filters)
@@ -512,8 +539,8 @@ async function switchToMonth(month) {
     showLoadingState();
     
     try {
-        // Reload data for the new month
-        await loadAllYearsData();
+        // Reload data for the new month, preserving current filters
+        await loadAllYearsData(true);
         
         // Update data display
         updateSummaryStats();
