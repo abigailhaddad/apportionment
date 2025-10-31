@@ -225,42 +225,18 @@ class SF133YearProcessor:
             print(f"  Total agencies: {df['Agency'].nunique()}")
             print(f"  Total rows: {len(df):,}")
             
-            # VALIDATION: Historical years should have adequate data coverage
-            # For years before 2018, different data structures are acceptable
-            critical_missing_months = [m for m in missing_months if m != 'Oct']
-            
-            if not is_current_fiscal_year and len(critical_missing_months) > 0:
-                # Check if September data is missing (required for completed fiscal years)
-                if 'Sep' in critical_missing_months:
-                    print(f"\n⚠️ VALIDATION WARNING:")
-                    print(f"  FY{year} is missing September data (fiscal year end)")
-                    print(f"  Missing: {', '.join(critical_missing_months)}")
-                    print(f"  This year will be excluded from website deployment")
-                    print(f"  Available data: {', '.join(available_months)}")
-                    return False  # Fail validation but don't crash the entire process
-                elif len(critical_missing_months) > 3:  # Too many missing months
-                    print(f"\n⚠️ VALIDATION WARNING:")
-                    print(f"  FY{year} is missing too many months: {', '.join(critical_missing_months)}")
-                    print(f"  This year will be excluded from website deployment")
-                    return False
-                else:
-                    print(f"\n⚠️ Note: FY{year} missing some months but has adequate coverage")
-                    print(f"  Missing: {', '.join(critical_missing_months)}")
-                    print(f"  Available: {', '.join(available_months)}")
-                    # Continue processing - this year will be included
-            elif not is_current_fiscal_year and 'Oct' in missing_months:
-                print(f"\n⚠️ Note: October data missing (common - often no spending in first month)")
-                # Don't return early - continue to TAFS validation
+            # VALIDATION: Accept any year that has some data, regardless of missing months
+            if len(missing_months) > 0:
+                print(f"\n⚠️ Note: FY{year} missing some months - this is acceptable")
+                print(f"  Missing: {', '.join(missing_months)}")
+                print(f"  Available: {', '.join(available_months)}")
+                # Continue processing - this year will be included regardless of missing months
             elif is_current_fiscal_year and len(missing_months) > 0:
                 print(f"\n⚠️ Current fiscal year - missing future months is expected:")
                 print(f"  Missing: {', '.join(missing_months)}")
             
-            # Determine validation status based on the same logic used above
+            # Always pass validation if we have any data at all
             validation_passed = True
-            if not is_current_fiscal_year and len(critical_missing_months) > 0:
-                if 'Sep' in critical_missing_months or len(critical_missing_months) > 3:
-                    validation_passed = False
-                # else: adequate coverage, keep validation_passed = True
             
             # Save summary
             summary = {

@@ -159,15 +159,12 @@ def parse_sf133_raw_data(file_path):
             print(f"  Rows with standard line numbers (1000-9999): {len(standard_lines)}")
             df = standard_lines
             
-            # 3. Aggregate to match TAFS detail level: preserve the same granularity as original
-            # The TAFS detail sheet preserves fiscal year detail, so we need to include those fields
+            # 3. Aggregate to match TAFS detail level: use only fields needed for final output
+            # Group by core fields that create unique TAFS entries for the website
             grouping_cols = ['BUREAU', 'OMB_ACCT', 'LINENO']
             
-            # Add all the key fields that create unique combinations in TAFS detail
-            additional_fields = ['TRACCT', 'TRAG', 'ALLOC', 'FY1', 'FY2', 'LINE_DESC']
-            for field in additional_fields:
-                if field in df.columns:
-                    grouping_cols.append(field)
+            # Only include fields that are actually used in the final website output
+            # Skip TRACCT, TRAG, ALLOC, FY1, FY2, LINE_DESC which aren't used downstream
             
             if len(grouping_cols) >= 3:  # We need at least Bureau, Account, Line Number
                 print(f"  Aggregating by: {grouping_cols}")

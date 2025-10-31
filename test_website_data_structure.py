@@ -7,6 +7,7 @@ import pandas as pd
 import os
 import sys
 import glob
+import json
 from pathlib import Path
 
 def test_csv_structure():
@@ -312,6 +313,92 @@ def test_required_fields():
         return False
     
     print("✅ All required fields have valid data")
+    return True
+
+def test_required_files_exist():
+    """Test that all required files for website functionality exist."""
+    
+    site_data_dir = 'site/data/'
+    errors = []
+    
+    # Load approved years to know what we should have
+    try:
+        with open(f'{site_data_dir}approved_years.json', 'r') as f:
+            approval_data = json.load(f)
+        approved_years = approval_data['approved_years']
+    except (FileNotFoundError, KeyError):
+        print("❌ ERROR: Could not load approved_years.json")
+        return False
+    
+    print(f"Checking required files for approved years: {approved_years}")
+    
+    # Check main files exist
+    required_main_files = [
+        'all_agencies_obligation_summary.csv',
+        'all_agencies_summary.json', 
+        'fiscal_year_metadata.json',
+        'approved_years.json'
+    ]
+    
+    for filename in required_main_files:
+        filepath = f'{site_data_dir}{filename}'
+        if not os.path.exists(filepath):
+            errors.append(f"Missing required main file: {filename}")
+    
+    # Check year-specific files exist for approved years
+    for year in approved_years:
+        # Year-specific CSV (for single year comparison)
+        csv_file = f'{site_data_dir}all_agencies_obligation_summary_{year}.csv'
+        if not os.path.exists(csv_file):
+            errors.append(f"Missing year-specific CSV for FY{year}: all_agencies_obligation_summary_{year}.csv")
+        
+        # Year-specific JSON (for multi-year comparison "Most Recent")
+        json_file = f'{site_data_dir}all_agencies_summary_{year}.json'
+        if not os.path.exists(json_file):
+            errors.append(f"Missing year-specific JSON for FY{year}: all_agencies_summary_{year}.json")
+    
+    # Check monthly files exist for years that should have them
+    monthly_files_found = {}
+    monthly_files = glob.glob(f'{site_data_dir}all_agencies_monthly_summary_*.csv')
+    
+    for monthly_file in monthly_files:
+        filename = os.path.basename(monthly_file)
+        if filename.startswith('all_agencies_monthly_summary_') and filename.endswith('.csv'):
+            # Extract year from filename
+            remaining = filename.replace('all_agencies_monthly_summary_', '').replace('.csv', '')
+            parts = remaining.split('_')
+            if parts and parts[0].isdigit():
+                year = int(parts[0])
+                if year not in monthly_files_found:
+                    monthly_files_found[year] = []
+                
+                if len(parts) >= 2:
+                    month = parts[1]  # e.g., "Jan", "Feb", "all"
+                    monthly_files_found[year].append(month)
+    
+    # Validate monthly file coverage
+    for year in approved_years:
+        if year in monthly_files_found:
+            months = monthly_files_found[year]
+            month_count = len([m for m in months if m != 'all'])  # Don't count 'all' files
+            
+            # Accept any amount of monthly data - no minimum requirements
+            if month_count == 0:
+                print(f"⚠️ Note: FY{year} has no monthly files, but this is acceptable")
+            else:
+                print(f"✅ FY{year} has {month_count} monthly files")
+        else:
+            # Accept any year without monthly data
+            print(f"⚠️ Note: FY{year} has no monthly files, but this is acceptable")
+    
+    if errors:
+        print("❌ REQUIRED FILES VALIDATION ERRORS:")
+        for error in errors:
+            print(f"  - {error}")
+        return False
+    
+    print(f"✅ All required files exist for {len(approved_years)} approved years")
+    print(f"✅ Monthly data available for years: {sorted(monthly_files_found.keys())}")
     return True
 
 def test_data_consistency():

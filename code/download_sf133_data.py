@@ -183,10 +183,11 @@ def clean_raw_data_directory():
 if __name__ == "__main__":
     import sys
     
-    # Allow specifying target directory as command line argument
+    # Allow specifying target directory and URL as command line arguments
     target_dir = sys.argv[1] if len(sys.argv) > 1 else 'raw_data/sf133'
+    page_url = sys.argv[2] if len(sys.argv) > 2 else None
     
-    success = download_sf133_files(target_dir)
+    success = download_sf133_files(target_dir, page_url)
     
     if not success:
         print("\nFailed to download files. Please check your internet connection and try again.")
