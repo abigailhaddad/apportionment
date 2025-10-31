@@ -233,6 +233,24 @@ def parse_all_sf133_raw_data(source_dir='raw_data/august'):
     if all_data:
         combined_df = pd.concat(all_data, ignore_index=True)
         
+        # Clean corrupted characters from text fields
+        def clean_text_field(text):
+            """Clean corrupted characters from text fields."""
+            if pd.isna(text):
+                return text
+            text_str = str(text)
+            # Remove various forms of corrupted line endings and special characters
+            text_str = text_str.replace('_x000D_\n', '').replace('_x000D_', '').replace('\r\n', ' ').replace('\r', ' ').replace('\n', ' ')
+            # Clean up multiple spaces
+            text_str = ' '.join(text_str.split())
+            return text_str
+        
+        # Apply cleaning to all text columns that might contain corrupted data
+        text_columns = ['TAFS', 'BUREAU', 'AGENCY_TITLE', 'BUREAU_TITLE', 'OMB_ACCOUNT', 'LINE_DESC']
+        for col in text_columns:
+            if col in combined_df.columns:
+                combined_df[col] = combined_df[col].apply(clean_text_field)
+        
         # Save the master table
         output_path = Path('site/data/sf133_raw_data_master.csv')
         output_path.parent.mkdir(parents=True, exist_ok=True)
