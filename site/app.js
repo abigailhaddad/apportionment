@@ -1843,23 +1843,32 @@ async function initializeYearSelector() {
         // Load metadata first
         await loadFiscalYearMetadata();
         
-        // Try to detect available years by checking for year-specific files
-        // Generate years from 1998 to 2030
-        const testYears = Array.from({length: 2030 - 1998 + 1}, (_, i) => 1998 + i);
-        const availableYearsSet = new Set();
-        
-        for (const year of testYears) {
-            try {
-                const response = await fetch(`data/all_agencies_obligation_summary_${year}.csv`, { method: 'HEAD' });
-                if (response.ok) {
-                    availableYearsSet.add(year);
+        // Use fiscal year metadata as the authoritative source for available years
+        if (fiscalYearMetadata && Object.keys(fiscalYearMetadata).length > 0) {
+            availableYears = Object.keys(fiscalYearMetadata)
+                .map(year => parseInt(year))
+                .sort((a, b) => a - b); // Sort ascending (oldest first)
+            
+            console.log('Available years from metadata:', availableYears);
+        } else {
+            // Fallback: Try to detect available years by checking for year-specific files
+            console.log('No metadata found, falling back to file detection');
+            const testYears = Array.from({length: 2030 - 2012 + 1}, (_, i) => 2012 + i);
+            const availableYearsSet = new Set();
+            
+            for (const year of testYears) {
+                try {
+                    const response = await fetch(`data/all_agencies_obligation_summary_${year}.csv`, { method: 'HEAD' });
+                    if (response.ok) {
+                        availableYearsSet.add(year);
+                    }
+                } catch (e) {
+                    // File doesn't exist, skip
                 }
-            } catch (e) {
-                // File doesn't exist, skip
             }
+            
+            availableYears = Array.from(availableYearsSet).sort((a, b) => a - b); // Sort ascending (oldest first)
         }
-        
-        availableYears = Array.from(availableYearsSet).sort((a, b) => a - b); // Sort ascending (oldest first)
         
         if (availableYears.length === 0) {
             // No year-specific files found, hide year selector

@@ -45,6 +45,14 @@ EXPECTED_AGENCIES = [
     "Other Independent Agencies"
 ]
 
+# Known data gaps - agencies that are expected to be missing for specific years
+# Format: {year: [list of agency names that are known to be missing]}
+KNOWN_EXCEPTIONS = {
+    2012: [
+        "Judicial Branch"  # 2012 Judicial Branch files exist but are empty
+    ]
+}
+
 def test_year_data_completeness():
     """Test that we have required data for each fiscal year"""
     print("Testing fiscal year data completeness...")
@@ -86,6 +94,14 @@ def test_year_data_completeness():
             # Check agency coverage
             agencies_found = set(df['Agency'].unique())
             missing_agencies = set(EXPECTED_AGENCIES) - agencies_found
+            
+            # Apply known exceptions for this year
+            if year in KNOWN_EXCEPTIONS:
+                expected_missing = set(KNOWN_EXCEPTIONS[year])
+                actual_missing = missing_agencies & expected_missing
+                if actual_missing:
+                    print(f"    ℹ️  Known missing agencies for FY{year}: {list(actual_missing)}")
+                    missing_agencies -= expected_missing
             
             # Special handling for "Other Independent Agencies" - may be broken out individually in some years
             if "Other Independent Agencies" in missing_agencies:

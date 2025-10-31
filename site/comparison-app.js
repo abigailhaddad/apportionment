@@ -1010,23 +1010,36 @@ function initializeDataTable() {
 // Initialize available years and load all data
 async function initializeAndLoadData() {
     try {
-        // Try to detect available years (only check reasonable range)
-        const testYears = Array.from({length: 2030 - 2015 + 1}, (_, i) => 2015 + i);
-        const availableYearsSet = new Set();
+        // Load metadata first to get authoritative list of available years
+        await loadFiscalYearMetadata();
         
-        for (const year of testYears) {
-            try {
-                // Check if JSON summary file exists (for most recent month)
-                const response = await fetch(`data/all_agencies_summary_${year}.json`, { method: 'HEAD' });
-                if (response.ok) {
-                    availableYearsSet.add(year);
+        // Use fiscal year metadata as the authoritative source for available years
+        if (fiscalYearMetadata && Object.keys(fiscalYearMetadata).length > 0) {
+            availableYears = Object.keys(fiscalYearMetadata)
+                .map(year => parseInt(year))
+                .sort((a, b) => a - b); // Sort ascending (oldest first for consistent colors)
+            
+            console.log('Available years from metadata:', availableYears);
+        } else {
+            // Fallback: Try to detect available years by checking for files
+            console.log('No metadata found, falling back to file detection');
+            const testYears = Array.from({length: 2030 - 2012 + 1}, (_, i) => 2012 + i);
+            const availableYearsSet = new Set();
+            
+            for (const year of testYears) {
+                try {
+                    // Check if JSON summary file exists (for most recent month)
+                    const response = await fetch(`data/all_agencies_summary_${year}.json`, { method: 'HEAD' });
+                    if (response.ok) {
+                        availableYearsSet.add(year);
+                    }
+                } catch (e) {
+                    // File doesn't exist, skip
                 }
-            } catch (e) {
-                // File doesn't exist, skip
             }
+            
+            availableYears = Array.from(availableYearsSet).sort((a, b) => a - b); // Sort ascending (oldest first for consistent colors)
         }
-        
-        availableYears = Array.from(availableYearsSet).sort((a, b) => a - b); // Sort ascending (oldest first for consistent colors)
         
         console.log('Available years:', availableYears);
         
