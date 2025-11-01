@@ -5,6 +5,7 @@ Generates separate summaries for each month with data.
 """
 
 import pandas as pd
+import numpy as np
 import json
 import sys
 from pathlib import Path
@@ -226,9 +227,9 @@ def create_monthly_summaries(master_file_path, fiscal_year):
         
         # Create formatted output
         output_df = summary_df.copy()
-        output_df['Unobligated Balance (Line 2490)'] = output_df['Unobligated_Balance_M'].apply(lambda x: f'${x:,.1f}M')
-        output_df['Budget Authority (Line 2500)'] = output_df['Budget_Authority_M'].apply(lambda x: f'${x:,.1f}M')
-        output_df['Percentage Unobligated'] = output_df['Percentage_Unobligated'].apply(lambda x: f'{x:.1f}%')
+        output_df['Unobligated Balance (Line 2490)'] = output_df['Unobligated_Balance_M'].apply(lambda x: f'${x:,.1f}M' if pd.notna(x) and not np.isinf(x) else '')
+        output_df['Budget Authority (Line 2500)'] = output_df['Budget_Authority_M'].apply(lambda x: f'${x:,.1f}M' if pd.notna(x) and not np.isinf(x) else '')
+        output_df['Percentage Unobligated'] = output_df['Percentage_Unobligated'].apply(lambda x: f'{x:.1f}%' if pd.notna(x) and not np.isinf(x) else '')
         
         # Select columns for final output
         final_df = output_df[['Month', 'Fiscal_Year', 'Agency', 'Bureau', 'Account', 'Account_Number', 

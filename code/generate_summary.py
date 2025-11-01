@@ -5,6 +5,7 @@ Creates the final summary CSV and JSON files needed for the web application.
 """
 
 import pandas as pd
+import numpy as np
 import json
 from pathlib import Path
 
@@ -291,9 +292,9 @@ def generate_obligation_summary(master_table_path, fiscal_year=None, month=None)
     
     # Create formatted output
     output_df = summary_df.copy()
-    output_df['Unobligated Balance (Line 2490)'] = output_df['Unobligated_Balance_M'].apply(lambda x: f'${x:,.1f}M' if pd.notna(x) else '0.0')
-    output_df['Budget Authority (Line 2500)'] = output_df['Budget_Authority_M'].apply(lambda x: f'${x:,.1f}M' if pd.notna(x) else '0.0')
-    output_df['Percentage Unobligated'] = output_df['Percentage_Unobligated'].apply(lambda x: f'{x:.1f}%' if pd.notna(x) else '0.0')
+    output_df['Unobligated Balance (Line 2490)'] = output_df['Unobligated_Balance_M'].apply(lambda x: f'${x:,.1f}M' if pd.notna(x) and not np.isinf(x) else '')
+    output_df['Budget Authority (Line 2500)'] = output_df['Budget_Authority_M'].apply(lambda x: f'${x:,.1f}M' if pd.notna(x) and not np.isinf(x) else '')
+    output_df['Percentage Unobligated'] = output_df['Percentage_Unobligated'].apply(lambda x: f'{x:.1f}%' if pd.notna(x) and not np.isinf(x) else '')
     
     # Select columns for final output
     final_df = output_df[['Agency', 'Bureau', 'Account', 'Account_Number', 
@@ -318,9 +319,9 @@ def generate_obligation_summary(master_table_path, fiscal_year=None, month=None)
     json_data = summary_df.copy()
     
     # Add formatted columns for consistency with existing web app
-    json_data['Unobligated Balance (Line 2490)'] = json_data['Unobligated_Balance_M'].apply(lambda x: f'${x:,.1f}M')
-    json_data['Budget Authority (Line 2500)'] = json_data['Budget_Authority_M'].apply(lambda x: f'${x:,.1f}M')
-    json_data['Percentage Unobligated'] = json_data['Percentage_Unobligated'].apply(lambda x: f'{x:.1f}%')
+    json_data['Unobligated Balance (Line 2490)'] = json_data['Unobligated_Balance_M'].apply(lambda x: f'${x:,.1f}M' if pd.notna(x) and not np.isinf(x) else '')
+    json_data['Budget Authority (Line 2500)'] = json_data['Budget_Authority_M'].apply(lambda x: f'${x:,.1f}M' if pd.notna(x) and not np.isinf(x) else '')
+    json_data['Percentage Unobligated'] = json_data['Percentage_Unobligated'].apply(lambda x: f'{x:.1f}%' if pd.notna(x) and not np.isinf(x) else '')
     
     # Add fiscal year, month, and placeholder time series data
     json_data['Fiscal_Year'] = fiscal_year if fiscal_year else 'Unknown'

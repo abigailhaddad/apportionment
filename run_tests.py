@@ -186,11 +186,43 @@ def test_csv_summary_files():
                 print(f"❌ ERROR: {csv_file.name} missing columns: {missing_columns}")
                 return False
             
+            # Check for invalid formatted values (nanM, nan%)
+            for col in df.columns:
+                if df[col].dtype == 'object':  # String columns
+                    invalid_values = df[col].astype(str).str.contains(r'\$nanM|nan%|nanM|nan\%', na=False, regex=True)
+                    if invalid_values.any():
+                        invalid_count = invalid_values.sum()
+                        print(f"❌ ERROR: {csv_file.name} contains {invalid_count} invalid values (nanM/nan%) in column '{col}'")
+                        return False
+            
             print(f"✅ {csv_file.name}: {len(df)} rows, {len(df.columns)} columns")
             
         except Exception as e:
             print(f"❌ ERROR: Failed to read {csv_file}: {e}")
             return False
+    
+    # Also check monthly summary files
+    monthly_files = list(Path('site/data').glob('all_agencies_monthly_summary*.csv'))
+    if monthly_files:
+        print(f"✅ Checking {len(monthly_files)} monthly summary files for invalid values...")
+        for csv_file in monthly_files[:5]:  # Check first 5 to avoid too much output
+            try:
+                df = pd.read_csv(csv_file, nrows=1000)  # Sample first 1000 rows
+                
+                # Check for invalid formatted values (nanM, nan%)
+                for col in df.columns:
+                    if df[col].dtype == 'object':  # String columns
+                        invalid_values = df[col].astype(str).str.contains(r'\$nanM|nan%|nanM|nan\%', na=False, regex=True)
+                        if invalid_values.any():
+                            invalid_count = invalid_values.sum()
+                            print(f"❌ ERROR: {csv_file.name} contains {invalid_count} invalid values (nanM/nan%) in column '{col}'")
+                            return False
+                            
+            except Exception as e:
+                print(f"❌ ERROR: Failed to read {csv_file}: {e}")
+                return False
+        
+        print("✅ Monthly summary files validated - no invalid values found")
     
     return True
 
