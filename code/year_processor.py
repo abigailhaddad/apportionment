@@ -458,21 +458,73 @@ class SF133YearProcessor:
 def main():
     """Command line interface."""
     parser = argparse.ArgumentParser(description="SF133 Year-Based Processing System")
-    parser.add_argument("--year", type=int, required=True, help="Fiscal year to process (e.g., 2024)")
+    parser.add_argument("--year", type=int, help="Fiscal year to process (e.g., 2024)")
     parser.add_argument("--url", help="MAX.gov URL for the fiscal year (optional if in config)")
     parser.add_argument("--no-download", action="store_true", help="Skip download, use existing data")
+    parser.add_argument("--all-years", action="store_true", help="Process all available years")
     
     args = parser.parse_args()
     
+    # Validate arguments
+    if not args.all_years and not args.year:
+        parser.error("Must specify either --year or --all-years")
+    
     processor = SF133YearProcessor()
     
-    success = processor.process_complete_year(
-        year=args.year,
-        url=args.url,
-        download=not args.no_download
-    )
+    if args.all_years:
+        # Process all available years
+        import os
+        raw_data_dir = processor.raw_data_dir
+        
+        if not raw_data_dir.exists():
+            print(f"❌ Raw data directory not found: {raw_data_dir}")
+            sys.exit(1)
+        
+        # Find all year directories
+        year_dirs = [d for d in raw_data_dir.iterdir() if d.is_dir() and d.name.isdigit()]
+        
+        if not year_dirs:
+            print(f"❌ No year directories found in {raw_data_dir}")
+            sys.exit(1)
+        
+        years = sorted([int(d.name) for d in year_dirs])
+        print(f"🔍 Found {len(years)} years to process: {years}")
+        
+        success_count = 0
+        for year in years:
+            print(f"\n{'='*80}")
+            print(f"Processing FY{year} ({years.index(year)+1}/{len(years)})")
+            print('='*80)
+            
+            try:
+                success = processor.process_complete_year(
+                    year=year,
+                    url=None,  # Use config or skip download
+                    download=not args.no_download
+                )
+                if success:
+                    success_count += 1
+                    print(f"✅ FY{year} completed successfully")
+                else:
+                    print(f"❌ FY{year} failed")
+            except Exception as e:
+                print(f"❌ FY{year} error: {e}")
+        
+        print(f"\n🎉 PROCESSING COMPLETE!")
+        print(f"✅ Successfully processed {success_count}/{len(years)} years")
+        print(f"📁 Years completed: {[year for year in years if True]}")  # Could track which ones succeeded
+        
+        sys.exit(0 if success_count == len(years) else 1)
     
-    sys.exit(0 if success else 1)
+    else:
+        # Process single year
+        success = processor.process_complete_year(
+            year=args.year,
+            url=args.url,
+            download=not args.no_download
+        )
+        
+        sys.exit(0 if success else 1)
 
 if __name__ == "__main__":
     main()

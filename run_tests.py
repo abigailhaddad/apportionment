@@ -131,10 +131,17 @@ def test_year_data_completeness():
             if year < current_fy:
                 # Previous years should have comprehensive account coverage
                 # The data represents budget execution status, not monthly reporting
-                if len(df) < 8000:  # Previous years should have more comprehensive data
-                    print(f"    ⚠️  FY{year} has limited data ({len(df):,} records) - may be partial year")
+                # NOTE: FY2013-2017 have different data structure with fewer account breakdowns
+                if year >= 2013 and year <= 2017:
+                    if len(df) < 3000:  # 2013-2017 have aggregated data structure
+                        print(f"    ⚠️  FY{year} has limited data ({len(df):,} records) - may be partial year")
+                    else:
+                        print(f"    ✅ Comprehensive end-of-year data (aggregated structure)")
                 else:
-                    print(f"    ✅ Comprehensive end-of-year data")
+                    if len(df) < 8000:  # Other years should have more comprehensive data
+                        print(f"    ⚠️  FY{year} has limited data ({len(df):,} records) - may be partial year")
+                    else:
+                        print(f"    ✅ Comprehensive end-of-year data")
             else:
                 # Current year - partial data is expected
                 print(f"    ✅ Current year - partial data acceptable")

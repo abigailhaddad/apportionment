@@ -41,16 +41,16 @@
   },
   "quarter_data": {},
   "total_agencies": 29,
-  "total_rows": 57682,
-  "processed_date": "2025-10-30T20:22:51.636010",
+  "total_rows": 106263,
+  "processed_date": "2025-11-01T18:01:14.947708",
   "data_file": "sf133_2017_master.csv",
   "validation_passed": true,
   "tafs_coverage": {
     "validation_passed": true,
     "has_coverage_issues": true,
-    "overall_coverage_percent": 34.936960849369605,
+    "overall_coverage_percent": 38.33222738332228,
     "baseline_total_accounts": 9042,
-    "current_total_accounts": 3159,
+    "current_total_accounts": 3466,
     "agency_coverage": {
       "400 Years of African-American History Commission": {
         "baseline_accounts": 711,
@@ -64,18 +64,18 @@
       },
       "Department of Agriculture": {
         "baseline_accounts": 812,
-        "current_accounts": 261,
-        "coverage_percent": 32.142857142857146
+        "current_accounts": 277,
+        "coverage_percent": 34.11330049261084
       },
       "Department of Commerce": {
         "baseline_accounts": 220,
-        "current_accounts": 85,
-        "coverage_percent": 38.63636363636363
+        "current_accounts": 86,
+        "coverage_percent": 39.09090909090909
       },
       "Department of Defense-Military": {
         "baseline_accounts": 874,
-        "current_accounts": 327,
-        "coverage_percent": 37.4141876430206
+        "current_accounts": 337,
+        "coverage_percent": 38.558352402745996
       },
       "Department of Education": {
         "baseline_accounts": 270,
@@ -89,18 +89,18 @@
       },
       "Department of Health and Human Services": {
         "baseline_accounts": 997,
-        "current_accounts": 230,
-        "coverage_percent": 23.069207622868607
+        "current_accounts": 293,
+        "coverage_percent": 29.38816449348044
       },
       "Department of Homeland Security": {
         "baseline_accounts": 594,
-        "current_accounts": 237,
-        "coverage_percent": 39.8989898989899
+        "current_accounts": 244,
+        "coverage_percent": 41.07744107744108
       },
       "Department of Housing and Urban Development": {
         "baseline_accounts": 299,
-        "current_accounts": 139,
-        "coverage_percent": 46.48829431438127
+        "current_accounts": 148,
+        "coverage_percent": 49.49832775919732
       },
       "Department of Justice": {
         "baseline_accounts": 215,
@@ -109,33 +109,33 @@
       },
       "Department of Labor": {
         "baseline_accounts": 251,
-        "current_accounts": 72,
-        "coverage_percent": 28.68525896414343
+        "current_accounts": 74,
+        "coverage_percent": 29.482071713147413
       },
       "Department of State": {
         "baseline_accounts": 305,
-        "current_accounts": 119,
-        "coverage_percent": 39.01639344262295
+        "current_accounts": 144,
+        "coverage_percent": 47.21311475409836
       },
       "Department of Transportation": {
         "baseline_accounts": 460,
-        "current_accounts": 190,
-        "coverage_percent": 41.30434782608695
+        "current_accounts": 242,
+        "coverage_percent": 52.60869565217391
       },
       "Department of Veterans Affairs": {
         "baseline_accounts": 256,
-        "current_accounts": 85,
-        "coverage_percent": 33.203125
+        "current_accounts": 87,
+        "coverage_percent": 33.984375
       },
       "Department of the Interior": {
         "baseline_accounts": 452,
-        "current_accounts": 221,
-        "coverage_percent": 48.89380530973451
+        "current_accounts": 245,
+        "coverage_percent": 54.20353982300885
       },
       "Department of the Treasury": {
         "baseline_accounts": 316,
-        "current_accounts": 131,
-        "coverage_percent": 41.45569620253164
+        "current_accounts": 135,
+        "coverage_percent": 42.721518987341774
       },
       "Environmental Protection Agency": {
         "baseline_accounts": 79,
@@ -154,8 +154,8 @@
       },
       "International Assistance Programs": {
         "baseline_accounts": 581,
-        "current_accounts": 208,
-        "coverage_percent": 35.800344234079176
+        "current_accounts": 251,
+        "coverage_percent": 43.20137693631669
       },
       "Judicial Branch": {
         "baseline_accounts": 69,
@@ -164,13 +164,13 @@
       },
       "Legislative Branch": {
         "baseline_accounts": 356,
-        "current_accounts": 90,
-        "coverage_percent": 25.280898876404496
+        "current_accounts": 132,
+        "coverage_percent": 37.07865168539326
       },
       "National Aeronautics and Space Administration": {
         "baseline_accounts": 125,
-        "current_accounts": 43,
-        "coverage_percent": 34.4
+        "current_accounts": 46,
+        "coverage_percent": 36.8
       },
       "National Science Foundation": {
         "baseline_accounts": 52,
@@ -184,8 +184,8 @@
       },
       "Other Defense Civil Programs": {
         "baseline_accounts": 46,
-        "current_accounts": 23,
-        "coverage_percent": 50.0
+        "current_accounts": 24,
+        "coverage_percent": 52.17391304347826
       },
       "Small Business Administration": {
         "baseline_accounts": 57,
@@ -201,31 +201,31 @@
     "agencies_below_threshold": [
       "400 Years of African-American History Commission: 0.0%",
       "Corps of Engineers-Civil Works: 57.4%",
-      "Department of Agriculture: 32.1%",
-      "Department of Commerce: 38.6%",
-      "Department of Defense-Military: 37.4%",
+      "Department of Agriculture: 34.1%",
+      "Department of Commerce: 39.1%",
+      "Department of Defense-Military: 38.6%",
       "Department of Education: 28.5%",
       "Department of Energy: 35.2%",
-      "Department of Health and Human Services: 23.1%",
-      "Department of Homeland Security: 39.9%",
-      "Department of Housing and Urban Development: 46.5%",
+      "Department of Health and Human Services: 29.4%",
+      "Department of Homeland Security: 41.1%",
+      "Department of Housing and Urban Development: 49.5%",
       "Department of Justice: 38.1%",
-      "Department of Labor: 28.7%",
-      "Department of State: 39.0%",
-      "Department of Transportation: 41.3%",
-      "Department of Veterans Affairs: 33.2%",
-      "Department of the Interior: 48.9%",
-      "Department of the Treasury: 41.5%",
+      "Department of Labor: 29.5%",
+      "Department of State: 47.2%",
+      "Department of Transportation: 52.6%",
+      "Department of Veterans Affairs: 34.0%",
+      "Department of the Interior: 54.2%",
+      "Department of the Treasury: 42.7%",
       "Environmental Protection Agency: 40.5%",
       "Executive Office of the President: 19.3%",
       "General Services Administration: 28.0%",
-      "International Assistance Programs: 35.8%",
+      "International Assistance Programs: 43.2%",
       "Judicial Branch: 34.8%",
-      "Legislative Branch: 25.3%",
-      "National Aeronautics and Space Administration: 34.4%",
+      "Legislative Branch: 37.1%",
+      "National Aeronautics and Space Administration: 36.8%",
       "National Science Foundation: 32.7%",
       "Office of Personnel Management: 41.7%",
-      "Other Defense Civil Programs: 50.0%",
+      "Other Defense Civil Programs: 52.2%",
       "Small Business Administration: 43.9%",
       "Social Security Administration: 45.8%"
     ],

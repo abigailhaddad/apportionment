@@ -159,22 +159,288 @@ def parse_sf133_raw_data(file_path):
             print(f"  Rows with standard line numbers (1000-9999): {len(standard_lines)}")
             df = standard_lines
             
-            # 3. Aggregate to match TAFS detail level: use only fields needed for final output
+            # 3. Aggregate to match TAFS detail level: derive fiscal year info from TAFS for consistent grouping
             # Group by core fields that create unique TAFS entries for the website
             grouping_cols = ['BUREAU', 'OMB_ACCT', 'LINENO']
             
-            # Only include fields that are actually used in the final website output
-            # Skip TRACCT, TRAG, ALLOC, FY1, FY2, LINE_DESC which aren't used downstream
+            # Parse fiscal year components from TAFS to match FY1/FY2 exactly
+            def parse_tafs_to_match_fy1_fy2(tafs):
+                """Extract FY1 and FY2 equivalents from TAFS string to match existing columns."""
+                if pd.isna(tafs) or tafs == '':
+                    return '', ''
+                
+                # Clean the TAFS string first to remove carriage returns and other special characters
+                tafs_str = str(tafs)
+                tafs_str = tafs_str.replace('_x000D_\n', '').replace('_x000D_', '').replace('\r\n', ' ').replace('\r', ' ').replace('\n', ' ')
+                tafs_str = ' '.join(tafs_str.split()).strip()
+                
+                # Remove description part: "17-1804 /20 - Operation and Maintenance, Navy" -> "17-1804 /20"
+                if ' - ' in tafs_str:
+                    code_part = tafs_str.split(' - ')[0].strip()
+                else:
+                    code_part = tafs_str.strip()
+                
+                # Look for period pattern after account number
+                # Examples: "17-1804 /20", "73-0100 12/13", "12-2500 /X"
+                parts = code_part.split()
+                if len(parts) >= 2:
+                    period_part = parts[-1]  # Last part should be the period
+                    
+                    if period_part == '/X':
+                        # /X pattern -> FY1='', FY2='X'
+                        return '', 'X'
+                    elif period_part.startswith('/'):
+                        # Single year: "/20" -> FY1='', FY2='20'
+                        year = period_part[1:].strip()
+                        return '', year
+                    elif '/' in period_part and not period_part.startswith('/'):
+                        # Multi-year: "12/13" -> FY1='12', FY2='13' 
+                        year_parts = period_part.split('/')
+                        if len(year_parts) == 2:
+                            fy1 = year_parts[0].strip()
+                            fy2 = year_parts[1].strip()
+                            return fy1, fy2
+                
+                # Fallback: couldn't parse
+                return '', ''
+            
+            # Generate derived fiscal year fields from TAFS parsing
+            print("  Parsing fiscal year components from TAFS...")
+            df['DERIVED_FY1'] = df['TAFS'].apply(lambda x: parse_tafs_to_match_fy1_fy2(x)[0])
+            df['DERIVED_FY2'] = df['TAFS'].apply(lambda x: parse_tafs_to_match_fy1_fy2(x)[1])
+            
+            # LOGGING: Check derived field completeness
+            total_records = len(df)
+            empty_fy1 = (df['DERIVED_FY1'] == '').sum()
+            empty_fy2 = (df['DERIVED_FY2'] == '').sum()
+            print(f"  📊 DERIVED_FY1: {total_records - empty_fy1:,} populated, {empty_fy1:,} empty ({empty_fy1/total_records*100:.1f}% empty)")
+            print(f"  📊 DERIVED_FY2: {total_records - empty_fy2:,} populated, {empty_fy2:,} empty ({empty_fy2/total_records*100:.1f}% empty)")
+            
+            # Show examples of derived values
+            sample_derived = df[['TAFS', 'DERIVED_FY1', 'DERIVED_FY2']].head(10)
+            print(f"  📋 Sample derived values:")
+            for _, row in sample_derived.iterrows():
+                print(f"    TAFS: '{row['TAFS']}' → FY1: '{row['DERIVED_FY1']}', FY2: '{row['DERIVED_FY2']}'")
+            
+            # Check for problematic patterns
+            both_empty = ((df['DERIVED_FY1'] == '') & (df['DERIVED_FY2'] == '')).sum()
+            print(f"  ⚠️  Records with BOTH FY1 and FY2 empty: {both_empty:,} ({both_empty/total_records*100:.1f}%)")
+            
+            # Derive ALLOC from TAFS (bureau code)
+            def derive_alloc_from_tafs(tafs):
+                """Extract bureau code from TAFS string - handles both 2-part and 3-part codes."""
+                if pd.isna(tafs) or tafs == '':
+                    return ''
+                
+                # Clean the TAFS string first to remove carriage returns
+                tafs_str = str(tafs)
+                tafs_str = tafs_str.replace('_x000D_\n', '').replace('_x000D_', '').replace('\r\n', ' ').replace('\r', ' ').replace('\n', ' ')
+                tafs_str = ' '.join(tafs_str.split()).strip()
+                
+                # Remove description part if present
+                if ' - ' in tafs_str:
+                    code_part = tafs_str.split(' - ')[0].strip()
+                else:
+                    code_part = tafs_str.strip()
+                
+                # Remove period part: "14-91-0400 /24" -> "14-91-0400"
+                if ' /' in code_part:
+                    account_part = code_part.split(' /')[0].strip()
+                elif ' ' in code_part and not code_part.split()[1].startswith('/'):
+                    # Handle cases like "14-91-0400 16/21"
+                    account_part = code_part.split()[0].strip()
+                else:
+                    account_part = code_part.strip()
+                
+                # Extract bureau code based on TAFS format
+                parts = account_part.split('-')
+                
+                if len(parts) >= 3:
+                    # 3-part format: "14-91-0400" -> bureau code is "91" (middle part)
+                    return parts[1].strip()
+                elif len(parts) == 2:
+                    # 2-part format: "48-1550" -> bureau code is "48" (first part = agency code)
+                    # For 2-part codes, we use the agency code as the bureau identifier
+                    return parts[0].strip()
+                else:
+                    # Single part or invalid format
+                    return ''
+            
+            print("  Deriving ALLOC from TAFS...")
+            df['DERIVED_ALLOC'] = df['TAFS'].apply(derive_alloc_from_tafs)
+            
+            # LOGGING: Check ALLOC derivation completeness
+            empty_alloc = (df['DERIVED_ALLOC'] == '').sum()
+            print(f"  📊 DERIVED_ALLOC: {total_records - empty_alloc:,} populated, {empty_alloc:,} empty ({empty_alloc/total_records*100:.1f}% empty)")
+            
+            # Show unique ALLOC values (limited)
+            unique_allocs = df['DERIVED_ALLOC'].unique()
+            print(f"  📋 Unique DERIVED_ALLOC values: {len(unique_allocs)} total")
+            print(f"    Examples: {list(unique_allocs[:10])}")
+            
+            # Check for records missing ALL derived fields
+            all_derived_empty = ((df['DERIVED_FY1'] == '') & (df['DERIVED_FY2'] == '') & (df['DERIVED_ALLOC'] == '')).sum()
+            print(f"  🚨 Records missing ALL derived fields: {all_derived_empty:,} ({all_derived_empty/total_records*100:.1f}%)")
+            
+            # VALIDATION: If FY1/FY2 exist, derived fields MUST match exactly
+            if 'FY1' in df.columns and 'FY2' in df.columns:
+                print("  🔍 Validating TAFS parsing against existing FY1/FY2 fields...")
+                
+                # Clean and normalize fields for comparison 
+                def normalize_fy_field(field):
+                    """Normalize FY field for comparison: handle decimal, leading zeros, etc."""
+                    if pd.isna(field) or field == '' or str(field) == 'nan':
+                        return ''
+                    
+                    field_str = str(field).strip()
+                    
+                    # Handle decimal values: '12.0' -> '12'
+                    if '.' in field_str:
+                        try:
+                            field_float = float(field_str)
+                            if field_float == int(field_float):
+                                field_str = str(int(field_float))
+                        except ValueError:
+                            pass
+                    
+                    # Handle leading zeros: '06' vs '6' should be equivalent
+                    if field_str.isdigit():
+                        field_str = str(int(field_str)).zfill(2) if len(field_str) <= 2 else field_str
+                    
+                    # Handle special values
+                    if field_str.upper() == 'X':
+                        return 'X'
+                        
+                    return field_str
+                
+                df['FY1_CLEAN'] = df['FY1'].apply(normalize_fy_field)
+                df['FY2_CLEAN'] = df['FY2'].apply(normalize_fy_field)
+                df['DERIVED_FY1_CLEAN'] = df['DERIVED_FY1'].apply(normalize_fy_field)
+                df['DERIVED_FY2_CLEAN'] = df['DERIVED_FY2'].apply(normalize_fy_field)
+                
+                # Find rows where original FY1/FY2 have actual data (not empty/nan)
+                has_fy1_data = (df['FY1_CLEAN'] != '') & (df['FY1_CLEAN'] != 'nan')
+                has_fy2_data = (df['FY2_CLEAN'] != '') & (df['FY2_CLEAN'] != 'nan')
+                
+                # Check normalized matches where original data exists
+                fy1_matches = df.loc[has_fy1_data, 'FY1_CLEAN'] == df.loc[has_fy1_data, 'DERIVED_FY1_CLEAN']
+                fy2_matches = df.loc[has_fy2_data, 'FY2_CLEAN'] == df.loc[has_fy2_data, 'DERIVED_FY2_CLEAN']
+                
+                fy1_match_rate = fy1_matches.mean() * 100 if len(fy1_matches) > 0 else 100
+                fy2_match_rate = fy2_matches.mean() * 100 if len(fy2_matches) > 0 else 100
+                
+                print(f"     FY1 validation: {fy1_match_rate:.1f}% ({len(fy1_matches)} records tested)")
+                print(f"     FY2 validation: {fy2_match_rate:.1f}% ({len(fy2_matches)} records tested)")
+                
+                # STRICT VALIDATION: Must be 100% match or we fail
+                if fy1_match_rate < 100 or fy2_match_rate < 100:
+                    print("  ❌ VALIDATION FAILED: TAFS parsing does not match FY1/FY2 exactly")
+                    print("     Showing mismatches:")
+                    
+                    if fy1_match_rate < 100:
+                        mismatches = df[has_fy1_data & ~fy1_matches][['TAFS', 'FY1_CLEAN', 'DERIVED_FY1_CLEAN']].head(3)
+                        for _, row in mismatches.iterrows():
+                            print(f"       FY1: '{row['FY1_CLEAN']}' vs '{row['DERIVED_FY1_CLEAN']}' from {row['TAFS']}")
+                    
+                    if fy2_match_rate < 100:
+                        mismatches = df[has_fy2_data & ~fy2_matches][['TAFS', 'FY2_CLEAN', 'DERIVED_FY2_CLEAN']].head(3)
+                        for _, row in mismatches.iterrows():
+                            print(f"       FY2: '{row['FY2_CLEAN']}' vs '{row['DERIVED_FY2_CLEAN']}' from {row['TAFS']}")
+                    
+                    raise ValueError("TAFS parsing validation failed - derived fields do not match FY1/FY2")
+                
+                print("  ✅ TAFS parsing validation PASSED - using derived fields for grouping")
+            else:
+                print("  📝 No FY1/FY2 columns found - using derived fields (older year)")
+            
+            # VALIDATION: If ALLOC exists, derived ALLOC MUST match exactly for non-missing values
+            if 'ALLOC' in df.columns:
+                print("  🔍 Validating ALLOC derivation against existing ALLOC field...")
+                
+                # Clean and normalize ALLOC fields for comparison
+                df['ALLOC_CLEAN'] = df['ALLOC'].apply(normalize_fy_field)
+                df['DERIVED_ALLOC_CLEAN'] = df['DERIVED_ALLOC'].apply(normalize_fy_field)
+                
+                # Find rows where original ALLOC has actual data (not empty/nan)
+                has_alloc_data = (df['ALLOC_CLEAN'] != '') & (df['ALLOC_CLEAN'] != 'nan')
+                
+                # Check normalized matches where original data exists
+                alloc_matches = df.loc[has_alloc_data, 'ALLOC_CLEAN'] == df.loc[has_alloc_data, 'DERIVED_ALLOC_CLEAN']
+                
+                alloc_match_rate = alloc_matches.mean() * 100 if len(alloc_matches) > 0 else 100
+                
+                print(f"     ALLOC validation: {alloc_match_rate:.1f}% ({len(alloc_matches)} records tested)")
+                
+                # STRICT VALIDATION: Must be 100% match or we fail
+                if alloc_match_rate < 100:
+                    print("  ❌ VALIDATION FAILED: ALLOC derivation does not match existing ALLOC exactly")
+                    print("     Showing mismatches:")
+                    
+                    mismatches = df[has_alloc_data & ~alloc_matches][['TAFS', 'ALLOC_CLEAN', 'DERIVED_ALLOC_CLEAN']].head(3)
+                    for _, row in mismatches.iterrows():
+                        print(f"       ALLOC: '{row['ALLOC_CLEAN']}' vs '{row['DERIVED_ALLOC_CLEAN']}' from {row['TAFS']}")
+                    
+                    raise ValueError("ALLOC derivation validation failed - derived ALLOC does not match existing ALLOC")
+                
+                print("  ✅ ALLOC derivation validation PASSED - using derived ALLOC for grouping")
+            else:
+                print("  📝 No ALLOC column found - using derived ALLOC (older year)")
+            
+            # Always use derived fields for consistent grouping across all years
+            # This mimics the old logic that used ['BUREAU', 'OMB_ACCT', 'LINENO', 'FY1', 'FY2', 'ALLOC', ...]
+            grouping_cols.extend(['DERIVED_FY1', 'DERIVED_FY2', 'DERIVED_ALLOC'])
+            
+            # Also include other fields that help distinguish account variations
+            additional_fields = ['TRACCT', 'TRAG']
+            for field in additional_fields:
+                if field in df.columns:
+                    grouping_cols.append(field)
+            
+            print(f"  Final grouping columns: {grouping_cols}")
+            print(f"  Checking for NaN values in grouping columns...")
+            for col in grouping_cols:
+                nan_count = df[col].isna().sum()
+                if nan_count > 0:
+                    print(f"    {col}: {nan_count} NaN values")
+                else:
+                    print(f"    {col}: No NaN values")
             
             if len(grouping_cols) >= 3:  # We need at least Bureau, Account, Line Number
-                print(f"  Aggregating by: {grouping_cols}")
+                print(f"  🔄 STARTING AGGREGATION:")
+                print(f"    Grouping by: {grouping_cols}")
+                print(f"    Input records: {len(df):,}")
+                
+                # Check for empty derived fields before grouping
+                for col in ['DERIVED_FY1', 'DERIVED_FY2', 'DERIVED_ALLOC']:
+                    if col in grouping_cols:
+                        empty_count = (df[col] == '').sum()
+                        print(f"    {col} empty values: {empty_count:,} ({empty_count/len(df)*100:.1f}%)")
+                
+                # Filter out rows with NaN values in any grouping column
+                before_filter = len(df)
+                df_filtered = df.dropna(subset=grouping_cols)
+                after_filter = len(df_filtered)
+                
+                if after_filter < before_filter:
+                    print(f"    📉 Filtered out {before_filter - after_filter:,} rows with NaN values in grouping columns")
+                    print(f"    📊 Records after NaN filter: {after_filter:,}")
+                
+                # Show expected vs actual grouping behavior
+                unique_groups_before = df_filtered.groupby(grouping_cols).ngroups
+                print(f"    🎯 Expected output groups: {unique_groups_before:,}")
+                print(f"    📈 Aggregation ratio: {after_filter/unique_groups_before:.1f} records per group")
+                
+                if after_filter == 0:
+                    print(f"  ERROR: No rows remaining after filtering NaN values in grouping columns")
+                    return None
                 
                 # Identify month columns to sum
-                month_cols = [col for col in df.columns if col in RAW_DATA_COLUMN_MAPPING.values()]
+                month_cols = [col for col in df_filtered.columns if col in RAW_DATA_COLUMN_MAPPING.values()]
+                print(f"  Month columns to aggregate: {month_cols}")
                 
                 # Create aggregation dictionary
                 agg_dict = {}
-                for col in df.columns:
+                for col in df_filtered.columns:
                     if col in month_cols:
                         agg_dict[col] = 'sum'  # Sum monthly amounts
                     elif col in grouping_cols:
@@ -185,8 +451,26 @@ def parse_sf133_raw_data(file_path):
                         agg_dict[col] = 'first'  # Take first value for other descriptive fields
                 
                 # Group and aggregate
-                df = df.groupby(grouping_cols, as_index=False).agg(agg_dict)
-                print(f"  After aggregation to TAFS detail level: {len(df)} rows")
+                print(f"    🔄 Performing aggregation...")
+                df = df_filtered.groupby(grouping_cols, as_index=False).agg(agg_dict)
+                print(f"    ✅ AGGREGATION COMPLETE:")
+                print(f"      📊 Output records: {len(df):,}")
+                print(f"      📉 Compression ratio: {after_filter/len(df):.1f}:1 (input:output)")
+                print(f"      🎯 Actual groups created: {len(df):,}")
+                
+                # Check if over-aggregation occurred
+                if after_filter/len(df) > 50:  # More than 50:1 compression is suspicious
+                    print(f"      🚨 WARNING: Very high compression ratio - possible over-aggregation!")
+                    print(f"      🔍 This suggests derived fields may not be differentiating records properly")
+                
+                # Show sample of grouped data
+                print(f"    📋 Sample grouped records:")
+                sample_cols = ['BUREAU', 'OMB_ACCT', 'DERIVED_FY1', 'DERIVED_FY2', 'DERIVED_ALLOC']
+                available_cols = [col for col in sample_cols if col in df.columns]
+                for i, (_, row) in enumerate(df[available_cols].head(5).iterrows()):
+                    print(f"      {i+1}. {dict(row)}")
+                
+                print(f"  📊 Final aggregated data: {len(df):,} records (was {before_filter:,})")
             
         else:
             print(f"  Warning: No LINENO column found")
