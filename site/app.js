@@ -803,7 +803,7 @@ function initializeDataTable() {
     // Destroy existing DataTable if it exists
     if ($.fn.DataTable.isDataTable('#obligationTable')) {
         $('#obligationTable').DataTable().destroy();
-        $('#obligationTable').empty();
+        // Don't clear the table - preserve the HTML structure with headers
     }
     
     dataTable = $('#obligationTable').DataTable({
@@ -1968,8 +1968,8 @@ async function switchToYear(year) {
         dataTable.destroy();
         dataTable = null;
         
-        // Clear the table HTML
-        $('#obligationTable').empty();
+        // Clear only the table body, keep the headers
+        $('#obligationTable tbody').empty();
     }
     
     try {
