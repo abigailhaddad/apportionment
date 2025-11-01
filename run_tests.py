@@ -50,6 +50,9 @@ EXPECTED_AGENCIES = [
 KNOWN_EXCEPTIONS = {
     2012: [
         "Judicial Branch"  # 2012 Judicial Branch files exist but are empty
+    ],
+    2017: [
+        "Other Independent Agencies"  # 2017 data lacks individual independent agency breakdown
     ]
 }
 
