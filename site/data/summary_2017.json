@@ -41,8 +41,8 @@
   },
   "quarter_data": {},
   "total_agencies": 29,
-  "total_rows": 106263,
-  "processed_date": "2025-11-01T18:01:14.947708",
+  "total_rows": 105448,
+  "processed_date": "2025-11-01T21:23:59.695738",
   "data_file": "sf133_2017_master.csv",
   "validation_passed": true,
   "tafs_coverage": {

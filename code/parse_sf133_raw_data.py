@@ -10,6 +10,35 @@ from pathlib import Path
 import warnings
 warnings.filterwarnings('ignore')
 
+def detect_file_units(file_path):
+    """
+    Detect if a file uses thousands or dollars as units by checking the TAFS detail sheet.
+    Returns a multiplier: 1000 for thousands, 1 for dollars.
+    """
+    try:
+        # Check the TAFS detail sheet for unit indicators
+        df_tafs = pd.read_excel(file_path, sheet_name='TAFS detail', engine='openpyxl', nrows=5)
+        
+        # Convert all text to string and search for unit indicators
+        text_content = ' '.join([
+            str(val).lower() for row in df_tafs.values 
+            for val in row if pd.notna(val)
+        ])
+        
+        if 'thousand' in text_content:
+            print(f"  📊 UNITS: Detected 'thousands' - applying 1000x multiplier")
+            return 1000
+        elif 'dollar' in text_content:
+            print(f"  📊 UNITS: Detected 'dollars' - no multiplier needed")
+            return 1
+        else:
+            print(f"  ⚠️  UNITS: Could not detect units, assuming dollars")
+            return 1
+            
+    except Exception as e:
+        print(f"  ⚠️  UNITS: Error detecting units ({e}), assuming dollars")
+        return 1
+
 # Column mapping from Raw Data sheet to standardized month names
 RAW_DATA_COLUMN_MAPPING = {
     # Monthly columns (individual months) - these exist for some months
@@ -113,6 +142,9 @@ def parse_sf133_raw_data(file_path):
             xl_file.close()
             return None
         
+        # Detect units before reading Raw Data sheet
+        unit_multiplier = detect_file_units(file_path)
+        
         # Read Raw Data sheet
         df = pd.read_excel(file_path, sheet_name='Raw Data')
         
@@ -122,6 +154,15 @@ def parse_sf133_raw_data(file_path):
             return None
         
         print(f"  Raw data dimensions: {df.shape}")
+        
+        # Apply unit multiplier to numeric columns (amounts)
+        if unit_multiplier != 1:
+            numeric_columns = df.select_dtypes(include=[np.number]).columns
+            for col in numeric_columns:
+                # Skip metadata columns like LINENO, RPT_YR, etc.
+                if col not in ['LINENO', 'RPT_YR', 'TRAG', 'TRACCT', 'ALLOC', 'FY1', 'FY2', 'SECTION_NO', 'LINE_TYPE']:
+                    df[col] = df[col] * unit_multiplier
+            print(f"  📊 Applied {unit_multiplier}x multiplier to {len(numeric_columns)} numeric columns")
         
         # Find agency name
         agency_name = find_agency_from_raw_data(df)

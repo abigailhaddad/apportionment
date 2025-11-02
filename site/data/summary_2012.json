@@ -41,16 +41,16 @@
   },
   "quarter_data": {},
   "total_agencies": 28,
-  "total_rows": 311210,
-  "processed_date": "2025-11-01T17:25:38.830929",
+  "total_rows": 309425,
+  "processed_date": "2025-11-01T21:29:45.269873",
   "data_file": "sf133_2012_master.csv",
   "validation_passed": true,
   "tafs_coverage": {
     "validation_passed": true,
     "has_coverage_issues": true,
-    "overall_coverage_percent": 58.6264100862641,
+    "overall_coverage_percent": 58.57111258571113,
     "baseline_total_accounts": 9042,
-    "current_total_accounts": 5301,
+    "current_total_accounts": 5296,
     "agency_coverage": {
       "400 Years of African-American History Commission": {
         "baseline_accounts": 711,
@@ -119,8 +119,8 @@
       },
       "Department of Transportation": {
         "baseline_accounts": 460,
-        "current_accounts": 379,
-        "coverage_percent": 82.3913043478261
+        "current_accounts": 375,
+        "coverage_percent": 81.52173913043478
       },
       "Department of Veterans Affairs": {
         "baseline_accounts": 256,
@@ -129,8 +129,8 @@
       },
       "Department of the Interior": {
         "baseline_accounts": 452,
-        "current_accounts": 350,
-        "coverage_percent": 77.43362831858407
+        "current_accounts": 349,
+        "coverage_percent": 77.21238938053098
       },
       "Department of the Treasury": {
         "baseline_accounts": 316,
@@ -212,7 +212,7 @@
       "Department of Labor: 79.3%",
       "Department of State: 37.4%",
       "Department of Veterans Affairs: 59.4%",
-      "Department of the Interior: 77.4%",
+      "Department of the Interior: 77.2%",
       "Environmental Protection Agency: 79.7%",
       "Executive Office of the President: 27.3%",
       "General Services Administration: 25.6%",

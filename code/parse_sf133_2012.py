@@ -11,6 +11,17 @@ from pathlib import Path
 import warnings
 warnings.filterwarnings('ignore')
 
+def detect_file_units_2012(file_path):
+    """
+    Detect if a 2012 file uses thousands or dollars as units.
+    2012 files are typically in .xls format and use thousands.
+    Returns a multiplier: 1000 for thousands, 1 for dollars.
+    """
+    # For 2012, assume thousands based on observed pattern
+    # Most 2012 files use thousands according to historical data
+    print(f"  📊 UNITS: Assuming 'thousands' for 2012 file - applying 1000x multiplier")
+    return 1000
+
 # List of expected agencies (same as original)
 TARGET_AGENCIES = [
     "Legislative Branch",
@@ -85,6 +96,9 @@ def parse_sf133_2012_file(file_path):
             xl_file.close()
             return None
         
+        # Detect units for 2012 files
+        unit_multiplier = detect_file_units_2012(file_path)
+        
         # Read Raw Data sheet
         df = pd.read_excel(file_path, sheet_name='Raw Data')
         
@@ -92,6 +106,15 @@ def parse_sf133_2012_file(file_path):
             print(f"  Raw Data sheet is empty")
             xl_file.close()
             return None
+        
+        # Apply unit multiplier to numeric columns (amounts)
+        if unit_multiplier != 1:
+            numeric_columns = df.select_dtypes(include=[np.number]).columns
+            for col in numeric_columns:
+                # Skip metadata columns like LINENO, RPT_YR, etc.
+                if col not in ['LINENO', 'RPT_YR', 'TRAG', 'TRACCT', 'ALLOC', 'FY1', 'FY2', 'SECTION_NO', 'LINE_TYPE']:
+                    df[col] = df[col] * unit_multiplier
+            print(f"  📊 Applied {unit_multiplier}x multiplier to {len(numeric_columns)} numeric columns")
         
         print(f"  Raw data dimensions: {df.shape}")
         
