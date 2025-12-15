@@ -41,20 +41,20 @@
   },
   "quarter_data": {},
   "total_agencies": 29,
-  "total_rows": 681436,
-  "processed_date": "2025-11-03T21:17:02.221953",
+  "total_rows": 364227,
+  "processed_date": "2025-12-15T16:08:45.880309",
   "data_file": "sf133_2025_master.csv",
   "validation_passed": true,
   "tafs_coverage": {
     "validation_passed": true,
     "has_coverage_issues": false,
     "overall_coverage_percent": 100.0,
-    "baseline_total_accounts": 9176,
-    "current_total_accounts": 9176,
+    "baseline_total_accounts": 9209,
+    "current_total_accounts": 9209,
     "agency_coverage": {
       "400 Years of African-American History Commission": {
-        "baseline_accounts": 718,
-        "current_accounts": 718,
+        "baseline_accounts": 750,
+        "current_accounts": 750,
         "coverage_percent": 100.0
       },
       "Corps of Engineers-Civil Works": {
@@ -73,8 +73,8 @@
         "coverage_percent": 100.0
       },
       "Department of Defense-Military": {
-        "baseline_accounts": 910,
-        "current_accounts": 910,
+        "baseline_accounts": 911,
+        "current_accounts": 911,
         "coverage_percent": 100.0
       },
       "Department of Education": {
@@ -88,8 +88,8 @@
         "coverage_percent": 100.0
       },
       "Department of Health and Human Services": {
-        "baseline_accounts": 1006,
-        "current_accounts": 1006,
+        "baseline_accounts": 1005,
+        "current_accounts": 1005,
         "coverage_percent": 100.0
       },
       "Department of Homeland Security": {
@@ -128,8 +128,8 @@
         "coverage_percent": 100.0
       },
       "Department of the Interior": {
-        "baseline_accounts": 449,
-        "current_accounts": 449,
+        "baseline_accounts": 448,
+        "current_accounts": 448,
         "coverage_percent": 100.0
       },
       "Department of the Treasury": {
@@ -153,8 +153,8 @@
         "coverage_percent": 100.0
       },
       "International Assistance Programs": {
-        "baseline_accounts": 598,
-        "current_accounts": 598,
+        "baseline_accounts": 599,
+        "current_accounts": 599,
         "coverage_percent": 100.0
       },
       "Judicial Branch": {
