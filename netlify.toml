@@ -1,0 +1,28 @@
+[build]
+  # No build command - this is a static site
+  # Data should be generated locally and committed to the repo
+  command = "echo 'Skipping build - static site only'"
+  
+  # Directory to deploy (contains index.html)
+  publish = "."
+
+[build.environment]
+  # Skip Python dependency installation
+  SKIP_PYTHON_DEPENDENCIES = "true"
+  NETLIFY_SKIP_PYTHON_DEPENDENCIES = "true"
+
+# Headers for better performance
+[[headers]]
+  for = "/*.json"
+  [headers.values]
+    Cache-Control = "public, max-age=3600"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
