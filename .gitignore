@@ -52,3 +52,6 @@ logs/
 # See .gitattributes for LFS tracking
 
 /.quarto/
+
+# secrets
+.env
