@@ -28,6 +28,23 @@ What changed, by year (before the fix → after):
 
 Each corrected year is checked three ways: every workbook's Raw Data sheet must tie to the workbook's own Agency Total pivot sheet, every corrected year was compared account by account against an independent rebuild from the same workbooks (no difference in lines 2490, 2500 or 1900; that rebuild is not part of this repository), and the published files are tested for repeated accounts, accounts under two agencies and old column names. `site/data/selection_report_<year>.json` lists which workbooks were used and which were dropped, and why.
 
+### What the totals cover
+
+**What the totals cover.** The yearly summaries keep only accounts for which OMB's report has both a line 2490 row (unobligated balance) and a line 2500 row (total budgetary resources). Accounts with no line 2490 row are left out. A few accounts each year have a line 2490 but no line 2500 row, and are left out too. So a total here is the total for accounts that report an unobligated balance, not for every account in the SF-133. Financing accounts are included. In FY2025 that leaves out 526 accounts, 147 of them with nonzero total budgetary resources worth $264.9B. The largest is 97-0040 Payment to Military Retirement Fund ($154.4B), whose raw workbook has no line 2490 row. The [Hugging Face dataset](https://huggingface.co/datasets/abigailhaddad/sf133-budget-execution) keeps every account.
+
+| Fiscal year | Accounts in the totals | Total budgetary resources in the totals ($B) | Accounts left out | Of those, with nonzero resources | Their resources ($B) | Financing accounts in the totals ($B) |
+|---|---|---|---|---|---|---|
+| FY2018 | 7,497 | 7,460.7 | 456 | 115 | 133.4 | 383.5 |
+| FY2019 | 7,541 | 7,818.2 | 436 | 120 | 162.4 | 361.5 |
+| FY2020 | 7,824 | 12,260.9 | 433 | 111 | 151.8 | 1,313.1 |
+| FY2021 | 8,006 | 12,931.7 | 448 | 115 | 187.2 | 1,286.9 |
+| FY2022 | 8,203 | 11,629.0 | 475 | 117 | 208.2 | 792.9 |
+| FY2023 | 8,350 | 11,977.2 | 516 | 138 | 213.1 | 794.2 |
+| FY2024 | 8,528 | 12,032.2 | 520 | 140 | 309.3 | 470.8 |
+| FY2025 | 8,693 | 13,271.2 | 526 | 147 | 264.9 | 721.7 |
+
+Totals are for September of each fiscal year.
+
 ## 🚀 Quick Start
 
 ### Process Complete Fiscal Year
