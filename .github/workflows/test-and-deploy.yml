@@ -192,14 +192,14 @@ jobs:
         summary = pd.read_csv('site/data/all_agencies_obligation_summary.csv')
         
         # Parse numeric values
-        summary['BA_numeric'] = summary['Budget Authority (Line 2500)'].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float)
+        summary['BA_numeric'] = summary['Total Budgetary Resources (Line 2500)'].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float)
         summary['Unob_numeric'] = summary['Unobligated Balance (Line 2490)'].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float)
         
         total_ba = summary['BA_numeric'].sum() / 1000
         total_unob = summary['Unob_numeric'].sum() / 1000
         pct = total_unob / total_ba * 100
         
-        print(f'- Total Budget Authority: ${total_ba:,.1f}B')
+        print(f'- Total Budgetary Resources: ${total_ba:,.1f}B')
         print(f'- Total Unobligated: ${total_unob:,.1f}B ({pct:.1f}%)')
         print(f'- Total Accounts: {len(summary):,}')
         print(f'- Total Agencies: {summary[\"Agency\"].nunique()}')
