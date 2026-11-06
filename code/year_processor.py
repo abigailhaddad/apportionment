@@ -105,6 +105,11 @@ class SF133YearProcessor:
                 import shutil
                 shutil.move(str(output_path), str(year_output))
                 
+                # Keep the record of which workbooks were used and which were dropped
+                report_path = self.site_data_dir / "sf133_selection_report.json"
+                if report_path.exists():
+                    shutil.move(str(report_path), str(self.site_data_dir / f"selection_report_{year}.json"))
+                
                 # Auto-detect and validate available months
                 print(f"🔍 DEBUG: About to call _analyze_year_data for {year}")
                 validation_passed = self._analyze_year_data(year_output, year)

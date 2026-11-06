@@ -1,6 +1,6 @@
 {
   "fiscal_year": 2025,
-  "is_current_year": true,
+  "is_current_year": false,
   "available_months": [
     "Nov",
     "Dec",
@@ -40,26 +40,151 @@
     ]
   },
   "quarter_data": {},
-  "total_agencies": 29,
-  "total_rows": 364227,
-  "processed_date": "2025-12-15T16:08:45.880309",
+  "total_agencies": 126,
+  "total_rows": 332996,
+  "processed_date": "2026-11-06T08:19:21.323089",
   "data_file": "sf133_2025_master.csv",
   "validation_passed": true,
   "tafs_coverage": {
     "validation_passed": true,
     "has_coverage_issues": false,
     "overall_coverage_percent": 100.0,
-    "baseline_total_accounts": 9209,
-    "current_total_accounts": 9209,
+    "baseline_total_accounts": 9219,
+    "current_total_accounts": 9219,
     "agency_coverage": {
       "400 Years of African-American History Commission": {
-        "baseline_accounts": 750,
-        "current_accounts": 750,
+        "baseline_accounts": 6,
+        "current_accounts": 6,
+        "coverage_percent": 100.0
+      },
+      "Access Board": {
+        "baseline_accounts": 6,
+        "current_accounts": 6,
+        "coverage_percent": 100.0
+      },
+      "Adams Memorial Commission": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Administrative Conference of the United States": {
+        "baseline_accounts": 8,
+        "current_accounts": 8,
+        "coverage_percent": 100.0
+      },
+      "Advisory Council on Historic Preservation": {
+        "baseline_accounts": 11,
+        "current_accounts": 11,
+        "coverage_percent": 100.0
+      },
+      "Alyce Spotted Bear and Walter Soboleff Com. on Native Children": {
+        "baseline_accounts": 4,
+        "current_accounts": 4,
+        "coverage_percent": 100.0
+      },
+      "Appalachian Regional Commission": {
+        "baseline_accounts": 7,
+        "current_accounts": 7,
+        "coverage_percent": 100.0
+      },
+      "Barry Goldwater Scholarship and Excellence in Education Foundati": {
+        "baseline_accounts": 4,
+        "current_accounts": 4,
+        "coverage_percent": 100.0
+      },
+      "Bureau of Consumer Financial Protection": {
+        "baseline_accounts": 2,
+        "current_accounts": 2,
+        "coverage_percent": 100.0
+      },
+      "Central Intelligence Agency": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Chemical Safety and Hazard Investigation Board": {
+        "baseline_accounts": 7,
+        "current_accounts": 7,
+        "coverage_percent": 100.0
+      },
+      "Civil Rights Cold Case Records Review Board": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Commission of Fine Arts": {
+        "baseline_accounts": 8,
+        "current_accounts": 8,
+        "coverage_percent": 100.0
+      },
+      "Commission on Civil Rights": {
+        "baseline_accounts": 6,
+        "current_accounts": 6,
+        "coverage_percent": 100.0
+      },
+      "Commission on Combating Synthetic Opioid Trafficking": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Committee for Purchase From People Who Are Blind/Disabled": {
+        "baseline_accounts": 7,
+        "current_accounts": 7,
+        "coverage_percent": 100.0
+      },
+      "Commodity Futures Trading Commission": {
+        "baseline_accounts": 18,
+        "current_accounts": 18,
+        "coverage_percent": 100.0
+      },
+      "Consumer Product Safety Commission": {
+        "baseline_accounts": 9,
+        "current_accounts": 9,
+        "coverage_percent": 100.0
+      },
+      "Corporation for National and Community Service": {
+        "baseline_accounts": 36,
+        "current_accounts": 36,
+        "coverage_percent": 100.0
+      },
+      "Corporation for Public Broadcasting": {
+        "baseline_accounts": 2,
+        "current_accounts": 2,
+        "coverage_percent": 100.0
+      },
+      "Corporation for Travel Promotion": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
         "coverage_percent": 100.0
       },
       "Corps of Engineers-Civil Works": {
         "baseline_accounts": 54,
         "current_accounts": 54,
+        "coverage_percent": 100.0
+      },
+      "Council of the Inspectors General on Integrity and Efficiency": {
+        "baseline_accounts": 3,
+        "current_accounts": 3,
+        "coverage_percent": 100.0
+      },
+      "Court Services and Offender Supervision Agency for the District": {
+        "baseline_accounts": 14,
+        "current_accounts": 14,
+        "coverage_percent": 100.0
+      },
+      "Defense Nuclear Facilities Safety Board": {
+        "baseline_accounts": 8,
+        "current_accounts": 8,
+        "coverage_percent": 100.0
+      },
+      "Delta Regional Authority": {
+        "baseline_accounts": 4,
+        "current_accounts": 4,
+        "coverage_percent": 100.0
+      },
+      "Denali Commission": {
+        "baseline_accounts": 4,
+        "current_accounts": 4,
         "coverage_percent": 100.0
       },
       "Department of Agriculture": {
@@ -88,13 +213,13 @@
         "coverage_percent": 100.0
       },
       "Department of Health and Human Services": {
-        "baseline_accounts": 1005,
-        "current_accounts": 1005,
+        "baseline_accounts": 1007,
+        "current_accounts": 1007,
         "coverage_percent": 100.0
       },
       "Department of Homeland Security": {
-        "baseline_accounts": 1631,
-        "current_accounts": 1631,
+        "baseline_accounts": 597,
+        "current_accounts": 597,
         "coverage_percent": 100.0
       },
       "Department of Housing and Urban Development": {
@@ -118,8 +243,8 @@
         "coverage_percent": 100.0
       },
       "Department of Transportation": {
-        "baseline_accounts": 461,
-        "current_accounts": 461,
+        "baseline_accounts": 464,
+        "current_accounts": 464,
         "coverage_percent": 100.0
       },
       "Department of Veterans Affairs": {
@@ -128,8 +253,8 @@
         "coverage_percent": 100.0
       },
       "Department of the Interior": {
-        "baseline_accounts": 448,
-        "current_accounts": 448,
+        "baseline_accounts": 455,
+        "current_accounts": 455,
         "coverage_percent": 100.0
       },
       "Department of the Treasury": {
@@ -137,9 +262,24 @@
         "current_accounts": 320,
         "coverage_percent": 100.0
       },
+      "District of Columbia": {
+        "baseline_accounts": 31,
+        "current_accounts": 31,
+        "coverage_percent": 100.0
+      },
+      "Election Assistance Commission": {
+        "baseline_accounts": 15,
+        "current_accounts": 15,
+        "coverage_percent": 100.0
+      },
       "Environmental Protection Agency": {
         "baseline_accounts": 80,
         "current_accounts": 80,
+        "coverage_percent": 100.0
+      },
+      "Equal Employment Opportunity Commission": {
+        "baseline_accounts": 8,
+        "current_accounts": 8,
         "coverage_percent": 100.0
       },
       "Executive Office of the President": {
@@ -147,9 +287,109 @@
         "current_accounts": 164,
         "coverage_percent": 100.0
       },
+      "Export-Import Bank of the United States": {
+        "baseline_accounts": 37,
+        "current_accounts": 37,
+        "coverage_percent": 100.0
+      },
+      "Farm Credit Administration": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Farm Credit System Insurance Corporation": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Federal Communications Commission": {
+        "baseline_accounts": 13,
+        "current_accounts": 13,
+        "coverage_percent": 100.0
+      },
+      "Federal Deposit Insurance Corporation": {
+        "baseline_accounts": 4,
+        "current_accounts": 4,
+        "coverage_percent": 100.0
+      },
+      "Federal Drug Control Programs": {
+        "baseline_accounts": 9,
+        "current_accounts": 9,
+        "coverage_percent": 100.0
+      },
+      "Federal Election Commission": {
+        "baseline_accounts": 7,
+        "current_accounts": 7,
+        "coverage_percent": 100.0
+      },
+      "Federal Financial Institutions Examination Council": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Federal Housing Finance Agency": {
+        "baseline_accounts": 2,
+        "current_accounts": 2,
+        "coverage_percent": 100.0
+      },
+      "Federal Labor Relations Authority": {
+        "baseline_accounts": 8,
+        "current_accounts": 8,
+        "coverage_percent": 100.0
+      },
+      "Federal Maritime Commission": {
+        "baseline_accounts": 9,
+        "current_accounts": 9,
+        "coverage_percent": 100.0
+      },
+      "Federal Mediation and Conciliation Service": {
+        "baseline_accounts": 7,
+        "current_accounts": 7,
+        "coverage_percent": 100.0
+      },
+      "Federal Mine Safety and Health Review Commission": {
+        "baseline_accounts": 6,
+        "current_accounts": 6,
+        "coverage_percent": 100.0
+      },
+      "Federal Permitting Improvement Steering Council": {
+        "baseline_accounts": 3,
+        "current_accounts": 3,
+        "coverage_percent": 100.0
+      },
+      "Federal Trade Commission": {
+        "baseline_accounts": 2,
+        "current_accounts": 2,
+        "coverage_percent": 100.0
+      },
       "General Services Administration": {
         "baseline_accounts": 83,
         "current_accounts": 83,
+        "coverage_percent": 100.0
+      },
+      "Gulf Coast Ecosystem Restoration Council": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Harry S Truman Scholarship Foundation": {
+        "baseline_accounts": 2,
+        "current_accounts": 2,
+        "coverage_percent": 100.0
+      },
+      "Institute of American Indian and Alaska Native Culture and Arts": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Institute of Museum and Library Services": {
+        "baseline_accounts": 9,
+        "current_accounts": 9,
+        "coverage_percent": 100.0
+      },
+      "Intelligence Community Management Account": {
+        "baseline_accounts": 7,
+        "current_accounts": 7,
         "coverage_percent": 100.0
       },
       "International Assistance Programs": {
@@ -157,9 +397,29 @@
         "current_accounts": 599,
         "coverage_percent": 100.0
       },
+      "International Trade Commission": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "James Madison Memorial Fellowship Foundation": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Japan-United States Friendship Commission": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
       "Judicial Branch": {
         "baseline_accounts": 69,
         "current_accounts": 69,
+        "coverage_percent": 100.0
+      },
+      "Legal Services Corporation": {
+        "baseline_accounts": 2,
+        "current_accounts": 2,
         "coverage_percent": 100.0
       },
       "Legislative Branch": {
@@ -167,9 +427,84 @@
         "current_accounts": 363,
         "coverage_percent": 100.0
       },
+      "Marine Mammal Commission": {
+        "baseline_accounts": 6,
+        "current_accounts": 6,
+        "coverage_percent": 100.0
+      },
+      "Merit Systems Protection Board": {
+        "baseline_accounts": 10,
+        "current_accounts": 10,
+        "coverage_percent": 100.0
+      },
+      "Military Compensation and Retirement Modernization Commission": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Morris K. Udall and Stewart L. Udall Foundation": {
+        "baseline_accounts": 3,
+        "current_accounts": 3,
+        "coverage_percent": 100.0
+      },
       "National Aeronautics and Space Administration": {
         "baseline_accounts": 125,
         "current_accounts": 125,
+        "coverage_percent": 100.0
+      },
+      "National Archives and Records Administration": {
+        "baseline_accounts": 23,
+        "current_accounts": 23,
+        "coverage_percent": 100.0
+      },
+      "National Capital Planning Commission": {
+        "baseline_accounts": 7,
+        "current_accounts": 7,
+        "coverage_percent": 100.0
+      },
+      "National Commission on Military Aviation Safety": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "National Commission on Military, National, and Public Service": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "National Council on Disability": {
+        "baseline_accounts": 8,
+        "current_accounts": 8,
+        "coverage_percent": 100.0
+      },
+      "National Credit Union Administration": {
+        "baseline_accounts": 11,
+        "current_accounts": 11,
+        "coverage_percent": 100.0
+      },
+      "National Endowment for the Arts": {
+        "baseline_accounts": 4,
+        "current_accounts": 4,
+        "coverage_percent": 100.0
+      },
+      "National Endowment for the Humanities": {
+        "baseline_accounts": 4,
+        "current_accounts": 4,
+        "coverage_percent": 100.0
+      },
+      "National Labor Relations Board": {
+        "baseline_accounts": 7,
+        "current_accounts": 7,
+        "coverage_percent": 100.0
+      },
+      "National Mediation Board": {
+        "baseline_accounts": 6,
+        "current_accounts": 6,
+        "coverage_percent": 100.0
+      },
+      "National Railroad Passenger Corporation Office of Inspector Gene": {
+        "baseline_accounts": 7,
+        "current_accounts": 7,
         "coverage_percent": 100.0
       },
       "National Science Foundation": {
@@ -177,9 +512,64 @@
         "current_accounts": 52,
         "coverage_percent": 100.0
       },
+      "National Security Commission on Artificial Intelligence": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "National Transportation Safety Board": {
+        "baseline_accounts": 8,
+        "current_accounts": 8,
+        "coverage_percent": 100.0
+      },
+      "Neighborhood Reinvestment Corporation": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Northern Border Regional Commission": {
+        "baseline_accounts": 6,
+        "current_accounts": 6,
+        "coverage_percent": 100.0
+      },
+      "Nuclear Regulatory Commission": {
+        "baseline_accounts": 17,
+        "current_accounts": 17,
+        "coverage_percent": 100.0
+      },
+      "Nuclear Waste Technical Review Board": {
+        "baseline_accounts": 7,
+        "current_accounts": 7,
+        "coverage_percent": 100.0
+      },
+      "Occupational Safety and Health Review Commission": {
+        "baseline_accounts": 6,
+        "current_accounts": 6,
+        "coverage_percent": 100.0
+      },
+      "Office of Government Ethics": {
+        "baseline_accounts": 7,
+        "current_accounts": 7,
+        "coverage_percent": 100.0
+      },
+      "Office of Navajo and Hopi Indian Relocation": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
       "Office of Personnel Management": {
         "baseline_accounts": 37,
         "current_accounts": 37,
+        "coverage_percent": 100.0
+      },
+      "Office of Special Counsel": {
+        "baseline_accounts": 6,
+        "current_accounts": 6,
+        "coverage_percent": 100.0
+      },
+      "Other Commissions and Boards": {
+        "baseline_accounts": 10,
+        "current_accounts": 10,
         "coverage_percent": 100.0
       },
       "Other Defense Civil Programs": {
@@ -187,14 +577,109 @@
         "current_accounts": 49,
         "coverage_percent": 100.0
       },
+      "Patient-Centered Outcomes Research Trust Fund": {
+        "baseline_accounts": 2,
+        "current_accounts": 2,
+        "coverage_percent": 100.0
+      },
+      "Presidio Trust": {
+        "baseline_accounts": 2,
+        "current_accounts": 2,
+        "coverage_percent": 100.0
+      },
+      "Privacy and Civil Liberties Oversight Board": {
+        "baseline_accounts": 7,
+        "current_accounts": 7,
+        "coverage_percent": 100.0
+      },
+      "Public Buildings Reform Board": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Public Defender Service for the District of Columbia": {
+        "baseline_accounts": 11,
+        "current_accounts": 11,
+        "coverage_percent": 100.0
+      },
+      "Railroad Retirement Board": {
+        "baseline_accounts": 37,
+        "current_accounts": 37,
+        "coverage_percent": 100.0
+      },
+      "Securities and Exchange Commission": {
+        "baseline_accounts": 3,
+        "current_accounts": 3,
+        "coverage_percent": 100.0
+      },
       "Small Business Administration": {
         "baseline_accounts": 58,
         "current_accounts": 58,
         "coverage_percent": 100.0
       },
+      "Smithsonian Institution": {
+        "baseline_accounts": 37,
+        "current_accounts": 37,
+        "coverage_percent": 100.0
+      },
       "Social Security Administration": {
         "baseline_accounts": 48,
         "current_accounts": 48,
+        "coverage_percent": 100.0
+      },
+      "Southeast Crescent Regional Commission": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "Southwest Border Regional Commission": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "State Justice Institute": {
+        "baseline_accounts": 14,
+        "current_accounts": 14,
+        "coverage_percent": 100.0
+      },
+      "Surface Transportation Board": {
+        "baseline_accounts": 6,
+        "current_accounts": 6,
+        "coverage_percent": 100.0
+      },
+      "Tennessee Valley Authority": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
+        "coverage_percent": 100.0
+      },
+      "U.S. Agency for Global Media": {
+        "baseline_accounts": 27,
+        "current_accounts": 27,
+        "coverage_percent": 100.0
+      },
+      "United States Court of Appeals for Veterans Claims": {
+        "baseline_accounts": 8,
+        "current_accounts": 8,
+        "coverage_percent": 100.0
+      },
+      "United States Holocaust Memorial Museum": {
+        "baseline_accounts": 15,
+        "current_accounts": 15,
+        "coverage_percent": 100.0
+      },
+      "United States Institute of Peace": {
+        "baseline_accounts": 32,
+        "current_accounts": 32,
+        "coverage_percent": 100.0
+      },
+      "United States Interagency Council on Homelessness": {
+        "baseline_accounts": 7,
+        "current_accounts": 7,
+        "coverage_percent": 100.0
+      },
+      "Vietnam Education Foundation": {
+        "baseline_accounts": 1,
+        "current_accounts": 1,
         "coverage_percent": 100.0
       }
     },

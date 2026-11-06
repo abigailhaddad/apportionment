@@ -115,6 +115,31 @@
             <a href="methodology.html" style="color: rgba(255,255,255,0.9); background: rgba(255,255,255,0.9); color: #003366; text-decoration: none; font-weight: 600; margin: 0 15px; padding: 10px 20px; border: 2px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.3s ease;">Methodology</a>
         </div>
         
+        <div class="methodology-section" id="data-corrected">
+            <h2>Data corrected on 2026-11-06</h2>
+            <p>Until this date the summaries for fiscal years 2018 through 2025 had four errors. They are fixed. FY2012&ndash;2017 come from a different parser and were not rebuilt or audited.</p>
+            <ol>
+                <li><strong>Wrong agency names.</strong> Each workbook was labelled with the first agency in it. The Other Independent Agencies workbook holds about 100 agencies, so all their accounts carried one name. Every row now carries its own agency's name.</li>
+                <li><strong>Repeated accounts.</strong> Exact duplicate downloads (FY2018&ndash;2022) and the DEFC workbooks, a second cut of accounts the agency workbooks already hold, were read along with the agency workbooks.</li>
+                <li><strong>Accounts added together.</strong> An allocation account such as 69-69-0143 was summed into its parent 69-0143, which kept its name.</li>
+                <li><strong>A mislabelled column.</strong> "Budget Authority (Line 2500)" is total budgetary resources. Budget authority is line 1900.</li>
+            </ol>
+            <p>Before the fix &rarr; after:</p>
+            <div style="overflow-x: auto; margin-bottom: 12px;">
+            <table class="table table-sm" style="min-width: 640px; font-size: 0.85rem;"><thead><tr><th>Fiscal year</th><th>Rows before → after</th><th>Accounts before → after</th><th>Old rows with the wrong agency</th><th>Total unobligated ($B)</th><th>Total budgetary resources ($B)</th></tr></thead><tbody>
+<tr><td>FY2018</td><td>29,988 → 7,497</td><td>7,497 → 7,497</td><td>2,480 (8%)</td><td>5,274 → 1,318</td><td>29,843 → 7,461</td></tr>
+<tr><td>FY2019</td><td>30,164 → 7,541</td><td>7,541 → 7,541</td><td>2,480 (8%)</td><td>5,404 → 1,351</td><td>31,273 → 7,818</td></tr>
+<tr><td>FY2020</td><td>29,641 → 7,824</td><td>7,824 → 7,824</td><td>1,037 (3%)</td><td>12,631 → 2,875</td><td>54,012 → 12,261</td></tr>
+<tr><td>FY2021</td><td>32,790 → 8,006</td><td>8,006 → 8,006</td><td>3,155 (10%)</td><td>10,729 → 2,420</td><td>55,986 → 12,932</td></tr>
+<tr><td>FY2022</td><td>32,651 → 8,203</td><td>8,203 → 8,203</td><td>3,404 (10%)</td><td>10,244 → 2,469</td><td>47,481 → 11,629</td></tr>
+<tr><td>FY2023</td><td>9,474 → 8,350</td><td>8,350 → 8,350</td><td>1,472 (16%)</td><td>3,013 → 2,644</td><td>13,504 → 11,977</td></tr>
+<tr><td>FY2024</td><td>9,557 → 8,528</td><td>8,528 → 8,528</td><td>1,622 (17%)</td><td>2,984 → 2,616</td><td>12,757 → 12,032</td></tr>
+<tr><td>FY2025</td><td>9,757 → 8,693</td><td>8,652 → 8,693</td><td>1,647 (17%)</td><td>3,368 → 2,971</td><td>12,717 → 13,271</td></tr>
+</tbody></table>
+            </div>
+            <p class="text-muted" style="font-size: 0.9rem;">"Old rows with the wrong agency" counts old rows whose agency differs from the account's agency in the corrected data. Totals are for the latest month in each year.</p>
+        </div>
+        
         <div class="methodology-section">
             <h2>Data Source</h2>
             <p>Data is sourced from <a href="https://portal.max.gov/portal/document/SF133/Budget/" target="_blank">MAX.gov SF 133 Reports on Budget Execution and Budgetary Resources</a> covering fiscal years 2018-2025.</p>
@@ -195,15 +220,17 @@
             
             <h3>Processing Steps</h3>
             <ol>
+                <li>Use one workbook per agency per year: skip DEFC workbooks (a second cut of accounts the agency workbooks already hold) and exact duplicate downloads (the run stops if two workbooks cover the same agencies but differ)</li>
                 <li>Load Raw Data sheet and identify header row containing "LINENO", "BUREAU", "OMB_ACCT"</li>
+                <li>Label every row with its own AGENCY value (the Other Independent Agencies workbook holds about 100 agencies)</li>
                 <li>Forward fill key columns (BUREAU, OMB_ACCT, TAFS) down the spreadsheet</li>
-                <li>Convert LINENO to numeric and filter for lines 2490.0 and 2500.0</li>
+                <li>Convert LINENO to numeric and keep lines 2490 (unobligated balance), 2500 (total budgetary resources) and 1900 (budget authority)</li>
                 <li>Auto-detect latest available month with valid data (non-zero, non-null values)</li>
                 <li>Extract values from the latest month column</li>
-                <li>Merge Line 2490 and Line 2500 data on matching Agency + TAFS combinations</li>
+                <li>Merge Line 2490 and Line 2500 data on matching Agency + TAFS combinations, and add Line 1900 where the account reports it</li>
                 <li>Extract account name from TAFS (text after " - ")</li>
                 <li>Convert values from dollars to millions</li>
-                <li>Calculate percentage: (Unobligated Balance / Budget Authority) × 100</li>
+                <li>Calculate percentage: (Unobligated Balance / Total Budgetary Resources) × 100</li>
             </ol>
         </div>
         
@@ -232,22 +259,22 @@
             <ul>
                 <li>Validates main summary file has ≥1,000 records</li>
                 <li>Requires ≥20 unique agencies</li>
-                <li>Checks Budget Authority values start with "$" and are properly formatted</li>
+                <li>Checks Total Budgetary Resources values start with "$" and are properly formatted</li>
                 <li>Tests currency format parsing ("$1,234.5M" format)</li>
             </ul>
             
             <h3>test_data_reasonableness()</h3>
             <ul>
-                <li>Parses Budget Authority and Unobligated Balance values by removing "$", ",", "M"</li>
-                <li>Calculates total Budget Authority, must be between $1 trillion and $50 trillion</li>
+                <li>Parses Total Budgetary Resources and Unobligated Balance values by removing "$", ",", "M"</li>
+                <li>Calculates total Total Budgetary Resources, must be between $1 trillion and $50 trillion</li>
                 <li>Checks percentage values are not extremely out of range (-1000% to +1000%)</li>
-                <li>Reports if extreme percentages found (may be valid for negative Budget Authority)</li>
+                <li>Reports if extreme percentages found (may be valid for negative Total Budgetary Resources)</li>
             </ul>
             
             <h3>test_cross_year_consistency()</h3>
             <ul>
-                <li>Calculates year-over-year Budget Authority changes between consecutive fiscal years</li>
-                <li>Flags (but doesn't fail) if total Budget Authority changes >50% between years</li>
+                <li>Calculates year-over-year Total Budgetary Resources changes between consecutive fiscal years</li>
+                <li>Flags (but doesn't fail) if total Total Budgetary Resources changes >50% between years</li>
                 <li>Requires at least 2 years of data to run</li>
                 <li><em>Note: Agency coverage validation is handled by test_year_data_completeness()</em></li>
             </ul>
@@ -255,7 +282,7 @@
             <h3>Website Structure Tests</h3>
             <ul>
                 <li><strong>test_csv_structure()</strong>: Validates 10 required columns exist, ≥100 records, ≥15 agencies per file</li>
-                <li><strong>test_numerical_data()</strong>: Tests Budget Authority, Unobligated Balance, and Percentage values are parseable by JavaScript parseFloat()</li>
+                <li><strong>test_numerical_data()</strong>: Tests Total Budgetary Resources, Unobligated Balance, and Percentage values are parseable by JavaScript parseFloat()</li>
                 <li><strong>test_required_fields()</strong>: Ensures Agency, Bureau, Account, Account_Number have no missing/empty values</li>
                 <li><strong>test_data_consistency()</strong>: Verifies main file exists with ≥1,000 records and ≥20 agencies</li>
             </ul>
@@ -310,8 +337,9 @@
                     <li><strong>Expiration_Year</strong> - When the funds expire (e.g., "2025", "No Year")</li>
                     <li><strong>TAFS</strong> - Full Treasury Account Fund Symbol string</li>
                     <li><strong>Unobligated Balance (Line 2490)</strong> - Amount not yet obligated (in millions)</li>
-                    <li><strong>Budget Authority (Line 2500)</strong> - Total budget authority (in millions)</li>
-                    <li><strong>Percentage Unobligated</strong> - Calculated percentage (Unobligated/Budget Authority × 100)</li>
+                    <li><strong>Total Budgetary Resources (Line 2500)</strong> - Total budgetary resources: unobligated balance brought forward plus budget authority plus recoveries and other resources (in millions). FY2012-2017 files call this column "Budget Authority (Line 2500)"; the values are the same line.</li>
+                    <li><strong>Budget Authority Total (Line 1900)</strong> - Budget authority, discretionary and mandatory (in millions). Blank when the account reports no new budget authority. Not in the FY2012-2017 files.</li>
+                    <li><strong>Percentage Unobligated</strong> - Calculated percentage (Unobligated/Total Budgetary Resources × 100)</li>
                 </ul>
             </div>
             

@@ -12,6 +12,7 @@ from pathlib import Path
 # Import the test functions
 from run_tests import test_year_data_completeness
 from test_website_data_structure import test_csv_structure
+from test_data_integrity import test_data_integrity, FIRST_YEAR
 from create_monthly_summaries import create_monthly_summaries
 from create_year_summaries import create_year_summary
 
@@ -56,8 +57,22 @@ def main():
     
     print()
     
-    # Find intersection (years that pass both tests)
-    passing_both = set(completeness_passing_years) & set(structure_passing_years)
+    # Run the third suite (integrity: duplicates, labels, column names). It covers FY2018
+    # onward; the older years were built by a different parser and are not covered.
+    print("🔒 RUNNING DATA INTEGRITY TESTS")
+    print("-" * 40)
+    try:
+        integrity_covered_passing = test_data_integrity()
+    except Exception as e:
+        print(f"❌ ERROR: Integrity tests failed: {e}")
+        return 1
+    older_years = [y for y in set(completeness_passing_years) | set(structure_passing_years) if y < FIRST_YEAR]
+    integrity_passing_years = sorted(set(integrity_covered_passing) | set(older_years))
+    
+    print()
+    
+    # Find intersection (years that pass all tests)
+    passing_both = set(completeness_passing_years) & set(structure_passing_years) & set(integrity_passing_years)
     passing_both_sorted = sorted(list(passing_both))
     
     print("=" * 60)
@@ -65,6 +80,7 @@ def main():
     print("=" * 60)
     print(f"Years passing completeness tests: {completeness_passing_years}")
     print(f"Years passing structure tests:    {structure_passing_years}")
+    print(f"Years passing integrity tests:    {integrity_passing_years} (FY2018+ checked; older years not covered)")
     print(f"Years passing BOTH tests:        {passing_both_sorted}")
     print()
     
@@ -90,7 +106,8 @@ def main():
             json.dump({
                 'approved_years': passing_both_sorted,
                 'completeness_passing': completeness_passing_years,
-                'structure_passing': structure_passing_years
+                'structure_passing': structure_passing_years,
+                'integrity_passing': integrity_passing_years
             }, f, indent=2)
         print(f"📄 Approved years list saved to: {approved_years_file}")
         

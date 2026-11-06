@@ -110,7 +110,9 @@ async function loadData(fiscalYear = null) {
         
         // Parse CSV
         const lines = csvText.split('\n');
-        const headers = lines[0].split(',');
+        // The FY2012-2017 files still use the old header for line 2500. It is total
+        // budgetary resources, not budget authority, so show it under its real name.
+        const headers = lines[0].split(',').map(h => h.trim() === 'Budget Authority (Line 2500)' ? 'Total Budgetary Resources (Line 2500)' : h);
         
         obligationData = [];
         for (let i = 1; i < lines.length; i++) {
@@ -127,7 +129,7 @@ async function loadData(fiscalYear = null) {
             
             // Convert numeric values
             row.unobligatedValue = parseFloat(row['Unobligated Balance (Line 2490)'].replace(/[$,M]/g, ''));
-            row.budgetAuthorityValue = parseFloat(row['Budget Authority (Line 2500)'].replace(/[$,M]/g, ''));
+            row.totalResourcesValue = parseFloat(row['Total Budgetary Resources (Line 2500)'].replace(/[$,M]/g, ''));
             row.percentageValue = parseFloat(row['Percentage Unobligated'].replace('%', ''));
             
             
@@ -225,7 +227,7 @@ function aggregateAgencyData() {
                 name: agency,
                 period: period,
                 expiration: expiration,
-                budgetAuthority: 0,
+                totalResources: 0,
                 unobligated: 0,
                 accountCount: 0,
                 bureaus: new Set()
@@ -233,7 +235,7 @@ function aggregateAgencyData() {
         }
         
         const agencyInfo = agencyMap.get(key);
-        agencyInfo.budgetAuthority += row.budgetAuthorityValue;
+        agencyInfo.totalResources += row.totalResourcesValue;
         agencyInfo.unobligated += row.unobligatedValue;
         agencyInfo.accountCount += 1;
         if (row.Bureau) {
@@ -245,12 +247,12 @@ function aggregateAgencyData() {
     agencyData = Array.from(agencyMap.values()).map(agency => ({
         ...agency,
         bureauCount: agency.bureaus.size,
-        percentageUnobligated: agency.budgetAuthority > 0 ? 
-            (agency.unobligated / agency.budgetAuthority * 100) : 0
+        percentageUnobligated: agency.totalResources > 0 ? 
+            (agency.unobligated / agency.totalResources * 100) : 0
     }));
     
-    // Sort by budget authority descending
-    agencyData.sort((a, b) => b.budgetAuthority - a.budgetAuthority);
+    // Sort by total budgetary resources descending
+    agencyData.sort((a, b) => b.totalResources - a.totalResources);
 }
 
 // Aggregate data by bureau/period/expiration
@@ -270,14 +272,14 @@ function aggregateBureauData() {
                 name: bureau,
                 period: period,
                 expiration: expiration,
-                budgetAuthority: 0,
+                totalResources: 0,
                 unobligated: 0,
                 accountCount: 0
             });
         }
         
         const bureauInfo = bureauMap.get(key);
-        bureauInfo.budgetAuthority += row.budgetAuthorityValue;
+        bureauInfo.totalResources += row.totalResourcesValue;
         bureauInfo.unobligated += row.unobligatedValue;
         bureauInfo.accountCount += 1;
     });
@@ -285,17 +287,17 @@ function aggregateBureauData() {
     // Convert to array and calculate percentages
     bureauData = Array.from(bureauMap.values()).map(bureau => ({
         ...bureau,
-        percentageUnobligated: bureau.budgetAuthority > 0 ? 
-            (bureau.unobligated / bureau.budgetAuthority * 100) : 0
+        percentageUnobligated: bureau.totalResources > 0 ? 
+            (bureau.unobligated / bureau.totalResources * 100) : 0
     }));
     
-    // Sort by budget authority descending
-    bureauData.sort((a, b) => b.budgetAuthority - a.budgetAuthority);
+    // Sort by total budgetary resources descending
+    bureauData.sort((a, b) => b.totalResources - a.totalResources);
 }
 
 // Update summary statistics
 function updateSummaryStats() {
-    const totalBudget = obligationData.reduce((sum, row) => sum + row.budgetAuthorityValue, 0);
+    const totalBudget = obligationData.reduce((sum, row) => sum + row.totalResourcesValue, 0);
     const totalUnobligated = obligationData.reduce((sum, row) => sum + row.unobligatedValue, 0);
     const overallPercentage = totalBudget > 0 ? (totalUnobligated / totalBudget * 100) : 0;
     
@@ -887,12 +889,12 @@ function initializeDataTable() {
                 }
             },
             { 
-                data: 'Budget Authority (Line 2500)',
+                data: 'Total Budgetary Resources (Line 2500)',
                 className: 'text-end',
                 type: 'num',
                 render: function(data, type, row) {
                     if (type === 'sort' || type === 'type') {
-                        return row.budgetAuthorityValue;
+                        return row.totalResourcesValue;
                     }
                     return data;
                 }
@@ -907,7 +909,7 @@ function initializeDataTable() {
         ],
         pageLength: 25,
         lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
-        order: [[7, 'desc']], // Sort by Budget Authority descending
+        order: [[7, 'desc']], // Sort by Total Budgetary Resources descending
         language: {
             search: "Search accounts:",
             lengthMenu: "Show _MENU_ accounts per page",
@@ -1015,7 +1017,7 @@ function updateFilteredStats() {
     const uniqueBureaus = new Set();
     
     dataToUse.each(function(row) {
-        totalBudget += row.budgetAuthorityValue;
+        totalBudget += row.totalResourcesValue;
         totalUnobligated += row.unobligatedValue;
         count++;
         
@@ -1048,14 +1050,14 @@ function updateFilteredStats() {
     }
     
     // Announce to screen readers
-    const announcement = `Showing ${entityCount} ${entityType}. Total budget authority: ${formatCurrency(totalBudget)}, Total unobligated: ${formatCurrency(totalUnobligated)}, ${overallPercentage.toFixed(1)}% unobligated.`;
+    const announcement = `Showing ${entityCount} ${entityType}. Total budgetary resources: ${formatCurrency(totalBudget)}, Total unobligated: ${formatCurrency(totalUnobligated)}, ${overallPercentage.toFixed(1)}% unobligated.`;
     $('#ariaLiveRegion').text(announcement);
 }
 
 // Update bubble chart title based on filters
 function updateBubbleChartTitle() {
     const titleElement = $('#bubbleChartTitle');
-    let title = "Budget Authority vs. Unobligated Balance";
+    let title = "Total Budgetary Resources vs. Unobligated Balance";
     
     // Add filter context to title
     const agency = $('#mainAgencyFilter').val();
@@ -1089,16 +1091,16 @@ function initializeBubbleChart() {
     if (aggregationLevel === 'agency') {
         // Show agency-level aggregated data
         const filteredAgencyData = getFilteredAgencyData(true); // true for bubble chart
-        dataToShow = filteredAgencyData.filter(d => d.budgetAuthority > 0);
+        dataToShow = filteredAgencyData.filter(d => d.totalResources > 0);
         bubbleLabel = d => d.name;
     } else if (aggregationLevel === 'bureau') {
         // Show bureau-level aggregated data
         const filteredBureauData = getFilteredBureauData(true); // true for bubble chart
-        dataToShow = filteredBureauData.filter(d => d.budgetAuthority > 0);
+        dataToShow = filteredBureauData.filter(d => d.totalResources > 0);
         bubbleLabel = d => d.name;
     } else {
         // Show individual accounts
-        dataToShow = getFilteredAccountData(true).filter(d => d.budgetAuthorityValue > 0); // true for bubble chart
+        dataToShow = getFilteredAccountData(true).filter(d => d.totalResourcesValue > 0); // true for bubble chart
         bubbleLabel = d => d.Account || 'Unknown';
     }
     
@@ -1108,7 +1110,7 @@ function initializeBubbleChart() {
         .range([0, width]);
     
     // Size scale for bubbles
-    const maxBudget = d3.max(dataToShow, d => d.budgetAuthority || d.budgetAuthorityValue || 0);
+    const maxBudget = d3.max(dataToShow, d => d.totalResources || d.totalResourcesValue || 0);
     const sizeScale = d3.scaleSqrt()
         .domain([0, maxBudget])
         .range([5, 40]);
@@ -1117,7 +1119,7 @@ function initializeBubbleChart() {
     const simulation = d3.forceSimulation(dataToShow)
         .force('x', d3.forceX(d => xScale(d.percentageUnobligated || d.percentageValue || 0)).strength(1))
         .force('y', d3.forceY(height / 2).strength(0.1))
-        .force('collide', d3.forceCollide(d => sizeScale(d.budgetAuthority || d.budgetAuthorityValue || 0) + 2))
+        .force('collide', d3.forceCollide(d => sizeScale(d.totalResources || d.totalResourcesValue || 0) + 2))
         .stop();
     
     // Run simulation
@@ -1206,7 +1208,7 @@ function initializeBubbleChart() {
         .attr('class', 'bubble bubble-outer')
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
-        .attr('r', d => sizeScale(d.budgetAuthority || d.budgetAuthorityValue || 0))
+        .attr('r', d => sizeScale(d.totalResources || d.totalResourcesValue || 0))
         .attr('fill', d => {
             if (aggregationLevel === 'agency') {
                 return AGENCY_COLORS[d.name] || '#999999';
@@ -1224,7 +1226,7 @@ function initializeBubbleChart() {
         .attr('class', 'bubble-pattern')
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
-        .attr('r', d => sizeScale(d.budgetAuthority || d.budgetAuthorityValue || 0))
+        .attr('r', d => sizeScale(d.totalResources || d.totalResourcesValue || 0))
         .attr('fill', d => {
             let agencyName;
             if (aggregationLevel === 'agency') {
@@ -1253,8 +1255,8 @@ function initializeBubbleChart() {
                 // Agency-level data
                 tooltip.html(`
                     <strong>${d.name}</strong><br/>
-                    Budget Authority: ${formatCurrency(d.budgetAuthority)}<br/>
-                    Obligated: ${formatCurrency(d.budgetAuthority - d.unobligated)}<br/>
+                    Total Budgetary Resources: ${formatCurrency(d.totalResources)}<br/>
+                    Obligated: ${formatCurrency(d.totalResources - d.unobligated)}<br/>
                     Unobligated: ${formatCurrency(d.unobligated)}<br/>
                     % Unobligated: ${d.percentageUnobligated.toFixed(1)}%<br/>
                     Bureaus: ${d.bureauCount}<br/>
@@ -1267,8 +1269,8 @@ function initializeBubbleChart() {
                 tooltip.html(`
                     <strong>${d.name}</strong><br/>
                     Agency: ${d.agency}<br/>
-                    Budget Authority: ${formatCurrency(d.budgetAuthority)}<br/>
-                    Obligated: ${formatCurrency(d.budgetAuthority - d.unobligated)}<br/>
+                    Total Budgetary Resources: ${formatCurrency(d.totalResources)}<br/>
+                    Obligated: ${formatCurrency(d.totalResources - d.unobligated)}<br/>
                     Unobligated: ${formatCurrency(d.unobligated)}<br/>
                     % Unobligated: ${d.percentageUnobligated.toFixed(1)}%<br/>
                     Accounts: ${d.accountCount}<br/>
@@ -1277,13 +1279,13 @@ function initializeBubbleChart() {
                 `);
             } else {
                 // Account-level tooltip
-                const budget = d.budgetAuthorityValue || 0;
+                const budget = d.totalResourcesValue || 0;
                 const unobligated = d.unobligatedValue || 0;
                 tooltip.html(`
                     <strong>${bubbleLabel(d)}</strong><br/>
                     Agency: ${d.Agency || 'Unknown'}<br/>
                     Bureau: ${d.Bureau || 'Unknown'}<br/>
-                    Budget Authority: ${formatCurrency(budget)}<br/>
+                    Total Budgetary Resources: ${formatCurrency(budget)}<br/>
                     Obligated: ${formatCurrency(budget - unobligated)}<br/>
                     Unobligated: ${formatCurrency(unobligated)}<br/>
                     % Unobligated: ${(d.percentageValue || 0).toFixed(1)}%<br/>
@@ -1345,7 +1347,7 @@ function initializeBubbleChart() {
         .attr('y', -5)
         .attr('font-size', '11px')
         .attr('fill', '#666')
-        .text('Budget Authority');
+        .text('Total Budgetary Resources');
     
     const legendSizes = [10, 100, 1000];
     legendSizes.forEach((size, i) => {
@@ -1430,26 +1432,26 @@ function getFilteredAccountData(forBubbleChart = false) {
                     Period_of_Performance: 'All',
                     Expiration_Year: 'All',
                     TAFS: row.TAFS,
-                    budgetAuthorityValue: 0,
+                    totalResourcesValue: 0,
                     unobligatedValue: 0,
                     'Unobligated Balance (Line 2490)': '',
-                    'Budget Authority (Line 2500)': '',
+                    'Total Budgetary Resources (Line 2500)': '',
                     'Percentage Unobligated': '',
                     percentageValue: 0
                 });
             }
             
             const account = accountMap.get(key);
-            account.budgetAuthorityValue += row.budgetAuthorityValue;
+            account.totalResourcesValue += row.totalResourcesValue;
             account.unobligatedValue += row.unobligatedValue;
         });
         
         // Calculate percentages and format values
         return Array.from(accountMap.values()).map(account => {
-            account.percentageValue = account.budgetAuthorityValue > 0 ? 
-                (account.unobligatedValue / account.budgetAuthorityValue * 100) : 0;
+            account.percentageValue = account.totalResourcesValue > 0 ? 
+                (account.unobligatedValue / account.totalResourcesValue * 100) : 0;
             account['Unobligated Balance (Line 2490)'] = formatCurrency(account.unobligatedValue);
-            account['Budget Authority (Line 2500)'] = formatCurrency(account.budgetAuthorityValue);
+            account['Total Budgetary Resources (Line 2500)'] = formatCurrency(account.totalResourcesValue);
             account['Percentage Unobligated'] = account.percentageValue.toFixed(1) + '%';
             return account;
         });
@@ -1523,7 +1525,7 @@ function getFilteredAgencyData(forBubbleChart = false) {
                 name: agency,
                 period: forBubbleChart ? (periodFilter ? periodFilter.join(', ') : 'All') : period,
                 expiration: forBubbleChart ? (yearFilter ? yearFilter.join(', ') : 'All') : expiration,
-                budgetAuthority: 0,
+                totalResources: 0,
                 unobligated: 0,
                 accountCount: 0,
                 bureauCount: new Set()
@@ -1531,7 +1533,7 @@ function getFilteredAgencyData(forBubbleChart = false) {
         }
         
         const aggregateInfo = aggregateMap.get(key);
-        aggregateInfo.budgetAuthority += row.budgetAuthorityValue;
+        aggregateInfo.totalResources += row.totalResourcesValue;
         aggregateInfo.unobligated += row.unobligatedValue;
         aggregateInfo.accountCount += 1;
         if (row.Bureau) {
@@ -1543,8 +1545,8 @@ function getFilteredAgencyData(forBubbleChart = false) {
     return Array.from(aggregateMap.values()).map(aggregate => ({
         ...aggregate,
         bureauCount: aggregate.bureauCount.size,
-        percentageUnobligated: aggregate.budgetAuthority > 0 ? 
-            (aggregate.unobligated / aggregate.budgetAuthority * 100) : 0
+        percentageUnobligated: aggregate.totalResources > 0 ? 
+            (aggregate.unobligated / aggregate.totalResources * 100) : 0
     }));
 }
 
@@ -1615,14 +1617,14 @@ function getFilteredBureauData(forBubbleChart = false) {
                 name: bureau,
                 period: forBubbleChart ? (periodFilter ? periodFilter.join(', ') : 'All') : period,
                 expiration: forBubbleChart ? (yearFilter ? yearFilter.join(', ') : 'All') : expiration,
-                budgetAuthority: 0,
+                totalResources: 0,
                 unobligated: 0,
                 accountCount: 0
             });
         }
         
         const aggregateInfo = aggregateMap.get(key);
-        aggregateInfo.budgetAuthority += row.budgetAuthorityValue;
+        aggregateInfo.totalResources += row.totalResourcesValue;
         aggregateInfo.unobligated += row.unobligatedValue;
         aggregateInfo.accountCount += 1;
     });
@@ -1630,8 +1632,8 @@ function getFilteredBureauData(forBubbleChart = false) {
     // Convert to array and calculate percentages
     return Array.from(aggregateMap.values()).map(aggregate => ({
         ...aggregate,
-        percentageUnobligated: aggregate.budgetAuthority > 0 ? 
-            (aggregate.unobligated / aggregate.budgetAuthority * 100) : 0
+        percentageUnobligated: aggregate.totalResources > 0 ? 
+            (aggregate.unobligated / aggregate.totalResources * 100) : 0
     }));
 }
 
@@ -1653,10 +1655,10 @@ function showAggregatedTable(level) {
             Period_of_Performance: aggregate.period,
             Expiration_Year: aggregate.expiration,
             'Unobligated Balance (Line 2490)': formatCurrency(aggregate.unobligated),
-            'Budget Authority (Line 2500)': formatCurrency(aggregate.budgetAuthority),
+            'Total Budgetary Resources (Line 2500)': formatCurrency(aggregate.totalResources),
             'Percentage Unobligated': aggregate.percentageUnobligated.toFixed(1) + '%',
             unobligatedValue: aggregate.unobligated,
-            budgetAuthorityValue: aggregate.budgetAuthority,
+            totalResourcesValue: aggregate.totalResources,
             percentageValue: aggregate.percentageUnobligated,
             TAFS: ''
         }));
@@ -1673,10 +1675,10 @@ function showAggregatedTable(level) {
             Period_of_Performance: aggregate.period,
             Expiration_Year: aggregate.expiration,
             'Unobligated Balance (Line 2490)': formatCurrency(aggregate.unobligated),
-            'Budget Authority (Line 2500)': formatCurrency(aggregate.budgetAuthority),
+            'Total Budgetary Resources (Line 2500)': formatCurrency(aggregate.totalResources),
             'Percentage Unobligated': aggregate.percentageUnobligated.toFixed(1) + '%',
             unobligatedValue: aggregate.unobligated,
-            budgetAuthorityValue: aggregate.budgetAuthority,
+            totalResourcesValue: aggregate.totalResources,
             percentageValue: aggregate.percentageUnobligated,
             TAFS: ''
         }));
@@ -1728,7 +1730,7 @@ function tableToCSV() {
             'Period',
             'Expiration',
             'Unobligated (2490)',
-            'Budget Authority (2500)',
+            'Total Budgetary Resources (2500)',
             '% Unobligated'
         ];
     } else if (aggregationLevel === 'bureau') {
@@ -1739,7 +1741,7 @@ function tableToCSV() {
             'Period',
             'Expiration',
             'Unobligated (2490)',
-            'Budget Authority (2500)',
+            'Total Budgetary Resources (2500)',
             '% Unobligated'
         ];
     } else {
@@ -1751,7 +1753,7 @@ function tableToCSV() {
             'Period',
             'Expiration',
             'Unobligated (2490)',
-            'Budget Authority (2500)',
+            'Total Budgetary Resources (2500)',
             '% Unobligated'
         ];
     }
@@ -1768,7 +1770,7 @@ function tableToCSV() {
                 '"' + row.Period_of_Performance + '"',
                 '"' + row.Expiration_Year + '"',
                 row.unobligatedValue,
-                row.budgetAuthorityValue,
+                row.totalResourcesValue,
                 row.percentageValue.toFixed(1)
             ];
         } else if (aggregationLevel === 'bureau') {
@@ -1779,7 +1781,7 @@ function tableToCSV() {
                 '"' + row.Period_of_Performance + '"',
                 '"' + row.Expiration_Year + '"',
                 row.unobligatedValue,
-                row.budgetAuthorityValue,
+                row.totalResourcesValue,
                 row.percentageValue.toFixed(1)
             ];
         } else {
@@ -1791,7 +1793,7 @@ function tableToCSV() {
                 '"' + row.Period_of_Performance + '"',
                 '"' + row.Expiration_Year + '"',
                 row.unobligatedValue,
-                row.budgetAuthorityValue,
+                row.totalResourcesValue,
                 row.percentageValue.toFixed(1)
             ];
         }

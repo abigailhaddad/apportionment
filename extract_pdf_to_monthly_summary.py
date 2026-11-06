@@ -1,4 +1,10 @@
 #!/usr/bin/env python3
+# NOTE (2026-11-06): the column called "Budget Authority (Line 2500)" / Budget_Authority_M here
+# is SF 133 line 2500, total budgetary resources, not budget authority. The FY2018+ pipeline
+# (create_year_summaries.py) now writes "Total Budgetary Resources (Line 2500)". The FY2012-2017
+# files this script produces keep the old header, and the site and tests accept both names
+# (see summary_columns.py). Rename it here only together with those files.
+
 import pdfplumber
 import re
 import json

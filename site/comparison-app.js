@@ -128,10 +128,15 @@ async function loadYearData(fiscalYear, month = null) {
                 row.unobligatedValue = parseFloat(row['Unobligated Balance (Line 2490)'].replace(/[$,M]/g, ''));
             }
             
-            if (row.Budget_Authority_M !== undefined) {
-                row.budgetAuthorityValue = row.Budget_Authority_M;
+            // Line 2500 is total budgetary resources. The FY2012-2017 files still call it
+            // Budget Authority (Budget_Authority_M in JSON, a 'Budget Authority (Line 2500)' column in CSV).
+            if (row.Total_Budgetary_Resources_M !== undefined) {
+                row.totalResourcesValue = row.Total_Budgetary_Resources_M;
+            } else if (row.Budget_Authority_M !== undefined) {
+                row.totalResourcesValue = row.Budget_Authority_M;
             } else {
-                row.budgetAuthorityValue = parseFloat(row['Budget Authority (Line 2500)'].replace(/[$,M]/g, ''));
+                const raw = row['Total Budgetary Resources (Line 2500)'] ?? row['Budget Authority (Line 2500)'];
+                row.totalResourcesValue = parseFloat(raw.replace(/[$,M]/g, ''));
             }
             
             if (row.Percentage_Unobligated !== undefined) {
@@ -675,7 +680,7 @@ function getAggregatedData() {
                 fiscalYear: row.fiscalYear,
                 month: row.month,
                 ...displayData,
-                budgetAuthorityValue: 0,
+                totalResourcesValue: 0,
                 unobligatedValue: 0,
                 accountCount: 0,
                 uniqueAccounts: new Set(),
@@ -686,7 +691,7 @@ function getAggregatedData() {
         const aggregate = accountMap.get(baseKey);
         
         // Add values from the monthly summary (already aggregated)
-        aggregate.budgetAuthorityValue += row.budgetAuthorityValue || 0;
+        aggregate.totalResourcesValue += row.totalResourcesValue || 0;
         aggregate.unobligatedValue += row.unobligatedValue || 0;
         aggregate.accountCount += 1;
         
@@ -712,8 +717,8 @@ function getAggregatedData() {
         return {
             ...item,
             monthText: item.month || 'Unknown',
-            percentageValue: item.budgetAuthorityValue > 0 ? 
-                (item.unobligatedValue / item.budgetAuthorityValue * 100) : 0
+            percentageValue: item.totalResourcesValue > 0 ? 
+                (item.unobligatedValue / item.totalResourcesValue * 100) : 0
         };
     });
 }
@@ -722,7 +727,7 @@ function getAggregatedData() {
 function updateSummaryStats() {
     const aggregatedData = getAggregatedData();
     
-    const totalBudget = aggregatedData.reduce((sum, row) => sum + row.budgetAuthorityValue, 0);
+    const totalBudget = aggregatedData.reduce((sum, row) => sum + row.totalResourcesValue, 0);
     const totalUnobligated = aggregatedData.reduce((sum, row) => sum + row.unobligatedValue, 0);
     const overallPercentage = totalBudget > 0 ? (totalUnobligated / totalBudget * 100) : 0;
     
@@ -751,7 +756,7 @@ function initializeBubbleChart() {
     container.selectAll('*').remove();
     
     const aggregatedData = getAggregatedData();
-    const dataToShow = aggregatedData.filter(d => d.budgetAuthorityValue > 0);
+    const dataToShow = aggregatedData.filter(d => d.totalResourcesValue > 0);
     
     if (dataToShow.length === 0) {
         container.append('div')
@@ -772,7 +777,7 @@ function initializeBubbleChart() {
         .domain([0, 100])
         .range([0, width]);
     
-    const maxBudget = d3.max(dataToShow, d => d.budgetAuthorityValue);
+    const maxBudget = d3.max(dataToShow, d => d.totalResourcesValue);
     const sizeScale = d3.scaleSqrt()
         .domain([0, maxBudget])
         .range([3, 25]);
@@ -781,7 +786,7 @@ function initializeBubbleChart() {
     const simulation = d3.forceSimulation(dataToShow)
         .force('x', d3.forceX(d => xScale(d.percentageValue)).strength(1))
         .force('y', d3.forceY(height / 2).strength(0.1))
-        .force('collide', d3.forceCollide(d => sizeScale(d.budgetAuthorityValue) + 1))
+        .force('collide', d3.forceCollide(d => sizeScale(d.totalResourcesValue) + 1))
         .stop();
     
     // Run simulation
@@ -873,7 +878,7 @@ function initializeBubbleChart() {
         .attr('class', 'bubble bubble-solid')
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
-        .attr('r', d => sizeScale(d.budgetAuthorityValue))
+        .attr('r', d => sizeScale(d.totalResourcesValue))
         .attr('fill', d => getYearColor(d.fiscalYear))
         .attr('opacity', 0.8)
         .style('stroke', '#333')
@@ -884,7 +889,7 @@ function initializeBubbleChart() {
         .attr('class', 'bubble-pattern')
         .attr('cx', d => d.x)
         .attr('cy', d => d.y)
-        .attr('r', d => sizeScale(d.budgetAuthorityValue))
+        .attr('r', d => sizeScale(d.totalResourcesValue))
         .attr('fill', d => `url(#year-pattern-${d.fiscalYear})`)
         .style('pointer-events', 'all');
     
@@ -909,7 +914,7 @@ function initializeBubbleChart() {
                 <strong>Year:</strong> FY${d.fiscalYear} (${d.monthText || 'Sep'})<br/>
                 ${aggregationLevel !== 'agency' ? `<strong>Agency:</strong> ${d.Agency}<br/>` : ''}
                 ${aggregationLevel === 'individual' ? `<strong>Bureau:</strong> ${d.Bureau}<br/>` : ''}
-                <strong>Budget Authority:</strong> ${formatCurrency(d.budgetAuthorityValue)}<br/>
+                <strong>Total Budgetary Resources:</strong> ${formatCurrency(d.totalResourcesValue)}<br/>
                 <strong>Unobligated:</strong> ${formatCurrency(d.unobligatedValue)}<br/>
                 <strong>% Unobligated:</strong> ${formatPercentage(d.percentageValue)}<br/>
                 ${aggregationLevel !== 'individual' ? `<strong>Account Count:</strong> ${d.accountCount}` : ''}
@@ -959,7 +964,7 @@ function initializeDataTable() {
     const tableData = aggregatedData.map(row => ({
         ...row,
         'Unobligated Balance (Line 2490)': formatCurrency(row.unobligatedValue),
-        'Budget Authority (Line 2500)': formatCurrency(row.budgetAuthorityValue),
+        'Total Budgetary Resources (Line 2500)': formatCurrency(row.totalResourcesValue),
         'Percentage Unobligated': formatPercentage(row.percentageValue)
     }));
     
@@ -996,7 +1001,7 @@ function initializeDataTable() {
             { data: 'Account' },
             { data: 'Period_of_Performance' },
             { data: 'Unobligated Balance (Line 2490)', className: 'text-end' },
-            { data: 'Budget Authority (Line 2500)', className: 'text-end' },
+            { data: 'Total Budgetary Resources (Line 2500)', className: 'text-end' },
             { data: 'Percentage Unobligated', className: 'text-center' }
         ],
         pageLength: 25,
@@ -1144,7 +1149,7 @@ function downloadCSV() {
 }
 
 function convertToCSV(data) {
-    const headers = ['Month', 'Fiscal Year', 'Agency', 'Bureau', 'Account', 'Period', 'Budget Authority', 'Unobligated', '% Unobligated'];
+    const headers = ['Month', 'Fiscal Year', 'Agency', 'Bureau', 'Account', 'Period', 'Total Budgetary Resources', 'Unobligated', '% Unobligated'];
     const csvContent = [headers.join(',')];
     
     data.forEach(row => {
@@ -1155,7 +1160,7 @@ function convertToCSV(data) {
             `"${row.Bureau || ''}"`,
             `"${row.Account || ''}"`,
             `"${row.Period_of_Performance || ''}"`,
-            row.budgetAuthorityValue.toFixed(1),
+            row.totalResourcesValue.toFixed(1),
             row.unobligatedValue.toFixed(1),
             row.percentageValue.toFixed(1)
         ];
