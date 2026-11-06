@@ -1,49 +1,21 @@
 #!/usr/bin/env python3
 """
-Check that 2018-2025 data hasn't changed from our fixes
+Check the published FY2018-2025 summaries for the defects fixed in November 2026.
+
+This used to compare record counts with a list of expected values. Those values came
+from the faulty build, so a correct file would have failed. The checks now test the
+properties that were broken; see test_data_integrity.py.
 """
 
-import pandas as pd
+import sys
 
-print('=== CHECKING 2018-2025 DATA INTEGRITY ===')
-print('Comparing current record counts with expected values...')
-print()
+from test_data_integrity import test_data_integrity, years_on_disk
 
-# Expected values from our earlier analysis
-expected_counts = {
-    2018: 29988,
-    2019: 30164, 
-    2020: 29641,
-    2021: 32790,
-    2022: 32651,
-    2023: 9474,
-    2024: 9557,
-    2025: 8557
-}
-
-print('Year    Current   Expected  Difference  Status')
-print('-' * 50)
-
-all_good = True
-for year in sorted(expected_counts.keys()):
-    try:
-        df = pd.read_csv(f'site/data/all_agencies_obligation_summary_{year}.csv')
-        current = len(df)
-        expected = expected_counts[year]
-        diff = current - expected
-        status = 'SAME' if diff == 0 else f'CHANGED ({diff:+d})'
-        
-        if diff != 0:
-            all_good = False
-            
-        print(f'FY{year}   {current:>7,}   {expected:>8,}   {diff:>8}     {status}')
-    except Exception as e:
-        print(f'FY{year}   ERROR: {e}')
-        all_good = False
-
-print()
-if all_good:
-    print('✅ ALL GOOD: No changes to 2018-2025 data')
-else:
-    print('❌ CHANGES DETECTED: 2018-2025 data has been modified')
-    print('This suggests our fixes may have unintended side effects.')
+if __name__ == '__main__':
+    years = years_on_disk()
+    passing = test_data_integrity()
+    failed = sorted(set(years) - set(passing))
+    if failed or not years:
+        print(f'FAILED: {failed or "no years found"}')
+        sys.exit(1)
+    print('All years pass.')

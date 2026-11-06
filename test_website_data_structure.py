@@ -10,6 +10,8 @@ import glob
 import json
 from pathlib import Path
 
+from summary_columns import read_summary_csv, TBR, BA_TOTAL, FIRST_YEAR_WITH_LINE_1900
+
 def test_csv_structure():
     """Test that all CSV files have the correct structure and columns.
     Returns dict with passing years and monthly data."""
@@ -24,7 +26,7 @@ def test_csv_structure():
         'Expiration_Year',
         'TAFS',
         'Unobligated Balance (Line 2490)',
-        'Budget Authority (Line 2500)',
+        TBR,
         'Percentage Unobligated'
     ]
     
@@ -40,7 +42,7 @@ def test_csv_structure():
         'Expiration_Year',
         'TAFS',
         'Unobligated Balance (Line 2490)',
-        'Budget Authority (Line 2500)',
+        TBR,
         'Percentage Unobligated'
     ]
     
@@ -84,7 +86,7 @@ def test_csv_structure():
         
         try:
             # Read CSV
-            df = pd.read_csv(csv_file)
+            df = read_summary_csv(csv_file)
             
             # Check if file is empty
             if len(df) == 0:
@@ -95,6 +97,9 @@ def test_csv_structure():
             missing_cols = set(expected_columns) - set(df.columns)
             if missing_cols:
                 errors.append(f"{csv_file}: Missing columns: {missing_cols}")
+                continue
+            if year is not None and year >= FIRST_YEAR_WITH_LINE_1900 and BA_TOTAL not in df.columns:
+                errors.append(f"{csv_file}: Missing column: {BA_TOTAL}")
                 continue
                 
             # Check for minimum number of records
@@ -137,7 +142,7 @@ def test_csv_structure():
         
         try:
             # Read monthly CSV
-            df = pd.read_csv(monthly_file)
+            df = read_summary_csv(monthly_file)
             
             # Check if file is empty
             if len(df) == 0:
@@ -148,6 +153,9 @@ def test_csv_structure():
             missing_cols = set(expected_monthly_columns) - set(df.columns)
             if missing_cols:
                 errors.append(f"{monthly_file}: Missing columns: {missing_cols}")
+                continue
+            if year is not None and year >= FIRST_YEAR_WITH_LINE_1900 and BA_TOTAL not in df.columns:
+                errors.append(f"{monthly_file}: Missing column: {BA_TOTAL}")
                 continue
                 
             # Check for minimum number of records
@@ -223,20 +231,20 @@ def test_numerical_data():
     
     for csv_file in csv_files:
         try:
-            df = pd.read_csv(csv_file)
+            df = read_summary_csv(csv_file)
             
             if len(df) == 0:
                 continue
                 
-            # Test that Budget Authority values can be parsed (like JavaScript parseFloat)
-            if 'Budget Authority (Line 2500)' in df.columns:
-                ba_col = df['Budget Authority (Line 2500)'].str.replace(r'[\$,M]', '', regex=True)
+            # Test that Total Budgetary Resources values can be parsed (like JavaScript parseFloat)
+            if TBR in df.columns:
+                ba_col = df[TBR].str.replace(r'[\$,M]', '', regex=True)
                 ba_numeric = pd.to_numeric(ba_col, errors='coerce')
                 
                 # Check for unparseable values (would become NaN in JavaScript)
                 unparseable_ba = ba_numeric.isna()
                 if unparseable_ba.any():
-                    errors.append(f"{csv_file}: Found {unparseable_ba.sum()} unparseable Budget Authority values")
+                    errors.append(f"{csv_file}: Found {unparseable_ba.sum()} unparseable Total Budgetary Resources values")
             
             # Test that Unobligated Balance values can be parsed
             if 'Unobligated Balance (Line 2490)' in df.columns:
@@ -290,7 +298,7 @@ def test_required_fields():
     
     for csv_file in csv_files:
         try:
-            df = pd.read_csv(csv_file)
+            df = read_summary_csv(csv_file)
             
             if len(df) == 0:
                 continue
@@ -427,7 +435,7 @@ def test_data_consistency():
         # Don't fail, just warn
     
     try:
-        main_df = pd.read_csv(main_file)
+        main_df = read_summary_csv(main_file)
         
         # Basic sanity checks
         if len(main_df) < 1000:

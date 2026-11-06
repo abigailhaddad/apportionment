@@ -4,40 +4,46 @@ Parse SF133 files using Raw Data sheet instead of TAFS detail sheet.
 This should be more reliable and consistent across different file formats and years.
 """
 
+import hashlib
+import json
 import pandas as pd
 import numpy as np
 from pathlib import Path
 import warnings
 warnings.filterwarnings('ignore')
 
+from code.tieout import tie
+
+def clean_text_field(text):
+    """Clean corrupted characters (Excel's _x000D_ and stray line breaks) from a text field."""
+    if pd.isna(text):
+        return text
+    text_str = str(text)
+    text_str = text_str.replace('_x000D_\n', '').replace('_x000D_', '').replace('\r\n', ' ').replace('\r', ' ').replace('\n', ' ')
+    return ' '.join(text_str.split())
+
+
 def detect_file_units(file_path):
     """
-    Detect if a file uses thousands or dollars as units by checking the TAFS detail sheet.
-    Returns a multiplier: 1000 for thousands, 1 for dollars.
+    Detect whether a workbook reports thousands or dollars, from the header of the
+    TAFS detail sheet. Returns a multiplier: 1000 for thousands, 1 for dollars.
+
+    Raises if the header says neither. The old code assumed dollars in that case,
+    which would be wrong by a factor of 1,000 for a workbook in thousands.
     """
-    try:
-        # Check the TAFS detail sheet for unit indicators
-        df_tafs = pd.read_excel(file_path, sheet_name='TAFS detail', engine='openpyxl', nrows=5)
-        
-        # Convert all text to string and search for unit indicators
-        text_content = ' '.join([
-            str(val).lower() for row in df_tafs.values 
-            for val in row if pd.notna(val)
-        ])
-        
-        if 'thousand' in text_content:
-            print(f"  📊 UNITS: Detected 'thousands' - applying 1000x multiplier")
-            return 1000
-        elif 'dollar' in text_content:
-            print(f"  📊 UNITS: Detected 'dollars' - no multiplier needed")
-            return 1
-        else:
-            print(f"  ⚠️  UNITS: Could not detect units, assuming dollars")
-            return 1
-            
-    except Exception as e:
-        print(f"  ⚠️  UNITS: Error detecting units ({e}), assuming dollars")
+    df_tafs = pd.read_excel(file_path, sheet_name='TAFS detail', engine='openpyxl',
+                            header=None, nrows=8)
+    text_content = ' '.join(
+        str(val).lower() for val in df_tafs.values.ravel() if pd.notna(val)
+    )
+    if 'thousand' in text_content:
+        print(f"  UNITS: thousands, applying 1000x multiplier")
+        return 1000
+    if 'dollar' in text_content:
+        print(f"  UNITS: dollars, no multiplier needed")
         return 1
+    raise ValueError(f"Cannot tell the units of {Path(file_path).name}: "
+                     f"the TAFS detail header says neither 'thousands' nor 'dollars'")
 
 # Column mapping from Raw Data sheet to standardized month names
 RAW_DATA_COLUMN_MAPPING = {
@@ -95,79 +101,102 @@ TARGET_AGENCIES = [
     "Other Independent Agencies"
 ]
 
-def find_agency_from_raw_data(df):
-    """Find agency name from Raw Data sheet."""
-    if len(df) > 0 and 'AGENCY' in df.columns:
-        # Get the most common agency name (should be consistent across all rows)
-        agency_names = df['AGENCY'].dropna().unique()
-        if len(agency_names) > 0:
-            agency_name = agency_names[0]
-            
-            # Clean up and match against target agencies
-            agency_normalized = str(agency_name).replace('--', '-').lower()
-            for target_agency in TARGET_AGENCIES:
-                target_normalized = target_agency.lower()
-                if target_normalized in agency_normalized:
-                    return target_agency
-                # Handle special cases
-                if target_agency == "Department of Defense-Military" and "defense" in agency_normalized and ("military" in agency_normalized or "dod" in agency_normalized):
-                    return target_agency
-                if target_agency == "Corps of Engineers-Civil Works" and "corps of engineers" in agency_normalized and "civil" in agency_normalized:
-                    return target_agency
-                if target_agency == "Other Defense Civil Programs" and "other defense" in agency_normalized and "civil" in agency_normalized:
-                    return target_agency
-                    
-            # If no exact match, return the original name
-            return str(agency_name).strip()
-    
-    return "Unknown Agency"
+def normalize_agency(agency_name):
+    """Map one AGENCY value from a Raw Data row to its standard name.
+
+    Every row is labelled from its own AGENCY value. The workbook for Other
+    Independent Agencies holds about 100 agencies, so one label per workbook
+    (the old behavior) gave all of them the name of whichever came first.
+    """
+    agency_normalized = str(agency_name).replace('--', '-').lower()
+    for target_agency in TARGET_AGENCIES:
+        target_normalized = target_agency.lower()
+        if target_normalized in agency_normalized:
+            return target_agency
+        # Handle special cases
+        if target_agency == "Department of Defense-Military" and "defense" in agency_normalized and ("military" in agency_normalized or "dod" in agency_normalized):
+            return target_agency
+        if target_agency == "Corps of Engineers-Civil Works" and "corps of engineers" in agency_normalized and "civil" in agency_normalized:
+            return target_agency
+        if target_agency == "Other Defense Civil Programs" and "other defense" in agency_normalized and "civil" in agency_normalized:
+            return target_agency
+    # No match: keep the agency's own name
+    return ' '.join(str(agency_name).split())
 
 def parse_sf133_raw_data(file_path):
-    """Parse the Raw Data sheet from an SF 133 file."""
+    """Parse the Raw Data sheet from an SF 133 file.
+
+    Returns (df, info). df is None when the workbook is not used; info['status']
+    says why: 'ok', 'no_raw_data', 'empty', 'consolidated' or 'defc'.
+    info['content_hash'] is a hash of every cell in the Raw Data sheet, used to
+    drop exact duplicate downloads.
+    """
     print(f"Processing Raw Data: {file_path.name}")
-    
+    info = {'file': file_path.name, 'status': 'ok'}
+
     # Skip consolidated files that contain multiple agencies to avoid double-counting
     consolidated_files = ['2668331098.xlsx']  # Known consolidated file with multiple agencies
     if file_path.name in consolidated_files:
         print(f"  Skipping consolidated file to avoid double-counting agencies")
-        return None
-    
+        info['status'] = 'consolidated'
+        return None, info
+
+    # Old-format .xls files (the Ab_Sign_Rpt_* downloads) cannot be read by openpyxl and
+    # have no Raw Data sheet. The old code skipped them after an error message; say so.
+    if file_path.suffix.lower() == '.xls':
+        print(f"  Old .xls format, no Raw Data sheet: not used")
+        info['status'] = 'old_xls_format'
+        return None, info
+
+    xl_file = pd.ExcelFile(file_path, engine='openpyxl')
     try:
-        # Check if Raw Data sheet exists
-        xl_file = pd.ExcelFile(file_path, engine='openpyxl')
-        sheet_names = xl_file.sheet_names
-        
-        if 'Raw Data' not in sheet_names:
+        if 'Raw Data' not in xl_file.sheet_names:
             print(f"  No Raw Data sheet found")
-            xl_file.close()
-            return None
-        
-        # Detect units before reading Raw Data sheet
-        unit_multiplier = detect_file_units(file_path)
-        
+            info['status'] = 'no_raw_data'
+            return None, info
+
         # Read Raw Data sheet
-        df = pd.read_excel(file_path, sheet_name='Raw Data')
-        
-        if len(df) == 0:
-            print(f"  Raw Data sheet is empty")
-            xl_file.close()
-            return None
-        
-        print(f"  Raw data dimensions: {df.shape}")
-        
-        # Apply unit multiplier to numeric columns (amounts)
-        if unit_multiplier != 1:
-            numeric_columns = df.select_dtypes(include=[np.number]).columns
-            for col in numeric_columns:
-                # Skip metadata columns like LINENO, RPT_YR, etc.
-                if col not in ['LINENO', 'RPT_YR', 'TRAG', 'TRACCT', 'ALLOC', 'FY1', 'FY2', 'SECTION_NO', 'LINE_TYPE']:
-                    df[col] = df[col] * unit_multiplier
-            print(f"  📊 Applied {unit_multiplier}x multiplier to {len(numeric_columns)} numeric columns")
-        
-        # Find agency name
-        agency_name = find_agency_from_raw_data(df)
-        print(f"  Agency: {agency_name}")
-        
+        df = pd.read_excel(xl_file, sheet_name='Raw Data')
+    finally:
+        xl_file.close()
+
+    if len(df) == 0:
+        print(f"  Raw Data sheet is empty")
+        info['status'] = 'empty'
+        return None, info
+
+    info['input_rows'] = int(len(df))
+    info['content_hash'] = hashlib.md5(
+        pd.util.hash_pandas_object(df, index=False).values.tobytes()
+    ).hexdigest()
+
+    # DEFC workbooks are a separate cut of the same accounts by Disaster Emergency
+    # Funding Code. They repeat accounts that the agency workbooks already hold, so
+    # adding them double counts.
+    if 'DEFC' in df.columns:
+        print(f"  DEFC workbook: skipped, its accounts are in the agency workbooks")
+        info['status'] = 'defc'
+        return None, info
+
+    # Detect units (raises if the header says neither thousands nor dollars)
+    unit_multiplier = detect_file_units(file_path)
+    info['units'] = 'thousands' if unit_multiplier == 1000 else 'dollars'
+
+    if 'AGENCY' not in df.columns or df['AGENCY'].isna().any():
+        raise ValueError(f"{file_path.name}: every Raw Data row needs an AGENCY value")
+
+    print(f"  Raw data dimensions: {df.shape}")
+
+    # Apply unit multiplier to numeric columns (amounts)
+    if unit_multiplier != 1:
+        numeric_columns = df.select_dtypes(include=[np.number]).columns
+        for col in numeric_columns:
+            # Skip metadata columns like LINENO, RPT_YR, etc.
+            if col not in ['LINENO', 'RPT_YR', 'TRAG', 'TRACCT', 'ALLOC', 'FY1', 'FY2', 'SECTION_NO', 'LINE_TYPE']:
+                df[col] = df[col] * unit_multiplier
+        print(f"  Applied {unit_multiplier}x multiplier to {len(numeric_columns)} numeric columns")
+
+    try:
         # Rename columns according to our mapping
         columns_to_rename = {}
         available_month_columns = []
@@ -182,8 +211,14 @@ def parse_sf133_raw_data(file_path):
         
         print(f"  Available month columns: {available_month_columns}")
         
-        # Add metadata columns
-        df['Agency'] = agency_name
+        # Clean the text columns first so the same TAFS is spelled one way in every row
+        for col in ['TAFS', 'BUREAU', 'OMB_ACCT']:
+            if col in df.columns:
+                df[col] = df[col].map(clean_text_field)
+        
+        # Add metadata columns. Each row gets the name of its own agency.
+        agency_labels = {name: normalize_agency(name) for name in df['AGENCY'].unique()}
+        df['Agency'] = df['AGENCY'].map(agency_labels)
         df['Source_File'] = Path(file_path).name
         
         # Apply TAFS detail equivalent filtering
@@ -202,7 +237,9 @@ def parse_sf133_raw_data(file_path):
             
             # 3. Aggregate to match TAFS detail level: derive fiscal year info from TAFS for consistent grouping
             # Group by core fields that create unique TAFS entries for the website
-            grouping_cols = ['BUREAU', 'OMB_ACCT', 'LINENO']
+            # TAFS is part of the key. Without it, 69-0143 /X and the allocation account 69-69-0143 /X
+            # had the same derived keys, were summed into one row, and kept only the first name.
+            grouping_cols = ['Agency', 'BUREAU', 'OMB_ACCT', 'TAFS', 'LINENO']
             
             # Parse fiscal year components from TAFS to match FY1/FY2 exactly
             def parse_tafs_to_match_fy1_fy2(tafs):
@@ -457,23 +494,22 @@ def parse_sf133_raw_data(file_path):
                         empty_count = (df[col] == '').sum()
                         print(f"    {col} empty values: {empty_count:,} ({empty_count/len(df)*100:.1f}%)")
                 
-                # Filter out rows with NaN values in any grouping column
+                # Keep rows whose grouping columns have blanks. The old code dropped
+                # them without saying so; groupby(dropna=False) keeps them as their own group.
                 before_filter = len(df)
-                df_filtered = df.dropna(subset=grouping_cols)
+                df_filtered = df
                 after_filter = len(df_filtered)
-                
-                if after_filter < before_filter:
-                    print(f"    📉 Filtered out {before_filter - after_filter:,} rows with NaN values in grouping columns")
-                    print(f"    📊 Records after NaN filter: {after_filter:,}")
+                info['rows_with_blank_group_key'] = int(df[grouping_cols].isna().any(axis=1).sum())
+                if info['rows_with_blank_group_key']:
+                    print(f"    {info['rows_with_blank_group_key']:,} rows have a blank in a grouping column and are kept")
                 
                 # Show expected vs actual grouping behavior
-                unique_groups_before = df_filtered.groupby(grouping_cols).ngroups
+                unique_groups_before = df_filtered.groupby(grouping_cols, dropna=False).ngroups
                 print(f"    🎯 Expected output groups: {unique_groups_before:,}")
                 print(f"    📈 Aggregation ratio: {after_filter/unique_groups_before:.1f} records per group")
                 
                 if after_filter == 0:
-                    print(f"  ERROR: No rows remaining after filtering NaN values in grouping columns")
-                    return None
+                    raise ValueError(f"{file_path.name}: no rows left to aggregate")
                 
                 # Identify month columns to sum
                 month_cols = [col for col in df_filtered.columns if col in RAW_DATA_COLUMN_MAPPING.values()]
@@ -493,7 +529,7 @@ def parse_sf133_raw_data(file_path):
                 
                 # Group and aggregate
                 print(f"    🔄 Performing aggregation...")
-                df = df_filtered.groupby(grouping_cols, as_index=False).agg(agg_dict)
+                df = df_filtered.groupby(grouping_cols, as_index=False, dropna=False).agg(agg_dict)
                 print(f"    ✅ AGGREGATION COMPLETE:")
                 print(f"      📊 Output records: {len(df):,}")
                 print(f"      📉 Compression ratio: {after_filter/len(df):.1f}:1 (input:output)")
@@ -516,12 +552,74 @@ def parse_sf133_raw_data(file_path):
         else:
             print(f"  Warning: No LINENO column found")
         
-        xl_file.close()
-        return df
-        
+        info['output_rows'] = int(len(df))
+        info['agencies'] = sorted(df['Agency'].unique())
+        return df, info
+
     except Exception as e:
-        print(f"  Error processing {file_path}: {str(e)}")
-        return None
+        # Fail loudly. The old code printed the error and skipped the workbook.
+        raise RuntimeError(f"{file_path.name}: {e}") from e
+
+def select_workbooks(parsed):
+    """Choose which parsed workbooks to keep.
+
+    `parsed` is a list of (file_path, df, info) in file-name order. A workbook is
+    dropped when it is a DEFC cut, has no Raw Data sheet, is empty, or is an exact
+    duplicate (identical content hash) of one already kept. Two workbooks that cover
+    the same agencies with the same row count but different contents stop the run:
+    someone has to decide which one is right.
+
+    Returns (kept, report) where kept is a list of (file_path, df, info).
+    """
+    kept, report = [], {'kept': [], 'dropped_duplicate': [], 'dropped_defc': [], 'dropped_other': []}
+    by_hash = {}
+    by_shape = {}
+    for path, df, info in parsed:
+        status = info['status']
+        if status == 'defc':
+            report['dropped_defc'].append(path.name)
+            continue
+        if status != 'ok':
+            report['dropped_other'].append({'file': path.name, 'reason': status})
+            continue
+        h = info['content_hash']
+        if h in by_hash:
+            report['dropped_duplicate'].append({'file': path.name, 'same_as': by_hash[h]})
+            print(f"  {path.name} is an exact duplicate of {by_hash[h]}: dropped")
+            continue
+        shape = (tuple(info['agencies']), info['input_rows'])
+        if shape in by_shape:
+            raise ValueError(
+                f"{path.name} and {by_shape[shape]} cover the same agencies with the same number "
+                f"of rows but their contents differ. Decide which one to use and remove the other.")
+        by_hash[h] = path.name
+        by_shape[shape] = path.name
+        kept.append((path, df, info))
+        report['kept'].append({'file': path.name, 'input_rows': info['input_rows'],
+                               'output_rows': info['output_rows'], 'units': info['units'],
+                               'agencies': len(info['agencies']),
+                               'content_hash': h,
+                               'rows_with_blank_group_key': info.get('rows_with_blank_group_key', 0)})
+    return kept, report
+
+
+def check_combined(combined_df):
+    """Stop the run if the combined table has the problems the old pipeline had."""
+    problems = []
+    # A TAFS belongs to one agency in a year.
+    per_tafs = combined_df.groupby('TAFS')['Agency'].nunique()
+    multi = per_tafs[per_tafs > 1]
+    if len(multi):
+        problems.append(f"{len(multi)} TAFS appear under more than one agency, e.g. {list(multi.index[:3])}")
+    # No two rows may share a full key.
+    key = ['Agency', 'BUREAU', 'OMB_ACCT', 'TAFS', 'LINENO', 'DERIVED_FY1', 'DERIVED_FY2', 'DERIVED_ALLOC', 'TRACCT', 'TRAG']
+    key = [c for c in key if c in combined_df.columns]
+    dup = combined_df.duplicated(subset=key, keep=False).sum()
+    if dup:
+        problems.append(f"{dup} rows share a key with another row, so workbooks overlap")
+    if problems:
+        raise ValueError("Data checks failed: " + "; ".join(problems))
+
 
 def parse_all_sf133_raw_data(source_dir='raw_data/august'):
     """Process all SF 133 files using Raw Data sheets."""
@@ -532,43 +630,44 @@ def parse_all_sf133_raw_data(source_dir='raw_data/august'):
     output_data_dir.mkdir(exist_ok=True)
     
     # Get all Excel files
-    excel_files = list(sf133_dir.glob('*.xlsx')) + list(sf133_dir.glob('*.xls'))
+    excel_files = sorted(list(sf133_dir.glob('*.xlsx')) + list(sf133_dir.glob('*.xls')))
     print(f"Found {len(excel_files)} Excel files to process\n")
     
-    # Process each file
-    all_data = []
-    successful_files = 0
-    agencies_processed = set()
-    
+    # Parse each file. An error in any workbook stops the run.
+    parsed = []
     for file_path in excel_files:
-        try:
-            df = parse_sf133_raw_data(file_path)
-            if df is not None and len(df) > 0:
-                all_data.append(df)
-                successful_files += 1
-                agencies_processed.add(df['Agency'].iloc[0])
-                print(f"  Success: {len(df)} rows")
-            else:
-                print(f"  Skipping - no data extracted")
-        except Exception as e:
-            print(f"  Error processing {file_path.name}: {str(e)}")
+        df, info = parse_sf133_raw_data(file_path)
+        parsed.append((file_path, df, info))
         print()
+    
+    kept, report = select_workbooks(parsed)
+    
+    # Tie every kept workbook's Raw Data sums to its own Agency Total pivot sheet
+    tie_by_file = {}
+    for path, df, info in kept:
+        summary, bad, _ = tie(path)
+        tie_by_file[path.name] = {k: summary[k] for k in
+                                  ('compared', 'mismatches', 'only_pivot', 'only_raw_nonzero',
+                                   'n_agencies_raw', 'n_agencies_pivot')}
+        if summary['mismatches'] or summary['n_agencies_raw'] != summary['n_agencies_pivot']:
+            raise ValueError(f"{path.name}: Raw Data does not tie to the Agency Total pivot "
+                             f"({summary['mismatches']} differing cells, "
+                             f"{summary['n_agencies_raw']} agencies in Raw Data vs "
+                             f"{summary['n_agencies_pivot']} in the pivot)")
+        print(f"  {path.name}: ties to the pivot ({summary['compared']:,} cells compared)")
+    for entry in report['kept']:
+        entry['tieout'] = tie_by_file[entry['file']]
+    
+    agencies_processed = set()
+    all_data = []
+    for path, df, info in kept:
+        all_data.append(df)
+        agencies_processed.update(df['Agency'].unique())
+    successful_files = len(kept)
     
     # Combine all data
     if all_data:
         combined_df = pd.concat(all_data, ignore_index=True)
-        
-        # Clean corrupted characters from text fields
-        def clean_text_field(text):
-            """Clean corrupted characters from text fields."""
-            if pd.isna(text):
-                return text
-            text_str = str(text)
-            # Remove various forms of corrupted line endings and special characters
-            text_str = text_str.replace('_x000D_\n', '').replace('_x000D_', '').replace('\r\n', ' ').replace('\r', ' ').replace('\n', ' ')
-            # Clean up multiple spaces
-            text_str = ' '.join(text_str.split())
-            return text_str
         
         # Apply cleaning to all text columns that might contain corrupted data
         text_columns = ['TAFS', 'BUREAU', 'AGENCY_TITLE', 'BUREAU_TITLE', 'OMB_ACCOUNT', 'LINE_DESC']
@@ -576,18 +675,25 @@ def parse_all_sf133_raw_data(source_dir='raw_data/august'):
             if col in combined_df.columns:
                 combined_df[col] = combined_df[col].apply(clean_text_field)
         
+        check_combined(combined_df)
+        
         # Save the master table
         output_path = Path('site/data/sf133_raw_data_master.csv')
         output_path.parent.mkdir(parents=True, exist_ok=True)
         combined_df.to_csv(output_path, index=False)
         
+        # Save which workbooks were used and which were dropped, and why
+        report['source_dir'] = str(sf133_dir)
+        report['rows'] = int(len(combined_df))
+        report['agencies'] = len(agencies_processed)
+        with open(Path('site/data/sf133_selection_report.json'), 'w') as f:
+            json.dump(report, f, indent=1)
+        
         print(f"\n=== RAW DATA PROCESSING SUMMARY ===")
-        print(f"Successfully processed: {successful_files} files")
+        print(f"Workbooks used: {successful_files}")
+        print(f"Dropped as exact duplicates: {len(report['dropped_duplicate'])}")
+        print(f"Dropped as DEFC cuts: {len(report['dropped_defc'])}")
         print(f"Total agencies: {len(agencies_processed)}")
-        print(f"Agencies found:")
-        for agency in sorted(agencies_processed):
-            count = len(combined_df[combined_df['Agency'] == agency])
-            print(f"  - {agency} ({count:,} rows)")
         print(f"\nTotal rows: {len(combined_df):,}")
         print(f"Raw data master table saved to: {output_path}")
         

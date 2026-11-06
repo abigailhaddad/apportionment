@@ -10,6 +10,8 @@ import json
 import sys
 from pathlib import Path
 
+from code.summary_lines import merge_lines
+
 def find_all_months_with_data(df):
     """Find all months with data in the dataframe."""
     # Define month order (fiscal year: Oct -> Sep)
@@ -148,38 +150,26 @@ def create_monthly_summaries(master_file_path, fiscal_year):
         # Process standard agencies (non-OIA)
         standard_agencies = df[df['Agency'] != 'Other Independent Agencies'].copy()
         if len(standard_agencies) > 0:
-            # Filter for lines 2490 and 2500
-            line_2490 = standard_agencies[standard_agencies['LINENO'] == 2490.0].copy()
-            line_2500 = standard_agencies[standard_agencies['LINENO'] == 2500.0].copy()
+            # Lines 2490 (unobligated balance), 2500 (total budgetary resources), 1900 (budget authority)
+            merged = merge_lines(standard_agencies, month)
+            print(f"  Accounts with lines 2490 and 2500: {len(merged)}")
             
-            print(f"  Standard agencies - Line 2490: {len(line_2490)} accounts")
-            print(f"  Standard agencies - Line 2500: {len(line_2500)} accounts")
-            
-            # Merge on TAFS
-            if len(line_2490) > 0 and len(line_2500) > 0:
-                merged = pd.merge(
-                    line_2490[['Agency', 'BUREAU', 'TAFS', month]],
-                    line_2500[['Agency', 'TAFS', month]], 
-                    on=['Agency', 'TAFS'], 
-                    suffixes=('_2490', '_2500')
-                )
-                
-                print(f"  After merge: {len(merged)} accounts")
-                
+            if len(merged) > 0:
                 # Process each row
                 for _, row in merged.iterrows():
                     try:
-                        unob = float(row[f'{month}_2490']) / 1_000_000
-                        ba = float(row[f'{month}_2500']) / 1_000_000
+                        unob = float(row['unob']) / 1_000_000
+                        tbr = float(row['tbr']) / 1_000_000
+                        ba_total = float(row['ba_total']) / 1_000_000 if pd.notna(row['ba_total']) else None
                         
                         # Skip if both values are zero or very small
-                        if abs(unob) < 0.001 and abs(ba) < 0.001:
+                        if abs(unob) < 0.001 and abs(tbr) < 0.001:
                             continue
                         
-                        if ba == 0:
+                        if tbr == 0:
                             pct = 0.0 if unob == 0 else 100.0
                         else:
-                            pct = (unob / ba * 100)
+                            pct = (unob / tbr * 100)
                         
                         # Parse TAFS components
                         account_num, period_of_perf, expiration_year = parse_tafs_components(
@@ -202,12 +192,13 @@ def create_monthly_summaries(master_file_path, fiscal_year):
                             'Expiration_Year': expiration_year,
                             'TAFS': row['TAFS'],
                             'Unobligated_Balance_M': round(unob, 1),
-                            'Budget_Authority_M': round(ba, 1),
+                            'Total_Budgetary_Resources_M': round(tbr, 1),
+                            'Budget_Authority_Total_M': round(ba_total, 1) if ba_total is not None else None,
                             'Percentage_Unobligated': round(pct, 1)
                         })
                     except Exception as e:
                         print(f"    ERROR processing {row['Agency']} - {row['TAFS']}: {e}")
-                        continue
+                        raise
         
         # Process Other Independent Agencies separately (if any)
         oia = df[df['Agency'] == 'Other Independent Agencies'].copy()
@@ -222,20 +213,22 @@ def create_monthly_summaries(master_file_path, fiscal_year):
         
         summary_df = pd.DataFrame(summary_data)
         
-        # Sort by Agency and Budget Authority
-        summary_df = summary_df.sort_values(['Agency', 'Budget_Authority_M'], ascending=[True, False])
+        # Sort by Agency and Total Budgetary Resources
+        summary_df = summary_df.sort_values(['Agency', 'Total_Budgetary_Resources_M'], ascending=[True, False])
         
         # Create formatted output
         output_df = summary_df.copy()
         output_df['Unobligated Balance (Line 2490)'] = output_df['Unobligated_Balance_M'].apply(lambda x: f'${x:,.1f}M' if pd.notna(x) and not np.isinf(x) else '')
-        output_df['Budget Authority (Line 2500)'] = output_df['Budget_Authority_M'].apply(lambda x: f'${x:,.1f}M' if pd.notna(x) and not np.isinf(x) else '')
+        output_df['Total Budgetary Resources (Line 2500)'] = output_df['Total_Budgetary_Resources_M'].apply(lambda x: f'${x:,.1f}M' if pd.notna(x) and not np.isinf(x) else '')
+        output_df['Budget Authority Total (Line 1900)'] = output_df['Budget_Authority_Total_M'].apply(lambda x: f'${x:,.1f}M' if pd.notna(x) and not np.isinf(x) else '')
         output_df['Percentage Unobligated'] = output_df['Percentage_Unobligated'].apply(lambda x: f'{x:.1f}%' if pd.notna(x) and not np.isinf(x) else '')
         
         # Select columns for final output
         final_df = output_df[['Month', 'Fiscal_Year', 'Agency', 'Bureau', 'Account', 'Account_Number', 
                              'Period_of_Performance', 'Expiration_Year', 'TAFS',
                              'Unobligated Balance (Line 2490)', 
-                             'Budget Authority (Line 2500)', 'Percentage Unobligated']]
+                             'Total Budgetary Resources (Line 2500)',
+                             'Budget Authority Total (Line 1900)', 'Percentage Unobligated']]
         
         # Save monthly CSV output
         output_filename = f'all_agencies_monthly_summary_{fiscal_year}_{month}.csv'
@@ -247,13 +240,13 @@ def create_monthly_summaries(master_file_path, fiscal_year):
         
         # Print month summary statistics
         total_unob = summary_df['Unobligated_Balance_M'].sum()
-        total_ba = summary_df['Budget_Authority_M'].sum()
-        total_pct = (total_unob / total_ba * 100) if total_ba > 0 else 0
+        total_tbr = summary_df['Total_Budgetary_Resources_M'].sum()
+        total_pct = (total_unob / total_tbr * 100) if total_tbr > 0 else 0
         
         print(f"  📊 {month} {fiscal_year} totals:")
         print(f"    Accounts: {len(summary_df):,}")
         print(f"    Unobligated: ${total_unob:,.1f}M")
-        print(f"    Budget Authority: ${total_ba:,.1f}M")
+        print(f"    Total budgetary resources: ${total_tbr:,.1f}M")
         print(f"    Percentage: {total_pct:.1f}%")
     
     # Create combined monthly file for all months

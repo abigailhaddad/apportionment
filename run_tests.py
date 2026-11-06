@@ -12,6 +12,8 @@ import sys
 from pathlib import Path
 from datetime import datetime
 
+from summary_columns import read_summary_csv, TBR
+
 # Expected agencies list
 EXPECTED_AGENCIES = [
     "Legislative Branch",
@@ -92,7 +94,7 @@ def test_year_data_completeness():
         year_passed = True
         
         try:
-            df = pd.read_csv(csv_path)
+            df = read_summary_csv(csv_path)
             
             # Check agency coverage
             agencies_found = set(df['Agency'].unique())
@@ -175,7 +177,7 @@ def test_csv_summary_files():
     
     for csv_file in csv_files:
         try:
-            df = pd.read_csv(csv_file)
+            df = read_summary_csv(csv_file)
             
             # Basic validation
             if len(df) == 0:
@@ -210,7 +212,7 @@ def test_csv_summary_files():
         print(f"✅ Checking {len(monthly_files)} monthly summary files for invalid values...")
         for csv_file in monthly_files[:5]:  # Check first 5 to avoid too much output
             try:
-                df = pd.read_csv(csv_file, nrows=1000)  # Sample first 1000 rows
+                df = read_summary_csv(csv_file, nrows=1000)  # Sample first 1000 rows
                 
                 # Check for invalid formatted values (nanM, nan%)
                 for col in df.columns:
@@ -240,7 +242,7 @@ def test_data_consistency():
         return False
     
     try:
-        df = pd.read_csv(main_file)
+        df = read_summary_csv(main_file)
         
         # Check for reasonable number of records
         if len(df) < 1000:
@@ -254,15 +256,15 @@ def test_data_consistency():
             return False
         
         # Check for numeric data
-        if 'Budget Authority (Line 2500)' in df.columns:
+        if TBR in df.columns:
             # Try to parse a few values
-            sample_values = df['Budget Authority (Line 2500)'].head(10)
+            sample_values = df[TBR].head(10)
             for val in sample_values:
                 if pd.isna(val):
                     continue
                 # Should be in format like "$1,234.5M"
                 if not isinstance(val, str) or not val.startswith('$'):
-                    print(f"❌ ERROR: Budget Authority format issue: {val}")
+                    print(f"❌ ERROR: Total Budgetary Resources format issue: {val}")
                     return False
         
         print(f"✅ Main summary: {len(df)} records, {unique_agencies} agencies")
@@ -283,12 +285,12 @@ def test_data_reasonableness():
         return False
     
     try:
-        df = pd.read_csv(main_file)
+        df = read_summary_csv(main_file)
         
         # Test budget authority and unobligated balance values
-        if 'Budget Authority (Line 2500)' in df.columns:
+        if TBR in df.columns:
             # Parse currency values like "$1,234.5M"
-            ba_values = df['Budget Authority (Line 2500)'].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float)
+            ba_values = df[TBR].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float)
             unob_values = df['Unobligated Balance (Line 2490)'].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float)
             
             # Check for reasonable totals (should be in trillions)
@@ -296,10 +298,10 @@ def test_data_reasonableness():
             total_unob = unob_values.sum() / 1000
             
             if total_ba < 1000 or total_ba > 50000:  # $1T to $50T reasonable range
-                print(f"❌ Total Budget Authority seems unreasonable: ${total_ba:.1f}B")
+                print(f"❌ Total budgetary resources seem unreasonable: ${total_ba:.1f}B")
                 return False
             else:
-                print(f"✅ Total Budget Authority: ${total_ba:,.1f}B")
+                print(f"✅ Total budgetary resources: ${total_ba:,.1f}B")
             
             # Check percentage calculations
             if 'Percentage Unobligated' in df.columns:
@@ -334,7 +336,7 @@ def test_cross_year_consistency():
                 year = int(year_str)
                 years.append(year)
                 try:
-                    year_data[year] = pd.read_csv(csv_file)
+                    year_data[year] = read_summary_csv(csv_file)
                 except Exception as e:
                     print(f"❌ Failed to load FY{year} data: {e}")
                     return False
@@ -365,8 +367,8 @@ def test_cross_year_consistency():
         prev_year, curr_year = years[i], years[i + 1]
         
         # Get total budget authority for each year
-        prev_ba = year_data[prev_year]['Budget Authority (Line 2500)'].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float).sum()
-        curr_ba = year_data[curr_year]['Budget Authority (Line 2500)'].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float).sum()
+        prev_ba = year_data[prev_year][TBR].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float).sum()
+        curr_ba = year_data[curr_year][TBR].str.replace('$', '').str.replace(',', '').str.replace('M', '').astype(float).sum()
         
         if prev_ba > 0:
             change_pct = ((curr_ba - prev_ba) / prev_ba) * 100
