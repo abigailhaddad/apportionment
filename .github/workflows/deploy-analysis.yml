@@ -1,0 +1,47 @@
+name: Deploy analysis page to Cloudflare Pages
+
+# The "September Unobligated Spending Analysis" page is rendered by Quarto from
+# index.qmd into docs/ and committed. This publishes docs/ to the Cloudflare Pages
+# project below whenever it changes on main. It does not touch the year-button site
+# (that one is deployed by test-and-deploy.yml, from the prod branch, to Netlify).
+#
+# Secrets: CLOUDFLARE_API_TOKEN (Account > Cloudflare Pages > Edit) and
+# CLOUDFLARE_ACCOUNT_ID. Without both, the run builds nothing and says so.
+# Variable (optional): CLOUDFLARE_PROJECT_ANALYSIS, default apportionment-analysis.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - ".github/workflows/deploy-analysis.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: analysis-deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      HAS_CF: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ACCOUNT_ID != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Skip when the Cloudflare secrets are not set
+        if: ${{ env.HAS_CF != 'true' }}
+        run: echo "::notice::CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID is not set, so docs/ was not deployed."
+
+      - name: Deploy docs/ to Cloudflare Pages
+        if: ${{ env.HAS_CF == 'true' }}
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          wranglerVersion: "4.42.0"
+          command: pages deploy docs --project-name=${{ vars.CLOUDFLARE_PROJECT_ANALYSIS || 'apportionment-analysis' }} --branch=main --commit-dirty=true
