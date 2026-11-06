@@ -2,6 +2,32 @@
 
 Automated system for processing complete fiscal years of federal agency budget execution data using SF133 reports. Downloads all agency files for entire fiscal years from MAX.gov, processes using reliable Raw Data sheets, and generates comprehensive datasets spanning 2018-2025.
 
+## Data corrected on 2026-11-06
+
+Until this date the summaries for fiscal years 2018 through 2025 had four errors. They are fixed, and `test_data_integrity.py` now fails if any of them comes back. FY2012–2017 come from a different parser. They were not rebuilt and not audited.
+
+1. **Wrong agency names.** Each workbook was labelled with the first agency in it. The Other Independent Agencies workbook holds about 100 agencies, so all their accounts carried one name ("Access Board" in FY2018–2019, "400 Years of African-American History Commission" from FY2020). Other multi-agency workbooks had the same problem. Every row now carries its own agency's name, so the summaries list about 120 agencies, not 29.
+2. **Repeated accounts.** The pipeline read every file in the folder. That included exact duplicate downloads (FY2018–2022) and the DEFC workbooks, which are a second cut of accounts the agency workbooks already hold. Some accounts appeared several times, and some under two agencies.
+3. **Accounts added together.** An allocation account such as `69-69-0143` shared its grouping keys with its parent `69-0143`. The pipeline summed them into one row that kept the parent's name. The row's amounts were larger than the parent's own, and the allocation account disappeared.
+4. **A mislabelled column.** "Budget Authority (Line 2500)" is line 2500, total budgetary resources: unobligated balance brought forward plus budget authority plus recoveries and other resources. Budget authority is line 1900, which an account reports only when it has new budget authority. Both now have columns of their own: `Total Budgetary Resources (Line 2500)` and `Budget Authority Total (Line 1900)`. The FY2012–2017 files still use the old header for line 2500. The values are the same line.
+
+What changed, by year (before the fix → after):
+
+| Fiscal year | Rows before → after | Accounts before → after | Old rows with the wrong agency | Total unobligated ($B) before → after | Total budgetary resources ($B) before → after |
+|---|---|---|---|---|---|
+| FY2018 | 29,988 → 7,497 | 7,497 → 7,497 | 2,480 (8%) | 5,274 → 1,318 | 29,843 → 7,461 |
+| FY2019 | 30,164 → 7,541 | 7,541 → 7,541 | 2,480 (8%) | 5,404 → 1,351 | 31,273 → 7,818 |
+| FY2020 | 29,641 → 7,824 | 7,824 → 7,824 | 1,037 (3%) | 12,631 → 2,875 | 54,012 → 12,261 |
+| FY2021 | 32,790 → 8,006 | 8,006 → 8,006 | 3,155 (10%) | 10,729 → 2,420 | 55,986 → 12,932 |
+| FY2022 | 32,651 → 8,203 | 8,203 → 8,203 | 3,404 (10%) | 10,244 → 2,469 | 47,481 → 11,629 |
+| FY2023 | 9,474 → 8,350 | 8,350 → 8,350 | 1,472 (16%) | 3,013 → 2,644 | 13,504 → 11,977 |
+| FY2024 | 9,557 → 8,528 | 8,528 → 8,528 | 1,622 (17%) | 2,984 → 2,616 | 12,757 → 12,032 |
+| FY2025 | 9,757 → 8,693 | 8,652 → 8,693 | 1,647 (17%) | 3,368 → 2,971 | 12,717 → 13,271 |
+
+"Rows with the wrong agency" counts old rows whose agency differs from the one the account has in the corrected data. Totals are for the latest month in each year.
+
+Each corrected year is checked three ways: every workbook's Raw Data sheet must tie to the workbook's own Agency Total pivot sheet, every corrected year was compared account by account against an independent rebuild from the same workbooks (no difference in lines 2490, 2500 or 1900; that rebuild is not part of this repository), and the published files are tested for repeated accounts, accounts under two agencies and old column names. `site/data/selection_report_<year>.json` lists which workbooks were used and which were dropped, and why.
+
 ## 🚀 Quick Start
 
 ### Process Complete Fiscal Year
@@ -54,8 +80,10 @@ pip install -r requirements.txt
 3. **`code/parse_sf133_raw_data.py`** - Raw Data sheet parser
    - Uses Raw Data sheets instead of TAFS detail (better cross-year compatibility)
    - Standardized column mapping (AMT_JUL → Jul, AMT3 → Jun (3Q), etc.)
-   - Handles consolidated files to prevent double-counting
-   - Preserves exact financial accuracy
+   - Labels every row with its own agency, and keeps TAFS in the grouping key
+   - Uses one workbook per agency per year: skips DEFC workbooks and exact duplicate downloads, and stops if two workbooks overlap
+   - Ties every workbook's Raw Data to its Agency Total pivot sheet and stops on a difference
+   - Writes `selection_report_<year>.json` with what it used and dropped
 
 4. **`create_year_summaries.py`** - Summary file generator
    - Creates obligation summaries from master datasets
@@ -101,6 +129,7 @@ LINENO           →    LINENO
 ### Key SF133 Line Numbers
 - **Line 1000**: Unobligated Balance brought forward
 - **Line 2490**: Unobligated Balance, end of period  
+- **Line 1900**: Budget authority total (discretionary and mandatory)
 - **Line 2500**: Total budgetary resources
 - **Line 3020**: Outlays (gross)
 - **Line 4110**: Outlays (total)
@@ -127,7 +156,7 @@ python validate_years.py
 
 The system generates an interactive website showing:
 - **Multi-Year Comparison**: Budget trends across fiscal years
-- **Bubble Chart**: Budget authority vs. unobligated percentages
+- **Bubble Chart**: Total budgetary resources vs. unobligated percentages
 - **Agency/Bureau Filtering** 
 - **Expiration Year Analysis**
 - **Month-by-Month Progression**
@@ -154,22 +183,29 @@ python main.py --serve
 - **Agency Coverage**: Validates against FY2025 baseline (25+ agencies expected)
 - **Month Completeness**: Auto-detects available months, requires September for historical years
 - **TAFS Coverage**: Validates account coverage against baseline year
-- **Financial Totals**: Checks for reasonable budget authority and unobligated balances
+- **Financial Totals**: Checks for reasonable total budgetary resources and unobligated balances
+- **Integrity** (`test_data_integrity.py`, FY2018+): no repeated accounts, no account under two agencies, no old column names, and every workbook tied to its pivot
 
 ## 📁 File Structure
 ```
 ├── main.py                       # Main entry point and router
 ├── create_year_summaries.py      # Summary file generator
 ├── validate_years.py             # Year coverage validator  
+├── test_data_integrity.py        # Duplicate, label and column-name checks
+├── check_data_integrity.py       # Runs test_data_integrity.py by itself
+├── summary_columns.py            # Column names, and a reader that accepts the old line 2500 header
 ├── sf133_urls.json              # MAX.gov URL configuration
 ├── code/
 │   ├── year_processor.py         # Year-based processing engine
 │   ├── parse_sf133_raw_data.py   # Raw Data sheet parser
+│   ├── summary_lines.py          # Lines 2490, 2500 and 1900 for the summaries
+│   ├── tieout.py                 # Ties Raw Data to the Agency Total pivot
 │   ├── download_sf133_data.py    # Data downloader
 │   └── serve.py                 # Development web server
 ├── site/
 │   ├── data/                    # Processed data (CSV/JSON)
 │   │   ├── sf133_YYYY_master.csv # Year-specific master files
+│   │   ├── selection_report_YYYY.json # Workbooks used, dropped and tied out
 │   │   └── summary_YYYY.json     # Year metadata and analysis
 │   └── index.html              # Web interface
 ├── raw_data/

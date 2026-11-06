@@ -35,21 +35,21 @@ def analyze_september_years():
     
     for file_path in sep_files:
         year = int(file_path.split('_')[-2])
-        df = pd.read_csv(file_path)
+        df = pd.read_csv(file_path).rename(columns={'Budget Authority (Line 2500)': 'Total Budgetary Resources (Line 2500)'})
         
         # Filter to accounts expiring in that year (like website does)
         df_filtered = df[df['Expiration_Year'] == str(year)].copy()
         
         # Clean monetary columns
         df_filtered['Unobligated_Balance_Clean'] = df_filtered['Unobligated Balance (Line 2490)'].apply(clean_monetary_value)
-        df_filtered['Budget_Authority_Clean'] = df_filtered['Budget Authority (Line 2500)'].apply(clean_monetary_value)
+        df_filtered['Total_Resources_Clean'] = df_filtered['Total Budgetary Resources (Line 2500)'].apply(clean_monetary_value)
         
         # Calculate totals
         total_unobligated = df_filtered['Unobligated_Balance_Clean'].sum()
-        total_budget_authority = df_filtered['Budget_Authority_Clean'].sum()
+        total_resources = df_filtered['Total_Resources_Clean'].sum()
         
-        if total_budget_authority > 0:
-            percent_unobligated = (total_unobligated / total_budget_authority) * 100
+        if total_resources > 0:
+            percent_unobligated = (total_unobligated / total_resources) * 100
         else:
             percent_unobligated = 0
         
@@ -66,7 +66,7 @@ def get_outliers_and_notable(df_2025, level_name, groupby_cols, min_budget):
     # Build aggregation
     agg_dict = {
         'Unobligated_Balance_Clean': 'sum',
-        'Budget_Authority_Clean': 'sum'
+        'Total_Resources_Clean': 'sum'
     }
     if 'Account' not in groupby_cols:
         agg_dict['Account'] = 'count'
@@ -75,13 +75,13 @@ def get_outliers_and_notable(df_2025, level_name, groupby_cols, min_budget):
     
     # Calculate percentage
     summary['Percent_Unobligated'] = np.where(
-        summary['Budget_Authority_Clean'] > 0,
-        (summary['Unobligated_Balance_Clean'] / summary['Budget_Authority_Clean']) * 100,
+        summary['Total_Resources_Clean'] > 0,
+        (summary['Unobligated_Balance_Clean'] / summary['Total_Resources_Clean']) * 100,
         0
     )
     
     # Filter by budget
-    summary = summary[summary['Budget_Authority_Clean'] >= min_budget].copy()
+    summary = summary[summary['Total_Resources_Clean'] >= min_budget].copy()
     
     if len(summary) == 0:
         return pd.DataFrame(), pd.DataFrame()
@@ -122,12 +122,12 @@ def get_outliers_and_notable(df_2025, level_name, groupby_cols, min_budget):
         for file_path in sep_files:
             year = int(file_path.split('_')[-2])
             if year >= 2018 and year <= 2024:  # Only historical years
-                df_hist = pd.read_csv(file_path)
+                df_hist = pd.read_csv(file_path).rename(columns={'Budget Authority (Line 2500)': 'Total Budgetary Resources (Line 2500)'})
                 df_hist_filtered = df_hist[df_hist['Expiration_Year'] == str(year)].copy()
                 
                 # Clean monetary columns
                 df_hist_filtered['Unobligated_Balance_Clean'] = df_hist_filtered['Unobligated Balance (Line 2490)'].apply(clean_monetary_value)
-                df_hist_filtered['Budget_Authority_Clean'] = df_hist_filtered['Budget Authority (Line 2500)'].apply(clean_monetary_value)
+                df_hist_filtered['Total_Resources_Clean'] = df_hist_filtered['Total Budgetary Resources (Line 2500)'].apply(clean_monetary_value)
                 
                 # Filter to this specific entity
                 entity_filter = True
@@ -138,7 +138,7 @@ def get_outliers_and_notable(df_2025, level_name, groupby_cols, min_budget):
                 
                 if len(entity_data) > 0:
                     total_unobligated = entity_data['Unobligated_Balance_Clean'].sum()
-                    total_budget = entity_data['Budget_Authority_Clean'].sum()
+                    total_budget = entity_data['Total_Resources_Clean'].sum()
                     if total_budget > 0:
                         pct = (total_unobligated / total_budget) * 100
                         # Debug: ensure we're getting positive percentages
@@ -197,8 +197,8 @@ def get_outliers_and_notable(df_2025, level_name, groupby_cols, min_budget):
         if len(df) == 0:
             return pd.DataFrame()
         
-        result = df[['Entity', 'Percent_Unobligated', 'Historical_Avg', 'Historical_High', 'Missing_Years', 'Budget_Authority_Clean', 'Z_Score']].copy()
-        result['Budget_Billions'] = result['Budget_Authority_Clean'] / 1000
+        result = df[['Entity', 'Percent_Unobligated', 'Historical_Avg', 'Historical_High', 'Missing_Years', 'Total_Resources_Clean', 'Z_Score']].copy()
+        result['Resources_Billions'] = result['Total_Resources_Clean'] / 1000
         result['Percent_Unobligated'] = result['Percent_Unobligated'].round(1)
         
         # Handle historical averages with asterisks for missing years
@@ -213,14 +213,14 @@ def get_outliers_and_notable(df_2025, level_name, groupby_cols, min_budget):
             else f"{row['Historical_High']:.1f}", axis=1)
         
         result['Z_Score'] = result['Z_Score'].round(2)
-        result['Budget_Billions'] = result['Budget_Billions'].round(1)
+        result['Resources_Billions'] = result['Resources_Billions'].round(1)
         
         result = result.rename(columns={
             'Entity': level_name,
             'Percent_Unobligated': '% Unobligated 2025',
             'Historical_Avg_Display': '2018-2024 Avg (%)',
             'Historical_High_Display': 'Previous High (%)',
-            'Budget_Billions': 'Budget ($B)',
+            'Resources_Billions': 'Total resources ($B)',
             'Z_Score': 'Z-Score'
         })
         
@@ -232,7 +232,7 @@ def get_outliers_and_notable(df_2025, level_name, groupby_cols, min_budget):
         # Set the entity name as index to remove index numbers
         result = result.set_index(level_name)
         
-        return result[['% Unobligated 2025', '2018-2024 Avg (%)', 'Previous High (%)', 'Budget ($B)', 'Z-Score']]
+        return result[['% Unobligated 2025', '2018-2024 Avg (%)', 'Previous High (%)', 'Total resources ($B)', 'Z-Score']]
     
     return format_results(outliers), format_results(notable)
 
@@ -247,12 +247,12 @@ historical_data = {
 }
 
 # Read 2025 data for outlier analysis
-df_2025 = pd.read_csv('site/data/all_agencies_monthly_summary_2025_Sep.csv')
+df_2025 = pd.read_csv('site/data/all_agencies_monthly_summary_2025_Sep.csv').rename(columns={'Budget Authority (Line 2500)': 'Total Budgetary Resources (Line 2500)'})
 df_2025_filtered = df_2025[df_2025['Expiration_Year'] == '2025'].copy()
 
 # Clean monetary columns
 df_2025_filtered['Unobligated_Balance_Clean'] = df_2025_filtered['Unobligated Balance (Line 2490)'].apply(clean_monetary_value)
-df_2025_filtered['Budget_Authority_Clean'] = df_2025_filtered['Budget Authority (Line 2500)'].apply(clean_monetary_value)
+df_2025_filtered['Total_Resources_Clean'] = df_2025_filtered['Total Budgetary Resources (Line 2500)'].apply(clean_monetary_value)
 
 # Get outlier analysis for all levels
 agency_outliers, agency_notable = get_outliers_and_notable(df_2025_filtered, 'Agency', ['Agency'], 100)

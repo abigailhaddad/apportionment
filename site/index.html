@@ -602,6 +602,11 @@
         <p class="subtitle">Federal Budget Execution Report</p>
         <p class="text-muted" style="font-size: 0.9rem; margin-top: -5px;"><span id="data-update-text">Loading data...</span></p>
         
+        <!-- Data correction notice -->
+        <div class="alert alert-warning" style="margin-bottom: 20px; font-size: 0.9rem;">
+            <strong>Data corrected on 2026-11-06.</strong> Earlier versions of fiscal years 2018&ndash;2025 gave some accounts the wrong agency, counted some accounts more than once, and called total budgetary resources &ldquo;budget authority.&rdquo; Numbers you saved before this date may differ. <a href="methodology.html#data-corrected" class="alert-link">What changed</a>.
+        </div>
+        
         <!-- Data Structure Note -->
         <div class="alert alert-info" style="margin-bottom: 20px; font-size: 0.9rem;">
             <strong>Note:</strong> Data for fiscal years 2013-2017 has a different aggregation structure with fewer account-level breakdowns compared to other years. This reflects the original SF133 reporting format for those years.
@@ -624,7 +629,7 @@
             <div class="row">
                 <div class="col-md-3 stat-box">
                     <div class="stat-value" id="totalBudget">Loading...</div>
-                    <div class="stat-label">Total Budget Authority</div>
+                    <div class="stat-label">Total Budgetary Resources</div>
                 </div>
                 <div class="col-md-3 stat-box">
                     <div class="stat-value" id="totalUnobligated">Loading...</div>
@@ -701,8 +706,8 @@
         </div>
         
         <div class="treemap-container">
-            <h2 class="treemap-title" id="bubbleChartTitle">Budget Authority vs. Unobligated Balance</h2>
-            <p style="margin-top: -10px; margin-bottom: 15px; color: #666; font-size: 0.9rem;">Bubble size = Budget Authority</p>
+            <h2 class="treemap-title" id="bubbleChartTitle">Total Budgetary Resources vs. Unobligated Balance</h2>
+            <p style="margin-top: -10px; margin-bottom: 15px; color: #666; font-size: 0.9rem;">Bubble size = Total Budgetary Resources</p>
             <div id="bubble-chart"></div>
         </div>
         
@@ -723,7 +728,7 @@
                         <th>Period</th>
                         <th>Expiration</th>
                         <th>Unobligated (2490)</th>
-                        <th>Budget Authority (2500)</th>
+                        <th>Total Budgetary Resources (2500)</th>
                         <th>% Unobligated</th>
                     </tr>
                 </thead>
