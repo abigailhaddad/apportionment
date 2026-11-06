@@ -1,0 +1,58 @@
+{
+  "fiscal_year": 2019,
+  "is_current_year": false,
+  "available_months": [
+    "Nov",
+    "Dec",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep"
+  ],
+  "missing_months": [
+    "Oct",
+    "Jan",
+    "Feb"
+  ],
+  "quarter_mapping": {
+    "Q1": [
+      "Oct",
+      "Nov",
+      "Dec"
+    ],
+    "Q2": [
+      "Jan",
+      "Feb",
+      "Mar"
+    ],
+    "Q3": [
+      "Apr",
+      "May",
+      "Jun"
+    ],
+    "Q4": [
+      "Jul",
+      "Aug",
+      "Sep"
+    ]
+  },
+  "quarter_data": {},
+  "total_agencies": 123,
+  "total_rows": 236754,
+  "processed_date": "2026-11-06T08:44:13.218043",
+  "data_file": "sf133_2019_master.csv",
+  "validation_passed": true,
+  "tafs_coverage": {
+    "validation_passed": true,
+    "has_coverage_issues": true,
+    "overall_coverage_percent": 0,
+    "baseline_total_accounts": 0,
+    "current_total_accounts": 7977,
+    "agency_coverage": {},
+    "agencies_below_threshold": [],
+    "threshold_percent": 80.0
+  }
+}

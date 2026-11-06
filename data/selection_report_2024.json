@@ -1,0 +1,562 @@
+{
+ "kept": [
+  {
+   "file": "2438300606.xlsx",
+   "input_rows": 9881,
+   "output_rows": 9350,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "f29cf7effa05a8bb527b54054a52b9c1",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2233,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300607.xlsx",
+   "input_rows": 8819,
+   "output_rows": 8405,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "6dc29150b37d35d658ce53b9fd6c6392",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2145,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300608.xlsx",
+   "input_rows": 1809,
+   "output_rows": 1744,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "edf6a94be3a9dcbb6b2265c8a9cddf6d",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1375,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300609.xlsx",
+   "input_rows": 13120,
+   "output_rows": 11270,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "f27da04a0cc677c9435e92da25784dcf",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2233,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300611.xlsx",
+   "input_rows": 11937,
+   "output_rows": 10470,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "6dca42bcfb154d6485ba88d446911b05",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2013,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300612.xlsx",
+   "input_rows": 9100,
+   "output_rows": 8759,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "c72e21c27739e91f0d18b25a272ec4e6",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1683,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300613.xlsx",
+   "input_rows": 9571,
+   "output_rows": 9453,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "b6e854e698dddc11a98cebb24e50beee",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1694,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300614.xlsx",
+   "input_rows": 20041,
+   "output_rows": 16295,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "5388efb5f877756ef234ff5a56c0c7f7",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2090,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300615.xlsx",
+   "input_rows": 39658,
+   "output_rows": 38282,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "994f442b54f70a49ceb061b52ace8e10",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2277,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300616.xlsx",
+   "input_rows": 36736,
+   "output_rows": 36184,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "0eb3635cb4a9745e35a75091b6b0e06a",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2189,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300617.xlsx",
+   "input_rows": 9729,
+   "output_rows": 8007,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "cc046e4f68a7162bb2b0d873b8bec7e4",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2288,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300618.xlsx",
+   "input_rows": 32508,
+   "output_rows": 30377,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "04da01859b1b364bff76340cc0806be0",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2519,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300619.xlsx",
+   "input_rows": 2468,
+   "output_rows": 2468,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "2a3a5a17af3abdfcded0ff1e8c5e9c0e",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1166,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300620.xlsx",
+   "input_rows": 11361,
+   "output_rows": 11361,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "e18b74bc0190646e19ca3b84e85cef71",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1375,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300621.xlsx",
+   "input_rows": 27672,
+   "output_rows": 25467,
+   "units": "dollars",
+   "agencies": 98,
+   "content_hash": "402b4bf57f36caf7bacfded6f8cc12f0",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 68552,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 98,
+    "n_agencies_pivot": 98
+   }
+  },
+  {
+   "file": "2438300622.xlsx",
+   "input_rows": 1944,
+   "output_rows": 1940,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "974e8cda80e254aa250b75d1fea629f0",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1144,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300623.xlsx",
+   "input_rows": 1999,
+   "output_rows": 1999,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "e85a31351a79e5ff8e8239f8b6f37f16",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1386,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300624.xlsx",
+   "input_rows": 1537,
+   "output_rows": 1530,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "78e9b7d3b2429312f49825f97c62e0ff",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1111,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300625.xlsx",
+   "input_rows": 20044,
+   "output_rows": 17812,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "58cda89624cd91df20df5cbbb80ea963",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2134,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300626.xlsx",
+   "input_rows": 5076,
+   "output_rows": 5063,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "33204818468def348c50bb9b6e096c77",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1254,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300627.xlsx",
+   "input_rows": 13989,
+   "output_rows": 9555,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "cca67bdc21cb24ddffe3a8d746c7d646",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2167,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300628.xlsx",
+   "input_rows": 7409,
+   "output_rows": 2195,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "74341d9e4cc757375c1d41124ccc9b90",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1837,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300629.xlsx",
+   "input_rows": 1737,
+   "output_rows": 1645,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "e87f0992e0f171defe27157439f12b22",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1386,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300630.xlsx",
+   "input_rows": 4218,
+   "output_rows": 4173,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "7969aeddd4b4df2d7c19ba8b23657283",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1067,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300631.xlsx",
+   "input_rows": 18164,
+   "output_rows": 10392,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "15b2e328c824eb219e6d38ad8662fe69",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2145,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300632.xlsx",
+   "input_rows": 22991,
+   "output_rows": 22360,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "d83dfd737278b0784fc81ccf1c8b8c6e",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2288,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300633.xlsx",
+   "input_rows": 2838,
+   "output_rows": 2784,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "f599f8db3dc80f395e60dfe4e8e225fe",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1276,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300634.xlsx",
+   "input_rows": 18884,
+   "output_rows": 15392,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "bd3b4277aa828733997ddd3e0b48f467",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 2222,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "2438300635.xlsx",
+   "input_rows": 3179,
+   "output_rows": 2908,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "2c185b73be510dcc88f8b11dffdc0894",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1914,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  }
+ ],
+ "dropped_duplicate": [],
+ "dropped_defc": [
+  "2566521234.xlsx"
+ ],
+ "dropped_other": [
+  {
+   "file": "2454160352.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "2454160373.xlsx",
+   "reason": "no_raw_data"
+  },
+  {
+   "file": "2454160374.xlsx",
+   "reason": "no_raw_data"
+  },
+  {
+   "file": "2454160375.xlsx",
+   "reason": "no_raw_data"
+  },
+  {
+   "file": "2454160376.xlsx",
+   "reason": "no_raw_data"
+  },
+  {
+   "file": "2454160377.xlsx",
+   "reason": "no_raw_data"
+  },
+  {
+   "file": "2454160378.xlsx",
+   "reason": "no_raw_data"
+  },
+  {
+   "file": "2454160379.xlsx",
+   "reason": "no_raw_data"
+  },
+  {
+   "file": "2454160380.xlsx",
+   "reason": "no_raw_data"
+  },
+  {
+   "file": "2498463819.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "2544076529.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "2550433951.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "2558201438.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "2566521315.xls",
+   "reason": "old_xls_format"
+  }
+ ],
+ "source_dir": "raw_data/2024",
+ "rows": 327640,
+ "agencies": 126
+}
