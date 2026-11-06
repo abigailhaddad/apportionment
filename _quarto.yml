@@ -8,8 +8,8 @@ website:
     left:
       - href: index.qmd
         text: Home
-      - href: analysis.qmd
-        text: Analysis
+      - href: https://apportionment.abigailhaddad.com
+        text: Interactive site
 
 format:
   html:

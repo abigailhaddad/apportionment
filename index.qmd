@@ -260,6 +260,29 @@ bureau_outliers, bureau_notable = get_outliers_and_notable(df_2025_filtered, 'Bu
 account_outliers, account_notable = get_outliers_and_notable(df_2025_filtered, 'Account', ['Agency', 'Bureau', 'Account'], 10)
 ```
 
+::: {.callout-warning}
+## Data corrected on 2026-11-06
+
+Earlier versions of the FY2018 to FY2025 data had four errors. Each workbook's accounts were labelled with the first agency in it. Duplicate downloads and the DEFC workbooks repeated accounts. Allocation accounts were added into their parents. And total budgetary resources (line 2500) was called "budget authority". All four are fixed, and this page was rebuilt from the corrected data.
+
+On this page the yearly percentages barely moved, by at most 0.06 percentage points (2025: 1.24% before, 1.18% now), because the repeated rows inflated the unobligated balance and the resources together. The agency, bureau and account lists changed more. Before the fix, Military Personnel and Military Construction accounts were listed under Homeland Security, and the 2025 account outlier list had 20 entries, not the 13 it has now.
+
+Total budgetary resources, in billions of dollars, before and after:
+
+| Fiscal year | Before | After |
+|---|---|---|
+| 2018 | 29,843 | 7,461 |
+| 2019 | 31,273 | 7,818 |
+| 2020 | 54,012 | 12,261 |
+| 2021 | 55,986 | 12,932 |
+| 2022 | 47,481 | 11,629 |
+| 2023 | 13,504 | 11,977 |
+| 2024 | 12,757 | 12,032 |
+| 2025 | 12,717 | 13,271 |
+
+Totals are for the latest month in each year. The full list of what changed is in the [README](https://github.com/abigailhaddad/apportionment#data-corrected-on-2026-11-06), and the [interactive site](https://apportionment.abigailhaddad.com) carries the same notice.
+:::
+
 ## Year-over-Year Analysis (2018-2025)
 
 September data for accounts expiring in each respective year.
@@ -276,6 +299,8 @@ fig.show()
 ```
 
 ## 2025 Outlier Analysis
+
+An entity's unobligated share is its September balance (line 2490) divided by its total budgetary resources (line 2500), for accounts that expire in that year. It is an outlier when its share is high against the others that year (z-score above 0, false discovery rate of 5%). Entities with resources below $100M (agencies), $50M (bureaus) or $10M (accounts) are left out. The "Higher Than Average" lists are the top candidates that sit above their own 2018 to 2024 average, or have no history.
 
 ```{python}
 print(f"Historical Context:")
