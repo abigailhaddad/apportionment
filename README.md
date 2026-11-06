@@ -2,6 +2,13 @@
 
 Automated system for processing complete fiscal years of federal agency budget execution data using SF133 reports. Downloads all agency files for entire fiscal years from MAX.gov, processes using reliable Raw Data sheets, and generates comprehensive datasets spanning 2018-2025.
 
+## Where the pages live
+
+- **Interactive site** (year buttons): https://apportionment.abigailhaddad.com, deployed from the `prod` branch by `test-and-deploy.yml`.
+- **Analysis page** (the Quarto page in `docs/`, rendered from `index.qmd`): https://apportionment-analysis.pages.dev, on Cloudflare Pages. `deploy-analysis.yml` publishes `docs/` there whenever it changes on `main`. It needs the repo secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. It used to be served by GitHub Pages.
+
+To change the analysis page: edit `index.qmd`, run `quarto render index.qmd`, and commit `docs/`.
+
 ## Data corrected on 2026-11-06
 
 Until this date the summaries for fiscal years 2018 through 2025 had four errors. They are fixed, and `test_data_integrity.py` now fails if any of them comes back. FY2012–2017 come from a different parser. They were not rebuilt and not audited.
