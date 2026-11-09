@@ -132,9 +132,9 @@ def generate_obligation_summary(master_table_path, fiscal_year=None, month=None)
         month_col = None
         month_order = ['Aug', 'Jul', 'Jun', 'May', 'Apr', 'Mar', 'Feb', 'Jan', 'Dec', 'Nov', 'Oct', 'Sep']
         
-        for month in month_order:
+        for month_abbr in month_order:
             for col in standard_agencies.columns:
-                if month in col and col != f'{month} AMT':  # Avoid OIA columns
+                if month_abbr in col and col != f'{month_abbr} AMT':  # Avoid OIA columns
                     month_col = col
                     break
             if month_col:
@@ -211,8 +211,8 @@ def generate_obligation_summary(master_table_path, fiscal_year=None, month=None)
         
         # Find the AMT column for OIA (Aug AMT, Jul AMT, etc.)
         amt_col = None
-        for month in month_order:
-            test_col = f'{month} AMT'
+        for month_abbr in month_order:
+            test_col = f'{month_abbr} AMT'
             if test_col in oia.columns:
                 amt_col = test_col
                 break
