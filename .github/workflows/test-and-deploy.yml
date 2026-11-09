@@ -92,6 +92,16 @@ jobs:
             csv_file.unlink()
             print(f'Removed: {csv_file.name}')
         
+        # Remove year-specific JSON files (all_agencies_summary_YYYY.json, summary_YYYY.json)
+        # for years that are not approved. The copytree above copied them, and the *.json
+        # copy below only adds files, so without this they would be deployed.
+        import re
+        for json_file in data_dir.glob('*.json'):
+            m = re.fullmatch(r'(?:all_agencies_)?summary_(\d{4})\.json', json_file.name)
+            if m and int(m.group(1)) not in approved_years:
+                json_file.unlink()
+                print(f'Removed (year not approved): {json_file.name}')
+        
         # Copy only approved year CSV files
         for year in approved_years:
             src_file = Path(f'site/data/all_agencies_obligation_summary_{year}.csv')
@@ -122,6 +132,9 @@ jobs:
         # Copy other important files
         for file_pattern in ['all_agencies_obligation_summary.csv', 'fiscal_year_metadata.json', '*.json']:
             for src_file in Path('site/data').glob(file_pattern):
+                ym = re.fullmatch(r'(?:all_agencies_)?summary_(\d{4})\.json', src_file.name)
+                if ym and int(ym.group(1)) not in approved_years:
+                    continue
                 if not src_file.name.startswith('all_agencies_obligation_summary_') and not src_file.name.startswith('all_agencies_monthly_summary_'):
                     dst_file = data_dir / src_file.name
                     shutil.copy2(src_file, dst_file)
