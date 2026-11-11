@@ -1,0 +1,671 @@
+{
+ "kept": [
+  {
+   "file": "FY2020_SF133_Corps_of_Engineers_Civil_Works.xlsx",
+   "input_rows": 1771,
+   "output_rows": 1770,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "b419fc5e2dc65bd545ea7c6b3b462eb7",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 812,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 376,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_Agriculture.xlsx",
+   "input_rows": 29365,
+   "output_rows": 26129,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "6b3f1261cde1fcba3eff773497bf683d",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1561,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 701,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_Commerce.xlsx",
+   "input_rows": 8733,
+   "output_rows": 7049,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "8079bb8a3ce37d99f821f4f5eda987b4",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1372,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 641,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_Defense_Military.xlsx",
+   "input_rows": 35416,
+   "output_rows": 33561,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "ea9b4747520f87411a29e859b3a34f29",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1351,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 607,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_Education.xlsx",
+   "input_rows": 8604,
+   "output_rows": 7737,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "4d7e8eca955567cc78f67c709475a2d4",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1372,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 605,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_Energy.xlsx",
+   "input_rows": 6692,
+   "output_rows": 6379,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "6547cb31d2901420a9e4cd47d411f534",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1393,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 601,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_Health_and_Human_Services.xlsx",
+   "input_rows": 36535,
+   "output_rows": 34535,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "2b5618b01d60c71a96e76b184e645f5d",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1386,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 610,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_Homeland_Security.xlsx",
+   "input_rows": 21331,
+   "output_rows": 20483,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "8c5345bf37245eee8936dbe40a5bb4af",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1372,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 640,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_Housing_and_Urban_Development.xlsx",
+   "input_rows": 16814,
+   "output_rows": 10931,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "4342fda198a4618471376ad642d0b012",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1379,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 611,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_Justice.xlsx",
+   "input_rows": 9103,
+   "output_rows": 8948,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "8bd854e4d4f26421b32db6b755371bd7",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1001,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 469,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_Labor.xlsx",
+   "input_rows": 9203,
+   "output_rows": 8273,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "c27de28d8ec36afedbfa820b4bc31af3",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1036,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 474,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_State.xlsx",
+   "input_rows": 10497,
+   "output_rows": 9119,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "3c717f311e29816d60301c6305b49dc9",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1267,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 553,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_Transportation.xlsx",
+   "input_rows": 17141,
+   "output_rows": 13299,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "cebb039f3470d09f1028dabac605d7fc",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1442,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 649,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_Veterans_Affairs.xlsx",
+   "input_rows": 12303,
+   "output_rows": 8240,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "a4b2c92086339f53bb7e7b67d18c8d1a",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1337,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 617,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_the_Interior.xlsx",
+   "input_rows": 16777,
+   "output_rows": 13748,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "b91d912b9736fe62b741dec7440d5c80",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1323,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 571,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Department_of_the_Treasury.xlsx",
+   "input_rows": 12165,
+   "output_rows": 10083,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "47ab3a166e06318b90479bcad488852d",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1351,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 614,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Environmental_Protection_Agency.xlsx",
+   "input_rows": 2579,
+   "output_rows": 2455,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "b3ccb76b377a7766066cf5363125afda",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1162,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 503,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Executive_Office_of_the_President.xlsx",
+   "input_rows": 3820,
+   "output_rows": 3806,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "4b21c8ce169a71aab73b7f1c1078b905",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 735,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 325,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_General_Services_Administration.xlsx",
+   "input_rows": 2602,
+   "output_rows": 2508,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "78c2046da057d700f40ba3ea3f192a7a",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 833,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 361,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_International_Assistance_Programs.xlsx",
+   "input_rows": 21894,
+   "output_rows": 18733,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "b6e2f942cea15e015a41b1edf4ddda20",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1491,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 636,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Judicial_Branch.xlsx",
+   "input_rows": 2463,
+   "output_rows": 2463,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "25d0046b3d0f52904fa1d677a97f9644",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 735,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 183,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Legislative_Branch.xlsx",
+   "input_rows": 10894,
+   "output_rows": 10892,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "2a688203759aefa6ae56f1c6deaf8992",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 875,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 323,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_National_Aeronautics_and_Space_Administration.xlsx",
+   "input_rows": 4231,
+   "output_rows": 4092,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "53cde1bf65e75d492c47744ef4b12165",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1089,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Office_of_Personnel_Management.xlsx",
+   "input_rows": 1400,
+   "output_rows": 1276,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "f41efd0541b724886d74cbffeb7e0276",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1243,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Other_Defense_Civil_Programs.xlsx",
+   "input_rows": 1677,
+   "output_rows": 1623,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "d1d31b57ba55706f5560604ec778e482",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1243,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Small_Business_Administration.xlsx",
+   "input_rows": 7045,
+   "output_rows": 1936,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "8680f2f340f606e851e8593645eba233",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1782,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Social_Security_Administration.xlsx",
+   "input_rows": 1782,
+   "output_rows": 1651,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "e54e1cf680432fd711b6f9da16cbc12f",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 1397,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 0,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_National_Science_Foundation.xlsx",
+   "input_rows": 1915,
+   "output_rows": 1873,
+   "units": "dollars",
+   "agencies": 1,
+   "content_hash": "51afaf1ba74e71ded41aa28b7ee6bcd8",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 679,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 300,
+    "n_agencies_raw": 1,
+    "n_agencies_pivot": 1
+   }
+  },
+  {
+   "file": "FY2020_SF133_Other_Independent_Agencies.xlsx",
+   "input_rows": 25369,
+   "output_rows": 22659,
+   "units": "dollars",
+   "agencies": 97,
+   "content_hash": "4c1ff5014d13f03c52fdf5b426a655fc",
+   "rows_with_blank_group_key": 0,
+   "tieout": {
+    "compared": 40796,
+    "mismatches": 0,
+    "only_pivot": 0,
+    "only_raw_nonzero": 17026,
+    "n_agencies_raw": 97,
+    "n_agencies_pivot": 97
+   }
+  }
+ ],
+ "dropped_duplicate": [
+  {
+   "file": "FY2020_SF133_MONTHLY_Corps_of_Engineers_Civil_Works.xlsx",
+   "same_as": "FY2020_SF133_Corps_of_Engineers_Civil_Works.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_Agriculture.xlsx",
+   "same_as": "FY2020_SF133_Department_of_Agriculture.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_Commerce.xlsx",
+   "same_as": "FY2020_SF133_Department_of_Commerce.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_Defense_Military.xlsx",
+   "same_as": "FY2020_SF133_Department_of_Defense_Military.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_Education.xlsx",
+   "same_as": "FY2020_SF133_Department_of_Education.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_Energy.xlsx",
+   "same_as": "FY2020_SF133_Department_of_Energy.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_Health_and_Human_Services.xlsx",
+   "same_as": "FY2020_SF133_Department_of_Health_and_Human_Services.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_Homeland_Security.xlsx",
+   "same_as": "FY2020_SF133_Department_of_Homeland_Security.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_Housing_and_Urban_Development.xlsx",
+   "same_as": "FY2020_SF133_Department_of_Housing_and_Urban_Development.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_Justice.xlsx",
+   "same_as": "FY2020_SF133_Department_of_Justice.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_Labor.xlsx",
+   "same_as": "FY2020_SF133_Department_of_Labor.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_State.xlsx",
+   "same_as": "FY2020_SF133_Department_of_State.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_Transportation.xlsx",
+   "same_as": "FY2020_SF133_Department_of_Transportation.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_Veterans_Affairs.xlsx",
+   "same_as": "FY2020_SF133_Department_of_Veterans_Affairs.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_the_Interior.xlsx",
+   "same_as": "FY2020_SF133_Department_of_the_Interior.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Department_of_the_Treasury.xlsx",
+   "same_as": "FY2020_SF133_Department_of_the_Treasury.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Environmental_Protection_Agency.xlsx",
+   "same_as": "FY2020_SF133_Environmental_Protection_Agency.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Executive_Office_of_the_President.xlsx",
+   "same_as": "FY2020_SF133_Executive_Office_of_the_President.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_General_Services_Administration.xlsx",
+   "same_as": "FY2020_SF133_General_Services_Administration.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_International_Assistance_Programs.xlsx",
+   "same_as": "FY2020_SF133_International_Assistance_Programs.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Judicial_Branch.xlsx",
+   "same_as": "FY2020_SF133_Judicial_Branch.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_MONTHLY_Legislative_Branch.xlsx",
+   "same_as": "FY2020_SF133_Legislative_Branch.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_National_Aeronautics_and_Space_Administration.xlsx",
+   "same_as": "FY2020_SF133_MONTHLY_National_Aeronautics_and_Space_Administration.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_Office_of_Personnel_Management.xlsx",
+   "same_as": "FY2020_SF133_MONTHLY_Office_of_Personnel_Management.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_Other_Defense_Civil_Programs.xlsx",
+   "same_as": "FY2020_SF133_MONTHLY_Other_Defense_Civil_Programs.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_Small_Business_Administration.xlsx",
+   "same_as": "FY2020_SF133_MONTHLY_Small_Business_Administration.xlsx"
+  },
+  {
+   "file": "FY2020_SF133_Social_Security_Administration.xlsx",
+   "same_as": "FY2020_SF133_MONTHLY_Social_Security_Administration.xlsx"
+  }
+ ],
+ "dropped_defc": [
+  "SF133 DEFC_FY2020_Sep.xlsx"
+ ],
+ "dropped_other": [
+  {
+   "file": "Ab_Sign_Rpt_2020_02.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "Ab_Sign_Rpt_2020_03.xlsx",
+   "reason": "no_raw_data"
+  },
+  {
+   "file": "Ab_Sign_Rpt_2020_06.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "Ab_Sign_Rpt_2020_09.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "Ab_Sign_Rpt_2020_10.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "Ab_Sign_Rpt_2020_11.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "Ab_Sign_Rpt_2020_12.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "Rpt_SS_Cab_Dept_Agriculture_2020.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "Rpt_SS_Cab_Dept_Commerce_Defense--Military_2020.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "Rpt_SS_Cab_Dept_Education_Energy_Health_Human_Services_2020.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "Rpt_SS_Cab_Dept_Homeland_HUD_Interior_2020.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "Rpt_SS_Cab_Dept_Justice_Labor_State_2020.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "Rpt_SS_Cab_Dept_Treasury_Transportation_VA_2020.xls",
+   "reason": "old_xls_format"
+  },
+  {
+   "file": "Rpt_SS_Leg_Judic_2020.xls",
+   "reason": "old_xls_format"
+  }
+ ],
+ "source_dir": "raw_data/2020",
+ "rows": 296251,
+ "agencies": 125
+}
