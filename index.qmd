@@ -1,5 +1,6 @@
 ---
 title: "September Unobligated Spending Analysis"
+description: "Share of total budgetary resources left unobligated at the end of September, for accounts expiring that year, FY2018 to FY2025, with outliers at agency, bureau and account level."
 format: 
   html:
     theme: cosmo
